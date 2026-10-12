@@ -60,8 +60,27 @@ bun, Astro with `@astrojs/cloudflare`, Biome, Vitest, Playwright and axe, `@tara
 
 - `/`: explains the site, has a link builder (name plus pronoun shorthand, or a pronouns.page username), and credits pronouns.page per the OQL.
 - `/practice#n=<name>&p=<shorthand>`: static. Reads the fragment in the browser and fetches `/pronouns/<p>` from pronouns.page directly. The name never reaches our server. `p` uses pronouns.page's shorthand (`xe`, `xe&she`, or written out like `ae/aer/aer/aers/aerself`).
-- `/@<username>`: server-rendered. Fetches the pronouns.page profile, applies the opinion mapping and private-opinion filtering, and caches the result for about an hour with the Cache API.
+- `/@<username>`: server-rendered. Fetches the pronouns.page profile, applies the opinion mapping and private-opinion filtering, and caches the result for about an hour with the Cache API. "Profile not found" results are never cached, so someone who just made a card isn't stuck with a stale miss.
+- `/api/card/<username>`: server route returning the filtered identity as JSON. Same code path and cache as `/@<username>`, used by the landing page preview. The browser never fetches raw profiles, so private entries never reach it.
 - `/tara`: alias for `/@taravie`.
+
+## Sharing your own card
+
+transbot is a passthrough to pronouns.page: it stores no identities. Anyone with a pronouns.page card shares `transbot.net/@<username>`, with no sign-up. Edits to the card show up once the cache expires (about an hour).
+
+Landing page flow:
+
+1. **Two choices.** "I have a pronouns.page card" (username field) and "I don't have one yet". The second shows a "Set up your pronouns.page card" link to `https://en.pronouns.page/account` that opens in a new tab (`target="_blank" rel="noopener"`), plus a line saying the fragment link builder works without an account.
+2. **Remember the click locally.** Clicking the setup link sets a `localStorage` flag with a timestamp. It never leaves the browser, so transbot doesn't know who signed up. Storage access is wrapped in try/catch, and the page works without it.
+3. **Circle back.** When the flag is set and the tab becomes visible again (`visibilitychange`), or on a later visit, the page shows "Made your card? Enter your username to get your link" and focuses the username field. A "not now" button dismisses it. The flag expires after 14 days.
+4. **Check the card.** As the visitor types (debounced), the page calls `/api/card/<username>`:
+   - **Found:** a preview of what transbot will teach and accept (private, `close` and `jokingly` entries already removed), the `transbot.net/@<username>` link and a copy button. The flag is cleared.
+   - **Not found:** "We couldn't find that card yet. Cards show up once they're saved on pronouns.page." The prompt stays open.
+   - **Found but nothing to teach** (no `yes` name or pronoun set): says so, so the visitor can fix the card before sharing.
+
+The username field and preview are also useful to existing users, as a "check my card" step before sharing.
+
+Profiles are read from `en.pronouns.page` only. Other locales would need a locale in the URL (not in scope).
 
 ## Core module
 
@@ -104,3 +123,4 @@ No analytics on what anyone types. Profiles are cached, and nothing about practi
 - pronouns.page responses are saved as JSON fixtures, so CI never calls the live API.
 - Checker tests cover the trans-rights Common Mistakes cases: names with no pronoun inference, mixed sets, `no` names, irregular neopronouns, the special values, and private custom opinions (never shown, never graded).
 - E2E tests for every route, plus axe accessibility checks at mobile width.
+- E2E for the sharing flow: setup link opens in a new tab, the prompt appears on return, and the found, not-found and nothing-to-teach states (API mocked).
