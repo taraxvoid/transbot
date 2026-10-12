@@ -34,24 +34,23 @@ pronouns.page tags each name and pronoun set with an opinion.
 | `yes` | Taught and modeled. The first `yes` set is the one the site uses. |
 | `meh` | Accepted when the visitor uses it, never taught. |
 | `close` | "Only if we're close." Ignored and never shown. A stranger from a link isn't close. |
+| `jokingly` | Ignored and never shown, same as `close`. |
 | custom opinions | Private. Dropped entirely (see below). |
 | `no` | Flagged. Feedback never repeats the avoided value, it only states the right one ("xyr name is Tara"). |
-
-`jokingly` is open: proposed to be treated like `close`, not yet confirmed.
 
 **Custom opinions are private.** Any opinion that isn't a built-in key is dropped before the data reaches the browser: in the Worker for `/@username`, at build time for anything prerendered. Dropped entries are never displayed, taught or graded. If a visitor happens to type one, the checker doesn't react, because any reaction (even "xyr name is Tara") would confirm that the entry exists. The rule matches on "not a built-in key", so new custom opinions are private by default.
 
 ## Special pronoun values
 
-Resolved locally, since the API doesn't return forms for them:
+Resolved locally, since the API doesn't return forms for them. They follow the opinion mapping like any other entry:
 
-- `null`: use the name instead of pronouns. Drills use the name in every pronoun slot.
+- `null`: use the name instead of pronouns. As `yes`, drills use the name in every pronoun slot. As `meh`, the checker accepts the name in a pronoun slot but drills don't teach it.
 - `:void`: void / void / void's / void's / voidself.
-- `ask-me`: no drills. A short note says to ask the person.
+- `ask-me`: when it's the first `yes` entry, there are no drills, only a short note to ask the person. Anywhere else, the page shows that note alongside the drills for the `yes` sets.
 
 ## Ordering
 
-The site models the first `yes` set as listed on pronouns.page. There are no per-alias overrides. Tara's card currently lists `she&xe` and is being reordered to `xe&she` at the source, which matches xyr stated preference (xe first, she secondary).
+The site models the first `yes` set as listed on pronouns.page. There are no per-alias overrides. Tara's card lists `xe&she` (reordered 2026-10-12 to match xyr stated preference, xe first and she secondary).
 
 ## Stack
 
