@@ -80,6 +80,21 @@ describe('entriesFromFragment', () => {
         ])
     })
 
+    it('keeps a hand-typed & in a name out of p', () => {
+        expect(entriesFromFragment('#n=Sam&Jo&p=xe')).toEqual({
+            names: [{ value: 'Sam&Jo', opinion: 'yes' }],
+            pronouns: [{ value: 'xe', opinion: 'yes' }],
+        })
+        expect(entriesFromFragment('#n=Sam&Jo')?.pronouns).toEqual([])
+    })
+
+    it('drops stray empty keys that follow neither n nor p', () => {
+        expect(entriesFromFragment('#stray&n=Sam&p=xe')).toEqual({
+            names: [{ value: 'Sam', opinion: 'yes' }],
+            pronouns: [{ value: 'xe', opinion: 'yes' }],
+        })
+    })
+
     it('decodes + as a space in names', () => {
         expect(entriesFromFragment('#n=Sam+Lee&p=they')?.names[0].value).toBe(
             'Sam Lee',

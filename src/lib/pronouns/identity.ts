@@ -69,15 +69,17 @@ export function entriesFromProfile(profile: RawProfile): Entries | null {
 
 export function entriesFromFragment(hash: string): Entries | null {
     const params = new URLSearchParams(hash.replace(/^#/, ''))
-    const name = params.get('n')?.trim() ?? ''
+    let name = params.get('n')?.trim() ?? ''
     let pronouns = params.get('p')?.trim() ?? ''
-    // A hand-typed `p=xe&she` arrives as p=xe plus an empty `she` key.
-    // Any other stray empty key lands in p too; pronouns.page then 404s it
-    // and the page says it doesn't know the set, which is fine.
+    // A hand-typed `p=xe&she` or `n=Sam&Jo` arrives as the key plus an empty
+    // `she` / `Jo` key. Rejoin an empty key to whichever of n or p came
+    // right before it, so no part of a name ever ends up in p (which is
+    // fetched from pronouns.page). Other stray keys are dropped.
+    let last: 'n' | 'p' | null = null
     for (const [key, value] of params) {
-        if (key !== 'n' && key !== 'p' && value === '' && pronouns) {
-            pronouns += `&${key}`
-        }
+        if (key === 'n' || key === 'p') last = key
+        else if (value === '' && last === 'n' && name) name += `&${key}`
+        else if (value === '' && last === 'p' && pronouns) pronouns += `&${key}`
     }
     if (!name && !pronouns) return null
     return {
