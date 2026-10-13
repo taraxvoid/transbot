@@ -13,10 +13,10 @@ test('/ loads and credits pronouns.page under the OQL', async ({ page }) => {
     ).toHaveAttribute('href', 'https://en.pronouns.page/license')
 })
 
-// With no server routes yet, the adapter builds an assets-only Worker that
-// returns an empty 404, so only the status is checked here. Task 8 adds the
-// heading assertion once the Worker serves the prerendered 404 page.
-test('unknown paths get a 404', async ({ page }) => {
+test('unknown paths get the 404 page', async ({ page }) => {
     const response = await page.goto('/no-such-page')
     expect(response?.status()).toBe(404)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+        'Page not found',
+    )
 })
