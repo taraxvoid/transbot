@@ -1,0 +1,79 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { summarize } from '../lib/pronouns/identity'
+import { getCard } from '../lib/server/card'
+import { jsonForScript } from '../lib/server/embed'
+import { cardDeps } from '../lib/server/runtime'
+
+export const prerender = false
+
+const result = await getCard(Astro.params.username ?? '', cardDeps())
+if (result.status === 'not-found') Astro.response.status = 404
+if (result.status === 'error') Astro.response.status = 502
+
+const identity = result.status === 'found' ? result.identity : null
+const empty = identity ? summarize(identity).nothingToTeach : false
+const name = identity?.names.preferred
+const title = name ? `Practice with ${name} | transbot` : 'transbot'
+---
+
+<Layout title={title} noindex>
+    {
+        result.status === 'not-found' && (
+            <section>
+                <h1>Card not found</h1>
+                <p>
+                    We couldn't find that card yet. Cards show up once they're
+                    saved on pronouns.page.
+                </p>
+                <p>
+                    <a href="/">Back to transbot</a>
+                </p>
+            </section>
+        )
+    }
+    {
+        result.status === 'error' && (
+            <section>
+                <h1>pronouns.page didn't answer</h1>
+                <p>Try again in a moment.</p>
+                <p>
+                    <a href="/">Back to transbot</a>
+                </p>
+            </section>
+        )
+    }
+    {
+        identity && empty && (
+            <section>
+                <h1>Nothing to practice yet</h1>
+                <p>
+                    This card doesn't have a name or pronouns marked yes, so
+                    there's nothing to practice yet.
+                </p>
+            </section>
+        )
+    }
+    {
+        identity && !empty && (
+            <>
+                <div id="practice" />
+                <script
+                    type="application/json"
+                    id="identity-data"
+                    set:html={jsonForScript(identity)}
+                />
+            </>
+        )
+    }
+</Layout>
+
+<script>
+    import { mountPractice } from '../scripts/practice-ui'
+
+    const data = document.getElementById('identity-data')
+    const root = document.getElementById('practice')
+    if (data?.textContent && root) {
+        mountPractice(root, JSON.parse(data.textContent))
+    }
+</script>

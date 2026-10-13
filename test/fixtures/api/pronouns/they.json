@@ -1,0 +1,50 @@
+{
+    "name": "they/them",
+    "canonicalName": "they",
+    "description": "Singular “they”",
+    "normative": true,
+    "nullPronoun": false,
+    "morphemes": {
+        "pronoun_subject": "they",
+        "pronoun_object": "them",
+        "possessive_determiner": "their",
+        "possessive_pronoun": "theirs",
+        "reflexive": "themselves"
+    },
+    "pronunciations": {},
+    "plural": [
+        true
+    ],
+    "pluralHonorific": [
+        true
+    ],
+    "aliases": [
+        "they/them"
+    ],
+    "history": "Singular “they” has been used in English to describe an unspecified person {#link to=|https://www.academicwritingsuccess.com/the-astonishing-history-of-singular-they/|}since the late 1300s{/link} (it's even older than singular “you”!). Nowadays, it's the most popular choice among people who prefer gender neutral forms. It starts being {#link to=|https://www.merriam-webster.com/words-at-play/singular-nonbinary-they|}accepted by dictionaries{/link} too.{#break/}It is also common to use {#link to=|/they/them/themself|}“themself”{/link} as a reflexive form.",
+    "pronounceable": true,
+    "thirdForm": null,
+    "smallForm": "reflexive",
+    "sourcesInfo": "This list of sources includes both the version with {#link to=|/they|}“themselves”{/link} and {#link to=|/they/them/themselves|}“themself”{/link}, as well as those that don't happen to use reflexive.",
+    "examples": [
+        "I think they are very nice.",
+        "I met them recently.",
+        "Is this their dog?",
+        "They told me that the house is theirs.",
+        "They said they would rather do it themselves.",
+        "They are really beautiful.",
+        "They answered the phone.",
+        "They take good care of their cat.",
+        "They did it all by themselves.",
+        "They talk in their sleep.",
+        "They landed the plane safely.",
+        "They argue that…",
+        "Did you buy them their gift?",
+        "I asked them if I can borrow their pencil.",
+        "I talked to them yesterday.",
+        "Would you like to go to the movies with them?",
+        "Can you call them when their cat awakes?",
+        "Their graduation starts soon.",
+        "My favorite color is purple, theirs is yellow."
+    ]
+}

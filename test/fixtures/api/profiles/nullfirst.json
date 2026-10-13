@@ -1,0 +1,14 @@
+{
+    "username": "nullfirst",
+    "profiles": [
+        {
+            "locale": "en",
+            "opinions": [],
+            "names": [{ "value": "Jo", "opinion": "yes" }],
+            "pronouns": [
+                { "value": "null", "opinion": "yes" },
+                { "value": "she", "opinion": "meh" }
+            ]
+        }
+    ]
+}

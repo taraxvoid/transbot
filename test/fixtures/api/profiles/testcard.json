@@ -1,0 +1,68 @@
+{
+    "id": "01TESTCARD",
+    "username": "testcard",
+    "avatar": null,
+    "profiles": [
+        {
+            "id": "01TESTCARDEN",
+            "locale": "en",
+            "description": "private bio text that must never be forwarded",
+            "opinions": [
+                {
+                    "icon": "fa-light:lock-alt",
+                    "description": "secret circle",
+                    "colour": "purple",
+                    "style": "spoiler",
+                    "sentiment": 1
+                }
+            ],
+            "names": [
+                {
+                    "value": "Sam",
+                    "opinion": "yes",
+                    "pronunciation": null,
+                    "voice": null
+                },
+                {
+                    "value": "Sammy",
+                    "opinion": "meh",
+                    "pronunciation": null,
+                    "voice": null
+                },
+                {
+                    "value": "Samwise",
+                    "opinion": "close",
+                    "pronunciation": null,
+                    "voice": null
+                },
+                {
+                    "value": "Sprocket",
+                    "opinion": "jokingly",
+                    "pronunciation": null,
+                    "voice": null
+                },
+                {
+                    "value": "Hiddenname",
+                    "opinion": "lock-alt",
+                    "pronunciation": null,
+                    "voice": null
+                },
+                {
+                    "value": "Oldname",
+                    "opinion": "no",
+                    "pronunciation": null,
+                    "voice": null
+                }
+            ],
+            "pronouns": [
+                { "value": "xe&she", "opinion": "yes" },
+                { "value": "they", "opinion": "meh" },
+                { "value": "null", "opinion": "meh" },
+                { "value": "he", "opinion": "close" },
+                { "value": "ae/aer/aer/aers/aerself", "opinion": "lock-alt" },
+                { "value": ":void", "opinion": "jokingly" },
+                { "value": "ask-me", "opinion": "meh" }
+            ]
+        }
+    ]
+}

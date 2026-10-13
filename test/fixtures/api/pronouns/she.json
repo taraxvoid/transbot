@@ -1,0 +1,50 @@
+{
+    "name": "she/her",
+    "canonicalName": "she",
+    "description": "Normative “she/her”",
+    "normative": true,
+    "nullPronoun": false,
+    "morphemes": {
+        "pronoun_subject": "she",
+        "pronoun_object": "her",
+        "possessive_determiner": "her",
+        "possessive_pronoun": "hers",
+        "reflexive": "herself"
+    },
+    "pronunciations": {},
+    "plural": [
+        false
+    ],
+    "pluralHonorific": [
+        false
+    ],
+    "aliases": [
+        "she/her"
+    ],
+    "history": "",
+    "pronounceable": true,
+    "thirdForm": null,
+    "smallForm": null,
+    "sourcesInfo": null,
+    "examples": [
+        "I think she is very nice.",
+        "I met her recently.",
+        "Is this her dog?",
+        "She told me that the house is hers.",
+        "She said she would rather do it herself.",
+        "She is really beautiful.",
+        "She answered the phone.",
+        "She takes good care of her cat.",
+        "She did it all by herself.",
+        "She talks in her sleep.",
+        "She landed the plane safely.",
+        "She argues that…",
+        "Did you buy her her gift?",
+        "I asked her if I can borrow her pencil.",
+        "I talked to her yesterday.",
+        "Would you like to go to the movies with her?",
+        "Can you call her when her cat awakes?",
+        "Her graduation starts soon.",
+        "My favorite color is purple, hers is yellow."
+    ]
+}

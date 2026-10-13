@@ -1,0 +1,14 @@
+{
+    "username": "askfirst",
+    "profiles": [
+        {
+            "locale": "en",
+            "opinions": [],
+            "names": [{ "value": "Kit", "opinion": "yes" }],
+            "pronouns": [
+                { "value": "ask-me", "opinion": "yes" },
+                { "value": "xe", "opinion": "yes" }
+            ]
+        }
+    ]
+}

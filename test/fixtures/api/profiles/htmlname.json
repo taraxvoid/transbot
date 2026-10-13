@@ -1,0 +1,16 @@
+{
+    "username": "htmlname",
+    "profiles": [
+        {
+            "locale": "en",
+            "opinions": [],
+            "names": [
+                {
+                    "value": "</script><img src=x onerror=alert(1)>",
+                    "opinion": "yes"
+                }
+            ],
+            "pronouns": [{ "value": "xe", "opinion": "yes" }]
+        }
+    ]
+}

@@ -1,0 +1,23 @@
+{
+    "$schema": "./node_modules/wrangler/config-schema.json",
+    "name": "transbot",
+    "compatibility_date": "2026-09-01",
+    "assets": {
+        "directory": "./dist",
+        "binding": "ASSETS"
+    },
+    "vars": {
+        // e2e overrides this with a local fixture server (scripts/e2e-preview.ts)
+        "PRONOUNS_API_BASE": "https://en.pronouns.page/api/public/v3"
+    },
+    // Off on purpose: nothing about practice sessions is logged (see spec, Privacy).
+    "observability": {
+        "enabled": false
+    },
+    "routes": [
+        {
+            "pattern": "transbot.net",
+            "custom_domain": true
+        }
+    ]
+}

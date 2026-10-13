@@ -1,0 +1,48 @@
+{
+    "name": "ae/aer",
+    "canonicalName": "ae/aer",
+    "description": "",
+    "normative": false,
+    "nullPronoun": false,
+    "morphemes": {
+        "pronoun_subject": "ae",
+        "pronoun_object": "aer",
+        "possessive_determiner": "aer",
+        "possessive_pronoun": "aers",
+        "reflexive": "aerself"
+    },
+    "pronunciations": {},
+    "plural": [
+        false
+    ],
+    "pluralHonorific": [
+        false
+    ],
+    "aliases": [],
+    "history": "__generator__",
+    "pronounceable": false,
+    "thirdForm": null,
+    "smallForm": null,
+    "sourcesInfo": null,
+    "examples": [
+        "I think ae is very nice.",
+        "I met aer recently.",
+        "Is this aer dog?",
+        "Ae told me that the house is aers.",
+        "Ae said ae would rather do it aerself.",
+        "Ae is really beautiful.",
+        "Ae answered the phone.",
+        "Ae takes good care of aer cat.",
+        "Ae did it all by aerself.",
+        "Ae talks in aer sleep.",
+        "Ae landed the plane safely.",
+        "Ae argues that…",
+        "Did you buy aer aer gift?",
+        "I asked aer if I can borrow aer pencil.",
+        "I talked to aer yesterday.",
+        "Would you like to go to the movies with aer?",
+        "Can you call aer when aer cat awakes?",
+        "Aer graduation starts soon.",
+        "My favorite color is purple, aers is yellow."
+    ]
+}
