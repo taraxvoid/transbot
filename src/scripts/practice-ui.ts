@@ -7,7 +7,7 @@ import {
 import { type Blank, drillsFor } from '../lib/pronouns/drills'
 import { modeledSet, summarize } from '../lib/pronouns/identity'
 import type { Identity } from '../lib/pronouns/types'
-import { add, el } from './dom'
+import { el } from './dom'
 
 export function mountPractice(
     root: HTMLElement,
@@ -32,11 +32,10 @@ function cardSummary(identity: Identity): HTMLElement {
     const name = identity.names.preferred
     const list = el('dl')
     if (summary.teach.length) {
-        add(list, el('dt', {}, 'Use'), el('dd', {}, summary.teach.join(', ')))
+        list.append(el('dt', {}, 'Use'), el('dd', {}, summary.teach.join(', ')))
     }
     if (summary.accept.length) {
-        add(
-            list,
+        list.append(
             el('dt', {}, 'Also fine'),
             el('dd', {}, summary.accept.join(', ')),
         )
@@ -46,7 +45,7 @@ function cardSummary(identity: Identity): HTMLElement {
         { class: 'card-summary' },
         el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
     )
-    if (list.childElementCount) add(section, list)
+    if (list.childElementCount) section.append(list)
     return section
 }
 
@@ -165,7 +164,8 @@ function drillSection(identity: Identity, rng: () => number): HTMLElement {
 
 function noteItem(note: Note): HTMLElement {
     const item = el('li', { class: 'try' }, note.text)
-    if (note.suggestion) add(item, ' try ', el('em', {}, note.suggestion), '?')
+    if (note.suggestion)
+        item.append(' try ', el('em', {}, note.suggestion), '?')
     return item
 }
 

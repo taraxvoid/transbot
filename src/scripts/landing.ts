@@ -7,7 +7,7 @@ import {
     markSetupClicked,
     safeStorage,
 } from '../lib/setup-flag'
-import { add, el } from './dom'
+import { el } from './dom'
 
 type Lookup =
     | { kind: 'found'; identity: Identity }
@@ -37,14 +37,7 @@ const builderName = byId<HTMLInputElement>('b-name')
 const builderPronouns = byId<HTMLInputElement>('b-pronouns')
 const builderResult = byId('builder-result')
 
-// Replaces children via add(): Element.replaceChildren/append are shadowed by
-// workerd's types under astro check.
 const CHECKING = 'Checking pronouns.page...'
-
-function setChildren(parent: HTMLElement, ...children: Node[]): void {
-    parent.textContent = ''
-    add(parent, ...children)
-}
 
 function setOpen(
     button: HTMLButtonElement,
@@ -111,8 +104,7 @@ notNow.addEventListener('click', () => {
 
 function renderLookup(name: string, lookup: Lookup): void {
     if (lookup.kind === 'not-found') {
-        setChildren(
-            cardResult,
+        cardResult.replaceChildren(
             el(
                 'p',
                 {},
@@ -122,16 +114,14 @@ function renderLookup(name: string, lookup: Lookup): void {
         return
     }
     if (lookup.kind === 'error') {
-        setChildren(
-            cardResult,
+        cardResult.replaceChildren(
             el('p', {}, "Couldn't reach pronouns.page. Try again in a moment."),
         )
         return
     }
     const summary = summarize(lookup.identity)
     if (summary.nothingToTeach) {
-        setChildren(
-            cardResult,
+        cardResult.replaceChildren(
             el(
                 'p',
                 {},
@@ -157,7 +147,7 @@ function renderLookup(name: string, lookup: Lookup): void {
         )
     }
     parts.push(linkRow(cardLink(name, window.location.origin)))
-    setChildren(cardResult, ...parts)
+    cardResult.replaceChildren(...parts)
 }
 
 let latest = 0
@@ -167,10 +157,10 @@ async function lookup(): Promise<void> {
     const id = ++latest
     const name = normalizeUsername(username.value)
     if (!name) {
-        setChildren(cardResult)
+        cardResult.replaceChildren()
         return
     }
-    setChildren(cardResult, el('p', {}, 'Checking pronouns.page...'))
+    cardResult.replaceChildren(el('p', {}, 'Checking pronouns.page...'))
     let result: Lookup
     try {
         const res = await fetch(`/api/card/${encodeURIComponent(name)}`)
@@ -197,9 +187,9 @@ username.addEventListener('input', () => {
     // Re-inserting the same text would make the live region announce it
     // again on every keystroke, so only touch the DOM when it changes.
     const checking = normalizeUsername(username.value) !== ''
-    if (!checking) setChildren(cardResult)
+    if (!checking) cardResult.replaceChildren()
     else if (cardResult.textContent !== CHECKING) {
-        setChildren(cardResult, el('p', {}, CHECKING))
+        cardResult.replaceChildren(el('p', {}, CHECKING))
     }
     clearTimeout(timer)
     timer = setTimeout(() => void lookup(), DEBOUNCE_MS)
@@ -211,7 +201,7 @@ function updateBuilder(): void {
         builderPronouns.value,
         window.location.origin,
     )
-    setChildren(builderResult, ...(link ? [linkRow(link)] : []))
+    builderResult.replaceChildren(...(link ? [linkRow(link)] : []))
 }
 
 builderName.addEventListener('input', updateBuilder)

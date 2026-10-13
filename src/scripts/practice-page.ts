@@ -42,8 +42,7 @@ async function start(): Promise<void> {
         identity.sets.length === 0 &&
         identity.askMe === null
     if (unknown) {
-        root.querySelector('h1')?.insertAdjacentElement(
-            'afterend',
+        root.querySelector('h1')?.after(
             el(
                 'p',
                 { role: 'alert' },
