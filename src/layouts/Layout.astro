@@ -1,0 +1,39 @@
+---
+import '../styles/global.css'
+
+type Props = { title: string; description?: string; noindex?: boolean }
+const {
+    title,
+    description = "Practice someone's name and pronouns before you talk.",
+    noindex = false,
+} = Astro.props
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta name="referrer" content="no-referrer" />
+        {noindex && <meta name="robots" content="noindex" />}
+    </head>
+    <body>
+        <header class="site-header">
+            <a href="/" class="brand">transbot</a>
+        </header>
+        <main id="main">
+            <slot />
+        </main>
+        <footer class="site-footer">
+            <p>
+                Pronoun data comes from
+                <a href="https://en.pronouns.page">pronouns.page</a>, used
+                under the
+                <a href="https://en.pronouns.page/license"
+                    >Opinionated Queer License v1.4</a
+                >. transbot is not affiliated with pronouns.page.
+            </p>
+        </footer>
+    </body>
+</html>

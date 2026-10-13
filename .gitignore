@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.dev.vars*
+worker-configuration.d.ts
+test-results/
+playwright-report/
+.unlighthouse/

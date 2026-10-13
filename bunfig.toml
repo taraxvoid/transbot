@@ -1,0 +1,5 @@
+[install]
+minimumReleaseAge = 259200 # 3 days
+
+# Packages that bypass the gate
+minimumReleaseAgeExcludes = ["@taraxvoid/voidflow", "@types/bun", "bun-types", "typescript", "astro", "@astrojs/cloudflare", "@astrojs/check", "@playwright/test", "playwright", "playwright-core"]
