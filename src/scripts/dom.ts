@@ -4,7 +4,10 @@ type Child = Node | string
 // shadows the DOM overload under the type checker. Go through this shape.
 type Appendable = { append(...nodes: Child[]): void }
 
-export function add(parent: object, ...children: Child[]): void {
+export function add(
+    parent: HTMLElement | DocumentFragment,
+    ...children: Child[]
+): void {
     ;(parent as unknown as Appendable).append(...children)
 }
 
@@ -19,6 +22,6 @@ export function el<K extends keyof HTMLElementTagNameMap>(
     }
     // append() turns strings into text nodes, so names and card values never
     // parse as HTML.
-    add(node, ...children)
+    add(node as HTMLElement, ...children)
     return node
 }

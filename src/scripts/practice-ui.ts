@@ -19,8 +19,9 @@ export function mountPractice(
     const children: Node[] = [cardSummary(identity)]
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
     if (modeled) children.push(drillSection(identity, rng))
-    // ask-me first means only the note: no drills and no free typing.
-    if ((name || modeled) && identity.askMe !== 'only') {
+    // ask-me first means only the note: no drills and no free typing. With
+    // no sets there is nothing to compare against, so no free typing either.
+    if (identity.sets.length && identity.askMe !== 'only') {
         children.push(freeSection(identity))
     }
     root.replaceChildren(...children)

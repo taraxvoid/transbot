@@ -39,6 +39,8 @@ const builderResult = byId('builder-result')
 
 // Replaces children via add(): Element.replaceChildren/append are shadowed by
 // workerd's types under astro check.
+const CHECKING = 'Checking pronouns.page...'
+
 function setChildren(parent: HTMLElement, ...children: Node[]): void {
     parent.textContent = ''
     add(parent, ...children)
@@ -89,9 +91,13 @@ setupLink.addEventListener('click', () => markSetupClicked(storage, Date.now()))
 
 function circleBack(): void {
     if (!isSetupPending(storage, Date.now())) return
+    // Only take focus the first time, or when nothing else has it, so coming
+    // back to the tab never steals focus from a field being typed in.
+    const firstTime = returnPrompt.hidden
     returnPrompt.hidden = false
     setOpen(haveCard, cardPanel, true)
-    username.focus()
+    const active = document.activeElement
+    if (firstTime || !active || active === document.body) username.focus()
 }
 
 circleBack()
@@ -188,12 +194,13 @@ username.addEventListener('input', () => {
     // Invalidate any in-flight lookup now, not after the debounce, so a late
     // response for the old text never renders next to the new text.
     latest++
-    setChildren(
-        cardResult,
-        ...(normalizeUsername(username.value)
-            ? [el('p', {}, 'Checking pronouns.page...')]
-            : []),
-    )
+    // Re-inserting the same text would make the live region announce it
+    // again on every keystroke, so only touch the DOM when it changes.
+    const checking = normalizeUsername(username.value) !== ''
+    if (!checking) setChildren(cardResult)
+    else if (cardResult.textContent !== CHECKING) {
+        setChildren(cardResult, el('p', {}, CHECKING))
+    }
     clearTimeout(timer)
     timer = setTimeout(() => void lookup(), DEBOUNCE_MS)
 })

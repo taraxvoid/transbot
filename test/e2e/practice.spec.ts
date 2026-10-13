@@ -49,6 +49,13 @@ test('null drills the name', async ({ page }) => {
     await expect(drills.locator('.feedback .correct')).toHaveCount(3)
 })
 
+test('a card with no known sets offers no free typing', async ({ page }) => {
+    await page.goto('/practice#n=Sam&p=notaset')
+    await expect(
+        page.getByRole('region', { name: 'Say it your way' }),
+    ).toHaveCount(0)
+})
+
 test('free typing flags pronouns outside the link', async ({ page }) => {
     await page.goto('/practice#n=Quillon&p=xe')
     const free = page.getByRole('region', { name: 'Say it your way' })

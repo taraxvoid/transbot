@@ -112,6 +112,20 @@ describe('checkBlank', () => {
         expect(result).toMatchObject({ correct: true, expected: 'xem' })
     })
 
+    it('keeps a lowercase name as written', () => {
+        const bell = buildIdentity(
+            {
+                names: [{ value: 'bell', opinion: 'yes' }],
+                pronouns: [{ value: 'null', opinion: 'yes' }],
+            },
+            fetched,
+            xe.examples,
+        )
+        expect(
+            checkBlank('x', blank('pronoun_subject', true), bell).expected,
+        ).toBe('bell')
+    })
+
     it('grades a private set like any other miss', async () => {
         const result = checkBlank(
             'aer',
@@ -178,6 +192,27 @@ describe('checkFreeText', () => {
     it('never infers pronouns from a name alone', () => {
         expect(
             checkFreeText('Sam said she was tired', fromFragment('#n=Sam')),
+        ).toEqual([])
+    })
+
+    it('flags pronouns outside a meh-only card, with no suggestion', () => {
+        const identity = buildIdentity(
+            {
+                names: [{ value: 'Robin', opinion: 'yes' }],
+                pronouns: [{ value: 'they', opinion: 'meh' }],
+            },
+            fetched,
+            xe.examples,
+        )
+        expect(checkFreeText('Robin said she left', identity)).toEqual([
+            { text: '"she": Robin uses they/them.' },
+        ])
+        expect(checkFreeText('Robin said they left', identity)).toEqual([])
+    })
+
+    it('stays quiet when the card lists no sets at all', () => {
+        expect(
+            checkFreeText('Sam said she left', fromFragment('#n=Sam&p=nope')),
         ).toEqual([])
     })
 

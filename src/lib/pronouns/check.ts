@@ -93,7 +93,11 @@ export function checkBlank(
     const form = modeled.forms[blank.key]
     return {
         correct,
-        expected: blank.capitalize ? capitalize(form) : form,
+        // Names stay as written: "bell" is not "Bell".
+        expected:
+            blank.capitalize && modeled.kind !== 'name'
+                ? capitalize(form)
+                : form,
         pronunciation: modeled.pronunciations[blank.key],
     }
 }
@@ -115,7 +119,15 @@ function pronounNote(
         }
     }
     // Nothing on the card to compare against, and we never guess.
-    if (!modeled) return null
+    if (!modeled) {
+        // Only meh sets: nothing is taught, but a pronoun outside every
+        // accepted set is still worth a neutral note. No suggestion.
+        if (!identity.sets.length) return null
+        const labels = identity.sets.map((set) => set.label).join(', ')
+        return {
+            text: `"${word}": ${name ? `${name} uses` : 'The card lists'} ${labels}.`,
+        }
+    }
     const suggestion = [...new Set(keys.map((key) => modeled.forms[key]))].join(
         ' or ',
     )
