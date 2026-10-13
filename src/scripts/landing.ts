@@ -185,6 +185,15 @@ async function lookup(): Promise<void> {
 }
 
 username.addEventListener('input', () => {
+    // Invalidate any in-flight lookup now, not after the debounce, so a late
+    // response for the old text never renders next to the new text.
+    latest++
+    setChildren(
+        cardResult,
+        ...(normalizeUsername(username.value)
+            ? [el('p', {}, 'Checking pronouns.page...')]
+            : []),
+    )
     clearTimeout(timer)
     timer = setTimeout(() => void lookup(), DEBOUNCE_MS)
 })

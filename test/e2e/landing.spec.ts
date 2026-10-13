@@ -204,3 +204,42 @@ test('the link builder makes a working practice link', async ({ page }) => {
         page.getByRole('heading', { name: 'Practice with Sam Lee' }),
     ).toBeVisible()
 })
+
+test('a response landing inside the debounce window is discarded', async ({
+    page,
+}) => {
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => {
+        release = resolve
+    })
+    await page.route('**/api/card/gate', async (route) => {
+        await gate
+        await route.fulfill({ json: { identity: identity('Gate', true) } })
+    })
+    await page.goto('/')
+    await page
+        .getByRole('button', { name: 'I have a pronouns.page card' })
+        .click()
+    const field = page.getByLabel('pronouns.page username')
+    const requested = page.waitForRequest('**/api/card/gate')
+    await field.fill('gate')
+    await requested
+    // Change the field, then let the old response land before the debounce.
+    await field.fill('found')
+    release()
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 150)))
+    await expect(page.getByRole('link', { name: /\/@gate$/ })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+})
+
+test('clearing the field removes a shown card at once', async ({ page }) => {
+    await page.goto('/')
+    await page
+        .getByRole('button', { name: 'I have a pronouns.page card' })
+        .click()
+    const field = page.getByLabel('pronouns.page username')
+    await field.fill('found')
+    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await field.fill('')
+    await expect(page.getByRole('link', { name: /\/@found$/ })).toHaveCount(0)
+})
