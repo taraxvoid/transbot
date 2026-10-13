@@ -17,7 +17,7 @@
 - Package manager and scripts: `bun` only (`bun add`, `bun run`, `bunx`). No npm/yarn/pnpm.
 - Code style: Biome, 4-space indent, single quotes, no semicolons, trailing commas, line width 80 (synthomaha's `biome.json`). Run `bun run format` before every commit.
 - pronouns.page base URL: `https://en.pronouns.page/api/public/v3`. Profiles are read from `en` only.
-- Opinion mapping: `yes` is taught and modeled (first `yes` set is the model); `meh` is accepted, never taught; `close`, `jokingly` and every custom opinion (anything that is not `yes`/`meh`/`no`) are dropped before data reaches the browser and are never displayed, taught or graded; `no` names are flagged, and feedback never repeats the avoided value.
+- Opinion mapping: `yes` is taught and modeled (first `yes` set is the model); `meh` is accepted, never taught; `close`, `jokingly` and every custom opinion (anything that is not `yes`/`meh`/`no`) are dropped before data reaches the browser and are never displayed, taught or graded. `no` entries are dropped the same way (Ruling, Tara 2026-10-12: names marked `no` are often deadnames, so transbot never republishes them, not even to the browser). Feedback may quote the word the visitor typed, since that is the visitor's own text.
 - Special values: `null` means "use the name"; `:void` is void/void/void's/void's/voidself; `ask-me` as the first `yes` entry replaces the drills with a note, anywhere else it adds the note next to the drills.
 - Never infer pronouns from a name. UI copy about the person never falls back to a pronoun (no "they"/"them" stand-ins): use the name, or "this person", or "the card".
 - Never suggest names or pronouns, never ask about gender identity. Pronoun input is free text; common sets are only shortcuts.
@@ -54,7 +54,7 @@ src/layouts/Layout.astro                  header, footer with OQL credit
 src/pages/index.astro                     landing: explainer, card check, setup flow, link builder
 src/pages/practice.astro                  static; drills from the URL fragment
 src/pages/@[username].astro               server; drills from a pronouns.page card
-src/pages/tara.astro                      server; 302 to /@taravie
+src/pages/tara.ts                         server; 302 to /@taravie
 src/pages/api/card/[username].ts          server; filtered identity JSON
 src/pages/404.astro
 src/lib/pronouns/types.ts                 shared types and FORM_KEYS
@@ -413,7 +413,7 @@ jobs:
           command: deploy
 ```
 
-Note for Tara (not the implementer): the deploy needs `CLOUDFLARE_API_TOKEN` (secret) and `CLOUDFLARE_ACCOUNT_ID` (variable) on the GitHub `prod` environment, and the `transbot.net` zone in that Cloudflare account. The implementer does not create these.
+Note for Tara (not the implementer): the deploy needs `CLOUDFLARE_API_TOKEN` (secret) and `CLOUDFLARE_ACCOUNT_ID` (variable) on the GitHub `prod` environment, and the `transbot.net` zone in that Cloudflare account. The adapter also adds a `SESSION` KV binding with no id, so the first `wrangler deploy` creates a KV namespace: the API token needs Workers KV edit permission. The implementer does not create any of these.
 
 - [ ] **Step 6: Write the failing smoke test** (`test/e2e/site.spec.ts`)
 
@@ -433,19 +433,21 @@ test('/ loads and credits pronouns.page under the OQL', async ({ page }) => {
     ).toHaveAttribute('href', 'https://en.pronouns.page/license')
 })
 
-test('unknown paths get the 404 page', async ({ page }) => {
+// With no server routes yet, the adapter builds an assets-only Worker that
+// returns an empty 404, so only the status is checked here. Task 8 adds the
+// heading assertion once the Worker serves the prerendered 404 page.
+test('unknown paths get a 404', async ({ page }) => {
     const response = await page.goto('/no-such-page')
     expect(response?.status()).toBe(404)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-        'Page not found',
-    )
 })
 ```
 
+Do not add `not_found_handling: "404-page"` to `wrangler.jsonc` to get the page earlier: it can stop requests reaching the Worker once `/@username` exists.
+
 - [ ] **Step 7: Run it to see it fail**
 
-Run: `bun run build`
-Expected: FAIL, Astro reports no pages (or the build succeeds with no `index.html` and the e2e test fails on the missing heading).
+Run: `bun run build && bun run test:e2e:full`
+Expected: FAIL. The build may succeed, but the first test fails because `/` has no `h1` heading yet.
 
 - [ ] **Step 8: Write the layout, styles and pages**
 
@@ -645,8 +647,8 @@ import Layout from '../layouts/Layout.astro'
 <Layout title="transbot">
     <h1>Practice someone's name and pronouns</h1>
     <p>
-        Someone shared this site so you can get comfortable with their name
-        and pronouns. You fill in short sentences, and transbot shows the
+        Someone shared this site so you can get comfortable with a name and
+        pronouns before you talk. You fill in short sentences, and transbot shows the
         right form each time. Nobody keeps score.
     </p>
 </Layout>
@@ -711,7 +713,7 @@ export type Forms = Record<FormKey, string>
 export type Pronunciations = Partial<Record<FormKey, string>>
 
 /** A name or pronoun value after private and ignored opinions are dropped. */
-export type Entry = { value: string; opinion: 'yes' | 'meh' | 'no' }
+export type Entry = { value: string; opinion: 'yes' | 'meh' }
 export type Entries = { names: Entry[]; pronouns: Entry[] }
 
 export type PronounSet = {
@@ -726,7 +728,7 @@ export type PronounSet = {
 
 /** Everything the browser gets about a person. Already filtered. */
 export type Identity = {
-    names: { preferred: string | null; accepted: string[]; avoid: string[] }
+    names: { preferred: string | null; accepted: string[] }
     /** yes sets in card order, then meh sets in card order. */
     sets: PronounSet[]
     /** 'only': ask-me is the first yes entry, no drills. 'note': elsewhere. */
@@ -1496,12 +1498,11 @@ async function identityFor(username: string) {
 }
 
 describe('entriesFromProfile', () => {
-    it('keeps yes, meh and no, and drops close, jokingly and custom', async () => {
+    it('keeps yes and meh, and drops no, close, jokingly and custom', async () => {
         const entries = entriesFromProfile(await profile('testcard'))
         expect(entries?.names).toEqual([
             { value: 'Sam', opinion: 'yes' },
             { value: 'Sammy', opinion: 'meh' },
-            { value: 'Oldname', opinion: 'no' },
         ])
         expect(entries?.pronouns.map((p) => p.value)).toEqual([
             'xe&she',
@@ -1585,16 +1586,16 @@ describe('buildIdentity', () => {
         expect(identity.names).toEqual({
             preferred: 'Sam',
             accepted: ['Sam', 'Sammy'],
-            avoid: ['Oldname'],
         })
         expect(identity.askMe).toBe('note')
         expect(modeledSet(identity)?.label).toBe('xe/xem')
         expect(modeledSet(identity)?.pronunciations.pronoun_object).toBe('zɛm')
     })
 
-    it('never carries private, close or jokingly entries', async () => {
+    it('never carries no, private, close or jokingly entries', async () => {
         const json = JSON.stringify(await identityFor('testcard'))
         for (const hidden of [
+            'Oldname',
             'Hiddenname',
             'Samwise',
             'Sprocket',
@@ -1674,21 +1675,6 @@ describe('buildIdentity', () => {
         )
     })
 
-    it('keeps a name off the avoid list if it is also accepted', () => {
-        const identity = buildIdentity(
-            {
-                names: [
-                    { value: 'Ari', opinion: 'yes' },
-                    { value: 'ari', opinion: 'no' },
-                ],
-                pronouns: [],
-            },
-            fetched,
-            xe.examples,
-        )
-        expect(identity.names.avoid).toEqual([])
-    })
-
     it('never infers pronouns from a name alone', () => {
         const entries = entriesFromFragment('#n=Sam') as Entries
         const identity = buildIdentity(entries, fetched, xe.examples)
@@ -1703,6 +1689,15 @@ describe('summarize', () => {
             teach: ['Sam', 'xe/xem', 'she/her'],
             accept: ['Sammy', 'they/them', 'Sam instead of pronouns'],
             askMe: 'note',
+            nothingToTeach: false,
+        })
+    })
+
+    it('teaches no sets when ask-me comes first', async () => {
+        expect(summarize(await identityFor('askfirst'))).toEqual({
+            teach: ['Kit'],
+            accept: ['xe/xem'],
+            askMe: 'only',
             nothingToTeach: false,
         })
     })
@@ -1739,8 +1734,9 @@ type Resolved = { sets: BareSet[]; examples: string[] | null }
 
 // Only these survive. close, jokingly and every custom opinion (anything that
 // isn't a built-in key, so new custom opinions are private by default) are
-// dropped here, before anything is displayed, taught or graded.
-const KEPT = new Set(['yes', 'meh', 'no'])
+// dropped here, before anything is displayed, taught or graded. no is dropped
+// too: those names are often deadnames, and transbot never republishes them.
+const KEPT = new Set(['yes', 'meh'])
 const SITE_PREFIX = /^https?:\/\/[^/]*pronouns\.page\/+/i
 
 export const VOID_FORMS: Forms = {
@@ -1790,6 +1786,8 @@ export function entriesFromFragment(hash: string): Entries | null {
     const name = params.get('n')?.trim() ?? ''
     let pronouns = params.get('p')?.trim() ?? ''
     // A hand-typed `p=xe&she` arrives as p=xe plus an empty `she` key.
+    // Any other stray empty key lands in p too; pronouns.page then 404s it
+    // and the page says it doesn't know the set, which is fine.
     for (const [key, value] of params) {
         if (key !== 'n' && key !== 'p' && value === '' && pronouns) {
             pronouns += `&${key}`
@@ -1812,7 +1810,7 @@ export function pronounValuesToFetch(entries: Entries): string[] {
     return [
         ...new Set(
             entries.pronouns
-                .filter((e) => e.opinion !== 'no' && !isSpecial(e.value))
+                .filter((e) => !isSpecial(e.value))
                 .map((e) => e.value),
         ),
     ]
@@ -1913,13 +1911,7 @@ export function buildIdentity(
 ): Identity {
     const preferred =
         entries.names.find((n) => n.opinion === 'yes')?.value ?? null
-    const accepted = uniqueCaseless(
-        entries.names.filter((n) => n.opinion !== 'no').map((n) => n.value),
-    )
-    const acceptedLower = new Set(accepted.map((n) => n.toLowerCase()))
-    const avoid = uniqueCaseless(
-        entries.names.filter((n) => n.opinion === 'no').map((n) => n.value),
-    ).filter((n) => !acceptedLower.has(n.toLowerCase()))
+    const accepted = uniqueCaseless(entries.names.map((n) => n.value))
 
     const sets: PronounSet[] = []
     let askMe: Identity['askMe'] = null
@@ -1950,7 +1942,7 @@ export function buildIdentity(
     }
 
     const identity: Identity = {
-        names: { preferred, accepted, avoid },
+        names: { preferred, accepted },
         sets,
         askMe,
         templates: [],
@@ -1988,10 +1980,16 @@ export function summarize(identity: Identity): Summary {
     const { preferred, accepted } = identity.names
     const yes = identity.sets.filter((s) => s.opinion === 'yes')
     const meh = identity.sets.filter((s) => s.opinion === 'meh')
+    // With ask-me first, nothing is taught; later yes sets are only accepted.
+    const askFirst = identity.askMe === 'only'
     return {
-        teach: [...(preferred ? [preferred] : []), ...yes.map(setLabel)],
+        teach: [
+            ...(preferred ? [preferred] : []),
+            ...(askFirst ? [] : yes.map(setLabel)),
+        ],
         accept: [
             ...accepted.filter((n) => n !== preferred),
+            ...(askFirst ? yes.map(setLabel) : []),
             ...meh.map(setLabel),
         ],
         askMe: identity.askMe,
@@ -2145,14 +2143,8 @@ describe('checkFreeText', () => {
         expect(checkFreeText('Hiddenname gave aer the book', await testcard())).toEqual([])
     })
 
-    it('flags a no name without repeating it', async () => {
-        const notes = checkFreeText('Oldname went home', await testcard())
-        expect(notes).toEqual([{ text: 'Xyr name is Sam.' }])
-        expect(JSON.stringify(notes)).not.toContain('Oldname')
-    })
-
-    it('matches no names as whole words only', async () => {
-        expect(checkFreeText('Oldnames went home', await testcard())).toEqual([])
+    it('never reacts to names marked no (they never reach the browser)', async () => {
+        expect(checkFreeText('Oldname went home', await testcard())).toEqual([])
     })
 
     it('suggests the name when the card uses no pronouns', () => {
@@ -2257,24 +2249,6 @@ export function checkBlank(
 
 export type Note = { text: string; suggestion?: string }
 
-function containsWord(text: string, word: string): boolean {
-    const escaped = word.normalize('NFC').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return new RegExp(
-        `(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`,
-        'iu',
-    ).test(text.normalize('NFC'))
-}
-
-function nameNote(identity: Identity, modeled: PronounSet | null): Note {
-    const name = identity.names.preferred
-    // Never repeat the avoided name. Only state the right one.
-    if (!name) return { text: 'Check the card for the name to use.' }
-    if (modeled) {
-        return { text: `${capitalize(modeled.forms.possessive_determiner)} name is ${name}.` }
-    }
-    return { text: `The name to use is ${name}.` }
-}
-
 function pronounNote(
     word: string,
     keys: FormKey[],
@@ -2306,9 +2280,6 @@ function pronounNote(
 export function checkFreeText(text: string, identity: Identity): Note[] {
     const notes: Note[] = []
     const modeled = modeledSet(identity)
-    if (identity.names.avoid.some((avoided) => containsWord(text, avoided))) {
-        notes.push(nameNote(identity, modeled))
-    }
     const fine = new Set([
         ...identity.sets.flatMap((set) =>
             FORM_KEYS.flatMap((key) => spellings(set.forms[key])),
@@ -2332,7 +2303,7 @@ Biome will reflow the `LEXICON` rows; that is fine.
 - [ ] **Step 4: Run the tests to see them pass**
 
 Run: `bunx vitest run test/pronouns/check.test.ts`
-Expected: PASS (19 tests).
+Expected: PASS (18 tests).
 
 - [ ] **Step 5: Commit**
 
@@ -2535,10 +2506,12 @@ export async function loadIdentity(
     opts: ClientOptions = {},
 ): Promise<Identity | null> {
     const values = pronounValuesToFetch(entries)
-    const [xe, ...results] = await Promise.all([
-        getPronouns('xe', opts),
-        ...values.map((value) => getPronouns(value, opts)),
-    ])
+    // xe is fetched once even when the card lists it.
+    const requests = values.includes('xe') ? values : [...values, 'xe']
+    const results = await Promise.all(
+        requests.map((value) => getPronouns(value, opts)),
+    )
+    const xe = results[requests.indexOf('xe')]
     if (!xe.ok) return null
     if (results.some((r) => !r.ok && r.reason === 'error')) return null
     const fetched: Record<string, RawPronoun | null> = {}
@@ -2857,7 +2830,10 @@ export function mountPractice(
     const children: Node[] = [cardSummary(identity)]
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
     if (modeled) children.push(drillSection(identity, rng))
-    if (name || modeled || identity.askMe) children.push(freeSection(identity))
+    // ask-me first means only the note: no drills and no free typing.
+    if ((name || modeled) && identity.askMe !== 'only') {
+        children.push(freeSection(identity))
+    }
     root.replaceChildren(...children)
 }
 
@@ -3136,7 +3112,7 @@ git commit -m "feat: practice drills and free typing on /practice"
 ### Task 8: Server routes (`/@username`, `/api/card`, `/tara`) with a fixture API for e2e
 
 **Files:**
-- Create: `src/lib/server/runtime.ts`, `src/pages/@[username].astro`, `src/pages/api/card/[username].ts`, `src/pages/tara.astro`, `scripts/e2e-preview.ts`
+- Create: `src/lib/server/runtime.ts`, `src/pages/@[username].astro`, `src/pages/api/card/[username].ts`, `src/pages/tara.ts`, `scripts/e2e-preview.ts`
 - Modify: `playwright.config.ts` (swap the webServer command)
 - Test: `test/e2e/server.spec.ts`
 
@@ -3161,7 +3137,9 @@ import { fixtureResponse } from '../test/fixtures/resolve'
 const portIndex = process.argv.indexOf('--port')
 const port = portIndex === -1 ? '4344' : process.argv[portIndex + 1]
 
+// 127.0.0.1, not localhost: workerd may resolve localhost to ::1.
 const api = Bun.serve({
+    hostname: '127.0.0.1',
     port: 0,
     fetch: (request) => fixtureResponse(new URL(request.url).pathname),
 })
@@ -3174,7 +3152,7 @@ const redirect = JSON.parse(
 const generated = resolve('.wrangler/deploy', redirect.configPath)
 writeFileSync(
     resolve(dirname(generated), '.dev.vars'),
-    `PRONOUNS_API_BASE=http://localhost:${api.port}/v3\n`,
+    `PRONOUNS_API_BASE=http://127.0.0.1:${api.port}/v3\n`,
 )
 
 const preview = Bun.spawn(['bun', 'run', 'preview', '--port', port], {
@@ -3235,7 +3213,17 @@ export default {
 }
 ```
 
-- [ ] **Step 2: Write the failing tests** (`test/e2e/server.spec.ts`)
+- [ ] **Step 2: Write the failing tests** (`test/e2e/server.spec.ts`, plus one line in `test/e2e/site.spec.ts`)
+
+Now that the build has server routes, the Worker serves the prerendered 404 page. In `test/e2e/site.spec.ts`, rename the test to `'unknown paths get the 404 page'`, delete the comment above it, and add this after the status check:
+
+```ts
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+        'Page not found',
+    )
+```
+
+`test/e2e/server.spec.ts`:
 
 ```ts
 import { expect, test } from '@playwright/test'
@@ -3249,6 +3237,7 @@ test('/@testcard teaches the card without private entries', async ({ page }) => 
     await expect(page.getByText('You can also ask Sam')).toBeVisible()
     const html = await page.content()
     for (const hidden of [
+        'Oldname',
         'Hiddenname',
         'Samwise',
         'Sprocket',
@@ -3260,7 +3249,6 @@ test('/@testcard teaches the card without private entries', async ({ page }) => 
     ]) {
         expect(html).not.toContain(hidden)
     }
-    expect(await page.locator('body').innerText()).not.toContain('Oldname')
 })
 
 test('/@testcard drills the first yes set', async ({ page }) => {
@@ -3306,6 +3294,9 @@ test('/@askfirst shows only the ask note', async ({ page }) => {
     ).toBeVisible()
     await expect(
         page.getByRole('region', { name: 'Fill in the blanks' }),
+    ).toHaveCount(0)
+    await expect(
+        page.getByRole('region', { name: 'Say it your way' }),
     ).toHaveCount(0)
 })
 
@@ -3357,6 +3348,8 @@ export function cardDeps(): CardDeps {
     }
 }
 ```
+
+If `astro check` rejects `caches.default` (the generated Worker types and the DOM lib both declare `caches`), use `(caches as unknown as { default: Cache }).default` instead.
 
 `src/pages/api/card/[username].ts`:
 
@@ -3464,20 +3457,21 @@ const title = name ? `Practice with ${name} | transbot` : 'transbot'
 
 If Astro does not match the `@[username].astro` file name (the e2e tests 404), rename it to `src/pages/[handle].astro`, return the not-found branch unless `Astro.params.handle` starts with `@`, and pass `handle.slice(1)` to `getCard`.
 
-`src/pages/tara.astro`:
+`src/pages/tara.ts`:
 
-```astro
----
+```ts
+import type { APIRoute } from 'astro'
+
 export const prerender = false
+
 // 302, not 301: browsers cache 301s forever, and the alias may change.
-return Astro.redirect('/@taravie', 302)
----
+export const GET: APIRoute = ({ redirect }) => redirect('/@taravie', 302)
 ```
 
 - [ ] **Step 5: Run the tests to see them pass**
 
-Run: `bun run build && bunx playwright test server.spec`
-Expected: PASS (9 tests x 2 projects). If every `/@` test fails with "Card not found", the Worker isn't reading the fixture base: run `bun scripts/e2e-preview.ts --port 4399` by hand, then `curl -s localhost:4399/api/card/testcard | head -c 200`. Expect JSON with `"preferred":"Sam"`. If it isn't there, check where `.wrangler/deploy/config.json` points and that the `.dev.vars` file landed next to that config.
+Run: `bun run build && bunx playwright test server.spec site.spec`
+Expected: PASS (11 tests x 2 projects). If every `/@` test fails with "Card not found", the Worker isn't reading the fixture base: run `bun scripts/e2e-preview.ts --port 4399` by hand, then `curl -s localhost:4399/api/card/testcard | head -c 200`. Expect JSON with `"preferred":"Sam"`. If it isn't there, check where `.wrangler/deploy/config.json` points and that the `.dev.vars` file landed next to that config.
 
 - [ ] **Step 6: Run the whole e2e suite** (the new web server must not break earlier specs)
 
@@ -3745,7 +3739,7 @@ const XE = {
 
 function identity(preferred: string | null, withSet: boolean) {
     return {
-        names: { preferred, accepted: preferred ? [preferred] : [], avoid: [] },
+        names: { preferred, accepted: preferred ? [preferred] : [] },
         sets: withSet
             ? [{ kind: 'pronouns', label: 'xe/xem', forms: XE, pronunciations: {}, opinion: 'yes' }]
             : [],
@@ -3905,8 +3899,8 @@ import Layout from '../layouts/Layout.astro'
     <section>
         <h1>Practice someone's name and pronouns</h1>
         <p>
-            Someone shared this site so you can get comfortable with their name
-            and pronouns before you talk. You fill in short sentences, and
+            Someone shared this site so you can get comfortable with a name and
+            pronouns before you talk. You fill in short sentences, and
             transbot shows the right form each time. Nobody keeps score.
         </p>
         <p>
@@ -4265,7 +4259,7 @@ Expected: PASS (7 tests). If axe reports a violation, fix the markup or CSS it n
 [transbot.net](https://transbot.net) is a place to practice someone's name and pronouns. A person shares a link, and visitors fill in short sentences. transbot shows the right form each time and never keeps score.
 
 - `/practice#n=<name>&p=<pronouns>`: a link anyone can make. The name stays in the URL fragment and never reaches the server.
-- `/@<username>`: practice from a [pronouns.page](https://en.pronouns.page) card. Only entries marked yes, meh or no are used. Private custom opinions, "close" and "jokingly" are filtered out on the server.
+- `/@<username>`: practice from a [pronouns.page](https://en.pronouns.page) card. Only entries marked yes or meh are used. Names marked no, private custom opinions, "close" and "jokingly" are filtered out on the server and never reach the browser.
 
 Design: `docs/superpowers/specs/2026-10-12-transbot-design.md`.
 

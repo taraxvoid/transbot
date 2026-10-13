@@ -36,7 +36,7 @@ pronouns.page tags each name and pronoun set with an opinion.
 | `close` | "Only if we're close." Ignored and never shown. A stranger from a link isn't close. |
 | `jokingly` | Ignored and never shown, same as `close`. |
 | custom opinions | Private. Dropped entirely (see below). |
-| `no` | Flagged. Feedback never repeats the avoided value, it only states the right one ("xyr name is Tara"). |
+| `no` | Dropped, like custom opinions: never sent to the browser, displayed, taught or graded. These are often deadnames, and transbot doesn't republish them. |
 
 **Custom opinions are private.** Any opinion that isn't a built-in key is dropped before the data reaches the browser: in the Worker for `/@username`, at build time for anything prerendered. Dropped entries are never displayed, taught or graded. If a visitor happens to type one, the checker doesn't react, because any reaction (even "xyr name is Tara") would confirm that the entry exists. The rule matches on "not a built-in key", so new custom opinions are private by default.
 
@@ -90,7 +90,7 @@ Profiles are read from `en.pronouns.page` only. Other locales would need a local
 - `identity.ts`: turns a fragment or profile into `{ names: { preferred, accepted, avoid }, sets: [...] }`. Applies the opinion mapping, drops custom opinions, resolves special values.
 - `check.ts`: the deterministic checker.
   - Fill-in-the-blank: each blank knows its expected form (subject, object, possessive determiner, possessive pronoun, reflexive). An answer is correct if it matches that form in any accepted set, ignoring case. Mixing sets within one sentence is allowed.
-  - Free typing: flags third-person pronouns not in an accepted set, and names marked `no`. Feedback is soft ("Tara uses xe/xem, try *xem*?") because "her" might refer to someone else.
+  - Free typing: flags third-person pronouns not in an accepted set. Feedback is soft ("Tara uses xe/xem, try *xem*?") because "her" might refer to someone else. A note may quote the word the visitor typed, since that's the visitor's own text and reveals nothing from the card.
 
 ## Drill flow (phase 1)
 
@@ -121,6 +121,6 @@ No analytics on what anyone types. Profiles are cached, and nothing about practi
 ## Testing
 
 - pronouns.page responses are saved as JSON fixtures, so CI never calls the live API.
-- Checker tests cover the trans-rights Common Mistakes cases: names with no pronoun inference, mixed sets, `no` names, irregular neopronouns, the special values, and private custom opinions (never shown, never graded).
+- Checker tests cover the trans-rights Common Mistakes cases: names with no pronoun inference, mixed sets, `no` names (never shipped, never flagged), irregular neopronouns, the special values, and private custom opinions (never shown, never graded).
 - E2E tests for every route, plus axe accessibility checks at mobile width.
 - E2E for the sharing flow: setup link opens in a new tab, the prompt appears on return, and the found, not-found and nothing-to-teach states (API mocked).
