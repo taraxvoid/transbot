@@ -1,0 +1,11 @@
+{
+    "username": "mehonly",
+    "profiles": [
+        {
+            "locale": "en",
+            "opinions": [],
+            "names": [{ "value": "Robin", "opinion": "meh" }],
+            "pronouns": [{ "value": "they", "opinion": "meh" }]
+        }
+    ]
+}

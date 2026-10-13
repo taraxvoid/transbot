@@ -1,0 +1,59 @@
+{
+    "name": "xe/xem or she/her",
+    "canonicalName": "xe&she",
+    "description": [
+        "Neopronoun “xe/xem”",
+        "Normative “she/her”"
+    ],
+    "normative": false,
+    "nullPronoun": false,
+    "morphemes": {
+        "pronoun_subject": "xe&she",
+        "pronoun_object": "xem&her",
+        "possessive_determiner": "xyr&her",
+        "possessive_pronoun": "xyrs&hers",
+        "reflexive": "xemself&herself"
+    },
+    "pronunciations": {
+        "pronoun_subject": "zi",
+        "pronoun_object": "zɛm",
+        "possessive_determiner": "ziɹ",
+        "possessive_pronoun": "ziɹz",
+        "reflexive": "zɛmˈsɛlf"
+    },
+    "plural": [
+        false,
+        false
+    ],
+    "pluralHonorific": [
+        false,
+        false
+    ],
+    "aliases": [],
+    "history": "",
+    "pronounceable": false,
+    "thirdForm": null,
+    "smallForm": null,
+    "sourcesInfo": null,
+    "examples": [
+        "I think xe is very nice.",
+        "I met xem recently.",
+        "Is this xyr dog?",
+        "Xe told me that the house is xyrs.",
+        "Xe said xe would rather do it xemself.",
+        "Xe is really beautiful.",
+        "Xe answered the phone.",
+        "Xe takes good care of xyr cat.",
+        "Xe did it all by xemself.",
+        "Xe talks in xyr sleep.",
+        "Xe landed the plane safely.",
+        "Xe argues that…",
+        "Did you buy xem xyr gift?",
+        "I asked xem if I can borrow xyr pencil.",
+        "I talked to xem yesterday.",
+        "Would you like to go to the movies with xem?",
+        "Can you call xem when xyr cat awakes?",
+        "Xyr graduation starts soon.",
+        "My favorite color is purple, xyrs is yellow."
+    ]
+}
