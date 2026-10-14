@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { parsePronounInput, pronounLabel } from '../../src/lib/pronouns/parse'
+import {
+    needsLookup,
+    parsePronounInput,
+    pronounLabel,
+} from '../../src/lib/pronouns/parse'
 
 describe('parsePronounInput', () => {
     it.each([
@@ -7,8 +11,10 @@ describe('parsePronounInput', () => {
         ['she/they/xe', ['she', 'they', 'xe']],
         ['He / They', ['he', 'they']],
         ['she/her', ['she']],
-        ['he/him/his/his/himself', ['he/him/his/his/himself']],
-        ['ae/aer/aer/aers/aerself', ['ae/aer/aer/aers/aerself']],
+        ['he/him/his/his/himself', ['he']],
+        ['ae/aer/aer/aers/aerself', ['ae']],
+        ['they/them/their/theirs/themselves', ['they']],
+        ['They/Them/Their/Theirs/Themselves', ['they']],
         ['she/her/they/them/xe', ['she', 'they', 'xe']],
         ['they/them/theirs', ['they']],
         ['she/her/they/them', ['she', 'they']],
@@ -30,6 +36,13 @@ describe('parsePronounInput', () => {
     it('keeps a full custom set whole', () => {
         expect(parsePronounInput('ne/nem/nir/nirs/nemself')).toEqual([
             'ne/nem/nir/nirs/nemself',
+        ])
+    })
+
+    it('keeps a five-form variant of a common set as typed', () => {
+        // pronouns.page has no short value for they with themself.
+        expect(parsePronounInput('they/them/their/theirs/themself')).toEqual([
+            'they/them/their/theirs/themself',
         ])
     })
 
@@ -62,6 +75,22 @@ describe('parsePronounInput', () => {
         expect(parsePronounInput('she, she/her')).toEqual(['she'])
         expect(parsePronounInput('  ')).toEqual([])
         expect(parsePronounInput('/,/')).toEqual([])
+    })
+})
+
+describe('needsLookup', () => {
+    it('skips common sets and special values', () => {
+        expect(needsLookup('they')).toBe(false)
+        expect(needsLookup('ze/zir')).toBe(false)
+        expect(needsLookup('null')).toBe(false)
+        expect(needsLookup('ask-me')).toBe(false)
+        expect(needsLookup(':Void')).toBe(false)
+    })
+
+    it('checks anything else', () => {
+        expect(needsLookup('xee')).toBe(true)
+        expect(needsLookup('ne/nem/nir/nirs/nemself')).toBe(true)
+        expect(needsLookup('they/them/their/theirs/themself')).toBe(true)
     })
 })
 

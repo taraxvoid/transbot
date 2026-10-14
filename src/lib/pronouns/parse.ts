@@ -6,6 +6,8 @@ type KnownSet = {
     label: string
     /** Subject first. */
     forms: string[]
+    /** The five forms pronouns.page gives `value`, in FORM_KEYS order. */
+    full: string
 }
 
 /**
@@ -18,36 +20,62 @@ export const KNOWN_SETS: KnownSet[] = [
         value: 'she',
         label: 'she/her',
         forms: ['she', 'her', 'hers', 'herself'],
+        full: 'she/her/her/hers/herself',
     },
-    { value: 'he', label: 'he/him', forms: ['he', 'him', 'his', 'himself'] },
+    {
+        value: 'he',
+        label: 'he/him',
+        forms: ['he', 'him', 'his', 'himself'],
+        full: 'he/him/his/his/himself',
+    },
     {
         value: 'they',
         label: 'they/them',
         forms: ['they', 'them', 'their', 'theirs', 'themself', 'themselves'],
+        full: 'they/them/their/theirs/themselves',
     },
     {
         value: 'xe',
         label: 'xe/xem',
         forms: ['xe', 'xem', 'xyr', 'xyrs', 'xemself'],
+        full: 'xe/xem/xyr/xyrs/xemself',
     },
-    { value: 'ze', label: 'ze/hir', forms: ['ze', 'hir', 'hirs', 'hirself'] },
+    {
+        value: 'ze',
+        label: 'ze/hir',
+        forms: ['ze', 'hir', 'hirs', 'hirself'],
+        full: 'ze/hir/hir/hirs/hirself',
+    },
     {
         value: 'ze/zir',
         label: 'ze/zir',
         forms: ['ze', 'zir', 'zirs', 'zirself'],
+        full: 'ze/zir/zir/zirs/zirself',
     },
     {
         value: 'fae',
         label: 'fae/faer',
         forms: ['fae', 'faer', 'faers', 'faerself'],
+        full: 'fae/faer/faer/faers/faerself',
     },
-    { value: 'it', label: 'it/its', forms: ['it', 'its', 'itself'] },
+    {
+        value: 'it',
+        label: 'it/its',
+        forms: ['it', 'its', 'itself'],
+        full: 'it/it/its/its/itself',
+    },
     {
         value: 'ey',
         label: 'ey/em',
         forms: ['ey', 'em', 'eir', 'eirs', 'emself'],
+        full: 'ey/em/eir/eirs/emself',
     },
-    { value: 'ae', label: 'ae/aer', forms: ['ae', 'aer', 'aers', 'aerself'] },
+    {
+        value: 'ae',
+        label: 'ae/aer',
+        forms: ['ae', 'aer', 'aers', 'aerself'],
+        full: 'ae/aer/aer/aers/aerself',
+    },
 ]
 
 const CHUNK_SEPARATOR = /[\s,;]+|\b(?:and|or)\b/i
@@ -102,10 +130,14 @@ function groupsOf(piece: string): string[] {
               ? [g.parts.join('/')]
               : [],
     )
-    // All five forms of one set: keep them as written, they're exact.
+    // All five forms of one set: keep them as written, they're exact. But
+    // pronouns.page marks every written-out set singular, even
+    // they/them/their/theirs/themselves, so a common set goes back to its
+    // short value, which keeps the plural flag (and the short label).
     const parts = piece.split('/').filter((p) => p.trim())
     if (values.length === 1 && parts.length === 5) {
-        return [parts.map((p) => p.trim().toLowerCase()).join('/')]
+        const full = parts.map((p) => p.trim().toLowerCase()).join('/')
+        return [KNOWN_SETS.find((s) => s.full === full)?.value ?? full]
     }
     return values
 }
@@ -127,6 +159,14 @@ export function parsePronounInput(text: string): string[] {
         .flatMap((chunk) => chunk.split(SET_SEPARATOR))
         .flatMap(groupsOf)
     return [...new Set(values)]
+}
+
+/**
+ * Whether the builder must ask pronouns.page about a value before linking to
+ * it. Common sets are known to resolve, and special values are local.
+ */
+export function needsLookup(value: string): boolean {
+    return !isSpecial(value) && !KNOWN_SETS.some((s) => s.value === value)
 }
 
 /** "he/him" for a value parsePronounInput makes, else the value itself. */

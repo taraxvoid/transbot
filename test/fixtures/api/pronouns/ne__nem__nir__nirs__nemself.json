@@ -1,0 +1,48 @@
+{
+    "name": "ne/nem",
+    "canonicalName": "ne/nem",
+    "description": "",
+    "normative": false,
+    "nullPronoun": false,
+    "morphemes": {
+        "pronoun_subject": "ne",
+        "pronoun_object": "nem",
+        "possessive_determiner": "nir",
+        "possessive_pronoun": "nirs",
+        "reflexive": "nemself"
+    },
+    "pronunciations": {},
+    "plural": [
+        false
+    ],
+    "pluralHonorific": [
+        false
+    ],
+    "aliases": [],
+    "history": "__generator__",
+    "pronounceable": false,
+    "thirdForm": null,
+    "smallForm": null,
+    "sourcesInfo": null,
+    "examples": [
+        "I think ne is very nice.",
+        "I met nem recently.",
+        "Is this nir dog?",
+        "Ne told me that the house is nirs.",
+        "Ne said ne would rather do it nemself.",
+        "Ne is really beautiful.",
+        "Ne answered the phone.",
+        "Ne takes good care of nir cat.",
+        "Ne did it all by nemself.",
+        "Ne talks in nir sleep.",
+        "Ne landed the plane safely.",
+        "Ne argues that…",
+        "Did you buy nem nir gift?",
+        "I asked nem if I can borrow nir pencil.",
+        "I talked to nem yesterday.",
+        "Would you like to go to the movies with nem?",
+        "Can you call nem when nir cat awakes?",
+        "Nir graduation starts soon.",
+        "My favorite color is purple, nirs is yellow."
+    ]
+}

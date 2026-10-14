@@ -15,13 +15,13 @@ describe('practiceLink', () => {
     it('round-trips through entriesFromFragment', () => {
         const link = practiceLink(
             ' Zoë ',
-            ['ae/aer/aer/aers/aerself', 'he'],
+            ['ne/nem/nir/nirs/nemself', 'he'],
             'https://x',
         )
         const entries = entriesFromFragment(new URL(link ?? '').hash)
         expect(entries?.names[0].value).toBe('Zoë')
         expect(entries?.pronouns.map((p) => p.value)).toEqual([
-            'ae/aer/aer/aers/aerself',
+            'ne/nem/nir/nirs/nemself',
             'he',
         ])
     })

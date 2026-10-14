@@ -16,6 +16,7 @@ const fetched: Record<string, RawPronoun | null> = {
     she: loadPronounFixture('she'),
     they: loadPronounFixture('they'),
     'xe&she': loadPronounFixture('xe&she'),
+    ae: loadPronounFixture('ae'),
     'ae/aer/aer/aers/aerself': loadPronounFixture('ae/aer/aer/aers/aerself'),
 }
 
