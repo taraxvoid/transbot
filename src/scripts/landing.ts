@@ -23,10 +23,6 @@ function byId<T extends HTMLElement>(id: string): T {
     return node as T
 }
 
-const haveCard = byId<HTMLButtonElement>('have-card')
-const noCard = byId<HTMLButtonElement>('no-card')
-const cardPanel = byId('card-panel')
-const setupPanel = byId('setup-panel')
 const setupLink = byId<HTMLAnchorElement>('setup-link')
 const returnPrompt = byId('return-prompt')
 const notNow = byId<HTMLButtonElement>('not-now')
@@ -38,15 +34,6 @@ const builderPronouns = byId<HTMLInputElement>('b-pronouns')
 const builderResult = byId('builder-result')
 
 const CHECKING = 'Checking pronouns.page...'
-
-function setOpen(
-    button: HTMLButtonElement,
-    panel: HTMLElement,
-    open: boolean,
-): void {
-    panel.hidden = !open
-    button.setAttribute('aria-expanded', String(open))
-}
 
 function copyButton(text: string): HTMLButtonElement {
     const button = el(
@@ -74,12 +61,6 @@ function linkRow(href: string): HTMLElement {
     )
 }
 
-haveCard.addEventListener('click', () =>
-    setOpen(haveCard, cardPanel, cardPanel.hidden),
-)
-noCard.addEventListener('click', () =>
-    setOpen(noCard, setupPanel, setupPanel.hidden),
-)
 setupLink.addEventListener('click', () => markSetupClicked(storage, Date.now()))
 
 function circleBack(): void {
@@ -88,7 +69,6 @@ function circleBack(): void {
     // back to the tab never steals focus from a field being typed in.
     const firstTime = returnPrompt.hidden
     returnPrompt.hidden = false
-    setOpen(haveCard, cardPanel, true)
     const active = document.activeElement
     if (firstTime || !active || active === document.body) username.focus()
 }

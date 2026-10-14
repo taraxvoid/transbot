@@ -13,14 +13,10 @@ test.beforeEach(async ({ page }) => {
     await mockPronounsPage(page)
 })
 
-test('/ has no axe violations with every panel open', async ({ page }) => {
+test('/ has no axe violations with a link shown', async ({ page }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    await page.getByRole('button', { name: "I don't have one yet" }).click()
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
-    await page.getByLabel('Pronouns', { exact: true }).fill('xe')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
+    await page.getByLabel('Your pronouns', { exact: true }).fill('xe')
     await expectNoViolations(page)
 })
 
