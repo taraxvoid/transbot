@@ -91,7 +91,9 @@ test('a link without a fragment explains what to do', async ({ page }) => {
 test('an unknown set gets a gentle message', async ({ page }) => {
     await page.goto('/practice#n=Quillon&p=notaset')
     await expect(
-        page.getByText("pronouns.page doesn't know those pronouns."),
+        page.getByText(
+            "pronouns.page doesn't have these pronouns yet, so there's nothing to practice here.",
+        ),
     ).toBeVisible()
     await expect(
         page.getByRole('region', { name: 'Fill in the blanks' }),

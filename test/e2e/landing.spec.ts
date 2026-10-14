@@ -232,6 +232,50 @@ test('the link builder understands typed shorthand', async ({ page }) => {
     await expect(page.getByRole('link', { name: /#n=Sam/ })).toHaveCount(0)
 })
 
+test('the link builder only links pronouns pronouns.page has', async ({
+    page,
+}) => {
+    const requests: string[] = []
+    await mockPronounsPage(page, requests)
+    await page.goto('/')
+    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByLabel('Other pronouns').fill('xee')
+    await expect(
+        page.getByText(
+            `pronouns.page doesn't have "xee" yet. You can write out all five forms, like ae/aer/aer/aers/aerself.`,
+        ),
+    ).toBeVisible()
+    await expect(page.getByRole('link', { name: /#n=Sam/ })).toHaveCount(0)
+
+    await page.getByLabel('Other pronouns').fill('ne/nem/nir/nirs/nemself')
+    await expect(
+        page.getByRole('link', {
+            name: /#n=Sam&p=ne%2Fnem%2Fnir%2Fnirs%2Fnemself$/,
+        }),
+    ).toBeVisible()
+    // Common sets are never looked up, and the name never goes anywhere.
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    expect(requests.some((url) => url.endsWith('/pronouns/she'))).toBe(false)
+    expect(requests.some((url) => url.includes('Sam'))).toBe(false)
+})
+
+test('the link builder says when pronouns.page is unreachable', async ({
+    page,
+}) => {
+    await page.route('https://en.pronouns.page/api/**', (route) =>
+        route.fulfill({ status: 503 }),
+    )
+    await page.goto('/')
+    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByLabel('Other pronouns').fill('ne/nem')
+    await expect(
+        page.getByText(
+            "Couldn't reach pronouns.page to check those pronouns. Try again in a moment.",
+        ),
+    ).toBeVisible()
+    await expect(page.getByRole('link', { name: /#n=Sam/ })).toHaveCount(0)
+})
+
 test('a response landing inside the debounce window is discarded', async ({
     page,
 }) => {

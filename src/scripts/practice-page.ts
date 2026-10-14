@@ -46,7 +46,9 @@ async function start(): Promise<void> {
             el(
                 'p',
                 { role: 'alert' },
-                "pronouns.page doesn't know those pronouns. Check the spelling, or write all five forms, like ae/aer/aer/aers/aerself.",
+                "pronouns.page doesn't have these pronouns yet, so there's nothing to practice here. ",
+                el('a', { href: '/' }, 'Make a practice link'),
+                '.',
             ),
         )
     }
