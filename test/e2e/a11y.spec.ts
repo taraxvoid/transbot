@@ -20,7 +20,9 @@ test('/ has no axe violations with every panel open', async ({ page }) => {
         .click()
     await page.getByRole('button', { name: "I don't have one yet" }).click()
     await page.getByLabel('Name', { exact: true }).fill('Sam')
-    await page.getByLabel('Pronouns', { exact: true }).fill('xe')
+    await page.getByRole('checkbox', { name: 'xe/xem' }).check()
+    await page.getByRole('checkbox', { name: 'they/them' }).check()
+    await page.getByLabel('Other pronouns').fill('ne/nem')
     await expectNoViolations(page)
 })
 

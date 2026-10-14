@@ -194,15 +194,42 @@ test('the link builder makes a working practice link', async ({ page }) => {
     await mockPronounsPage(page)
     await page.goto('/')
     await page.getByLabel('Name', { exact: true }).fill('Sam Lee')
-    await page.getByLabel('Pronouns', { exact: true }).fill('xe&she')
+    await page.getByRole('checkbox', { name: 'xe/xem' }).check()
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await expect(
+        page.getByText(
+            'Practice sentences use xe/xem. Also accepted: she/her.',
+        ),
+    ).toBeVisible()
     const link = page.getByRole('link', {
-        name: /\/practice#n=Sam\+Lee&p=xe%26she$/,
+        name: /\/practice#n=Sam\+Lee&p=xe&p=she$/,
     })
     await expect(link).toBeVisible()
     await link.click()
     await expect(
         page.getByRole('heading', { name: 'Practice with Sam Lee' }),
     ).toBeVisible()
+})
+
+test('the link builder understands typed shorthand', async ({ page }) => {
+    await page.goto('/')
+    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await page.getByLabel('Other pronouns').fill('he/they')
+    await expect(
+        page.getByRole('link', { name: /#n=Sam&p=she&p=he&p=they$/ }),
+    ).toBeVisible()
+    // Picked sets come first, in pick order; rechecking moves one last.
+    await page.getByRole('checkbox', { name: 'it/its' }).check()
+    await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await expect(
+        page.getByRole('link', { name: /#n=Sam&p=it&p=she&p=he&p=they$/ }),
+    ).toBeVisible()
+    await page.getByRole('checkbox', { name: 'it/its' }).uncheck()
+    await page.getByLabel('Other pronouns').fill('')
+    await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
+    await expect(page.getByRole('link', { name: /#n=Sam/ })).toHaveCount(0)
 })
 
 test('a response landing inside the debounce window is discarded', async ({

@@ -3,25 +3,33 @@ import { cardLink, normalizeUsername, practiceLink } from '../../src/lib/links'
 import { entriesFromFragment } from '../../src/lib/pronouns/identity'
 
 describe('practiceLink', () => {
-    it('encodes the name and shorthand into the fragment', () => {
-        const link = practiceLink('Sam Lee', 'xe&she', 'https://transbot.net')
-        expect(link).toBe('https://transbot.net/practice#n=Sam+Lee&p=xe%26she')
+    it('encodes the name and each set into the fragment', () => {
+        const link = practiceLink(
+            'Sam Lee',
+            ['xe', 'she'],
+            'https://transbot.net',
+        )
+        expect(link).toBe('https://transbot.net/practice#n=Sam+Lee&p=xe&p=she')
     })
 
     it('round-trips through entriesFromFragment', () => {
         const link = practiceLink(
             ' Zoë ',
-            'ae/aer/aer/aers/aerself',
+            ['ae/aer/aer/aers/aerself', 'he'],
             'https://x',
         )
         const entries = entriesFromFragment(new URL(link ?? '').hash)
         expect(entries?.names[0].value).toBe('Zoë')
-        expect(entries?.pronouns[0].value).toBe('ae/aer/aer/aers/aerself')
+        expect(entries?.pronouns.map((p) => p.value)).toEqual([
+            'ae/aer/aer/aers/aerself',
+            'he',
+        ])
     })
 
     it('needs both a name and pronouns', () => {
-        expect(practiceLink('', 'xe', 'https://x')).toBeNull()
-        expect(practiceLink('Sam', '  ', 'https://x')).toBeNull()
+        expect(practiceLink('', ['xe'], 'https://x')).toBeNull()
+        expect(practiceLink('Sam', [], 'https://x')).toBeNull()
+        expect(practiceLink('Sam', ['  '], 'https://x')).toBeNull()
     })
 })
 

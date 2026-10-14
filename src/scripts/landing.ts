@@ -1,5 +1,6 @@
 import { cardLink, normalizeUsername, practiceLink } from '../lib/links'
 import { summarize } from '../lib/pronouns/identity'
+import { parsePronounInput, pronounLabel } from '../lib/pronouns/parse'
 import type { Identity } from '../lib/pronouns/types'
 import {
     clearSetup,
@@ -34,7 +35,13 @@ const username = byId<HTMLInputElement>('username')
 const cardResult = byId('card-result')
 const builder = byId<HTMLFormElement>('builder')
 const builderName = byId<HTMLInputElement>('b-name')
-const builderPronouns = byId<HTMLInputElement>('b-pronouns')
+const builderPicks = [
+    ...byId('b-pronouns').querySelectorAll<HTMLInputElement>(
+        'input[type=checkbox]',
+    ),
+]
+const builderOther = byId<HTMLInputElement>('b-other')
+const builderOrder = byId('b-order')
 const builderResult = byId('builder-result')
 
 const CHECKING = 'Checking pronouns.page...'
@@ -195,17 +202,41 @@ username.addEventListener('input', () => {
     timer = setTimeout(() => void lookup(), DEBOUNCE_MS)
 })
 
+/** Checked sets in the order they were picked; the first is modeled. */
+let picked: string[] = []
+
+function builderPronouns(): string[] {
+    return [...new Set([...picked, ...parsePronounInput(builderOther.value)])]
+}
+
 function updateBuilder(): void {
+    const pronouns = builderPronouns()
+    const order =
+        pronouns.length > 1
+            ? `Practice sentences use ${pronounLabel(pronouns[0])}. Also accepted: ${pronouns.slice(1).map(pronounLabel).join(', ')}.`
+            : ''
+    if (builderOrder.textContent !== order) builderOrder.textContent = order
     const link = practiceLink(
         builderName.value,
-        builderPronouns.value,
+        pronouns,
         window.location.origin,
     )
     builderResult.replaceChildren(...(link ? [linkRow(link)] : []))
 }
 
+for (const box of builderPicks) {
+    // Restored form state after a reload keeps DOM order, which is the best
+    // guess at pick order there is.
+    if (box.checked) picked.push(box.value)
+    box.addEventListener('change', () => {
+        picked = picked.filter((v) => v !== box.value)
+        if (box.checked) picked.push(box.value)
+        updateBuilder()
+    })
+}
+updateBuilder()
 builderName.addEventListener('input', updateBuilder)
-builderPronouns.addEventListener('input', updateBuilder)
+builderOther.addEventListener('input', updateBuilder)
 builder.addEventListener('submit', (event) => {
     event.preventDefault()
     updateBuilder()

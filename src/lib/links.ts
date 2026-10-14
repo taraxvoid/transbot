@@ -5,16 +5,19 @@ export function isValidUsername(value: string): boolean {
     return USERNAME_PATTERN.test(value) && !/^\.+$/.test(value)
 }
 
+/** `pronouns` are pronouns.page values, first one modeled; see parsePronounInput. */
 export function practiceLink(
     name: string,
-    pronouns: string,
+    pronouns: string[],
     origin: string,
 ): string | null {
     const n = name.trim()
-    const p = pronouns.trim()
-    if (!n || !p) return null
+    const values = pronouns.map((p) => p.trim()).filter(Boolean)
+    if (!n || !values.length) return null
+    const params = new URLSearchParams({ n })
+    for (const p of values) params.append('p', p)
     // The fragment never reaches a server, so the name stays in the browser.
-    return `${origin}/practice#${new URLSearchParams({ n, p })}`
+    return `${origin}/practice#${params}`
 }
 
 export function cardLink(username: string, origin: string): string {

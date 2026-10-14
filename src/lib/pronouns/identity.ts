@@ -5,6 +5,7 @@ import type {
     RawPronoun,
 } from './client'
 import { templatize, XE_FORMS } from './drills'
+import { parsePronounInput, SITE_PREFIX } from './parse'
 import {
     type Entries,
     type Entry,
@@ -22,7 +23,6 @@ type Resolved = { sets: BareSet[]; examples: string[] | null }
 // dropped here, before anything is displayed, taught or graded. no is dropped
 // too: those names are often deadnames, and transbot never republishes them.
 const KEPT = new Set(['yes', 'meh'])
-const SITE_PREFIX = /^https?:\/\/[^/]*pronouns\.page\/+/i
 
 export const VOID_FORMS: Forms = {
     pronoun_subject: 'void',
@@ -70,23 +70,29 @@ export function entriesFromProfile(profile: RawProfile): Entries | null {
 export function entriesFromFragment(hash: string): Entries | null {
     const params = new URLSearchParams(hash.replace(/^#/, ''))
     let name = params.get('n')?.trim() ?? ''
-    let pronouns = params.get('p')?.trim() ?? ''
+    const typed: string[] = []
     // A hand-typed `p=xe&she` or `n=Sam&Jo` arrives as the key plus an empty
     // `she` / `Jo` key. Rejoin an empty key to whichever of n or p came
     // right before it, so no part of a name ever ends up in p (which is
     // fetched from pronouns.page). Other stray keys are dropped.
     let last: 'n' | 'p' | null = null
     for (const [key, value] of params) {
-        if (key === 'n' || key === 'p') last = key
-        else if (value === '' && last === 'n' && name) name += `&${key}`
-        else if (value === '' && last === 'p' && pronouns) pronouns += `&${key}`
+        if (key === 'n') last = key
+        else if (key === 'p') {
+            last = key
+            typed.push(value)
+        } else if (value === '' && last === 'n' && name) name += `&${key}`
+        else if (value === '' && last === 'p' && typed.at(-1)?.trim()) {
+            typed[typed.length - 1] += `&${key}`
+        }
     }
-    if (!name && !pronouns) return null
+    // Each p may be typed by hand, like `he/they`, so parse it like the
+    // builder does.
+    const pronouns = [...new Set(typed.flatMap(parsePronounInput))]
+    if (!name && !pronouns.length) return null
     return {
         names: name ? [{ value: name, opinion: 'yes' }] : [],
-        pronouns: pronouns
-            ? [{ value: normalizePronounValue(pronouns), opinion: 'yes' }]
-            : [],
+        pronouns: pronouns.map((value) => ({ value, opinion: 'yes' })),
     }
 }
 

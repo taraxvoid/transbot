@@ -67,16 +67,36 @@ describe('entriesFromProfile', () => {
 })
 
 describe('entriesFromFragment', () => {
-    it('reads an encoded compound set', () => {
+    it('splits an encoded compound set', () => {
         expect(entriesFromFragment('#n=Sam&p=xe%26she')).toEqual({
             names: [{ value: 'Sam', opinion: 'yes' }],
-            pronouns: [{ value: 'xe&she', opinion: 'yes' }],
+            pronouns: [
+                { value: 'xe', opinion: 'yes' },
+                { value: 'she', opinion: 'yes' },
+            ],
         })
     })
 
     it('repairs a hand-typed & inside p', () => {
         expect(entriesFromFragment('#n=Sam&p=xe&she')?.pronouns).toEqual([
-            { value: 'xe&she', opinion: 'yes' },
+            { value: 'xe', opinion: 'yes' },
+            { value: 'she', opinion: 'yes' },
+        ])
+    })
+
+    it('reads repeated p in order', () => {
+        expect(
+            entriesFromFragment('#n=Sam&p=he&p=they&p=he')?.pronouns,
+        ).toEqual([
+            { value: 'he', opinion: 'yes' },
+            { value: 'they', opinion: 'yes' },
+        ])
+    })
+
+    it('parses human shorthand in p', () => {
+        expect(entriesFromFragment('#n=Sam&p=he%2Fthey')?.pronouns).toEqual([
+            { value: 'he', opinion: 'yes' },
+            { value: 'they', opinion: 'yes' },
         ])
     })
 
