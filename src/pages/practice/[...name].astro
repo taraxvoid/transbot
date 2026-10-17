@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro'
+
+// Serves /practice and /practice/<name>; the page script reads the URL.
+export const prerender = false
+---
+
+<Layout title="Practice | transbot" noindex>
+    <div id="practice">
+        <p>Loading practice...</p>
+    </div>
+    <noscript>
+        <p>Practice needs JavaScript to load the name and pronouns in this link.</p>
+    </noscript>
+</Layout>
+
+<script>
+    import '../../scripts/practice-page'
+</script>

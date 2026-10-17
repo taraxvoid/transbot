@@ -139,7 +139,9 @@ test('a found card shows the preview, link and copy button', async ({
     await expect(
         page.getByText('transbot will teach: Sam, xe/xem'),
     ).toBeVisible()
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
     expect(
         await page.evaluate(() =>
@@ -184,10 +186,16 @@ test('a slow earlier lookup never replaces the latest one', async ({
     await field.fill('slow')
     await page.waitForTimeout(600)
     await field.fill('found')
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
     await page.waitForTimeout(1500)
-    await expect(page.getByRole('link', { name: /\/@slow$/ })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/slow$/ }),
+    ).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
 })
 
 test('the link builder makes a working practice link', async ({ page }) => {
@@ -196,7 +204,7 @@ test('the link builder makes a working practice link', async ({ page }) => {
     await page.getByLabel('Name', { exact: true }).fill('Sam Lee')
     await page.getByLabel('Pronouns', { exact: true }).fill('xe&she')
     const link = page.getByRole('link', {
-        name: /\/practice#n=Sam\+Lee&p=xe%26she$/,
+        name: /\/practice\/Sam%20Lee\?p=xe%26she$/,
     })
     await expect(link).toBeVisible()
     await link.click()
@@ -228,8 +236,12 @@ test('a response landing inside the debounce window is discarded', async ({
     await field.fill('found')
     release()
     await page.evaluate(() => new Promise((r) => setTimeout(r, 150)))
-    await expect(page.getByRole('link', { name: /\/@gate$/ })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/gate$/ }),
+    ).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
 })
 
 test('clearing the field removes a shown card at once', async ({ page }) => {
@@ -239,7 +251,11 @@ test('clearing the field removes a shown card at once', async ({ page }) => {
         .click()
     const field = page.getByLabel('pronouns.page username')
     await field.fill('found')
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
     await field.fill('')
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toHaveCount(0)
 })
