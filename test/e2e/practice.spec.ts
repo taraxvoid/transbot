@@ -105,3 +105,22 @@ test('an unreachable pronouns.page gets a retry message', async ({ page }) => {
     await page.goto('/practice#n=Quillon&p=xe')
     await expect(page.getByText("Couldn't reach pronouns.page.")).toBeVisible()
 })
+
+test('a name in the path starts practice with p from the query', async ({
+    page,
+}) => {
+    await page.goto('/practice/Sam%20Lee?p=xe')
+    await expect(
+        page.getByRole('heading', { name: 'Practice with Sam Lee' }),
+    ).toBeVisible()
+})
+
+test('a name in the path without p asks for pronouns', async ({ page }) => {
+    await page.goto('/practice/Quillon')
+    await page.getByLabel('Which pronouns does Quillon use?').fill('xe')
+    await page.getByRole('button', { name: 'Start practicing' }).click()
+    await expect(page).toHaveURL(/\/practice\/Quillon\?p=xe$/)
+    await expect(
+        page.getByRole('heading', { name: 'Practice with Quillon' }),
+    ).toBeVisible()
+})

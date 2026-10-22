@@ -1,0 +1,43 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { normalizeUsername } from '../../lib/links'
+
+export const prerender = false
+
+const submitted = Astro.url.searchParams.get('username')
+const username = submitted === null ? null : normalizeUsername(submitted)
+if (username) return Astro.redirect(`/profile/${username}`, 302)
+const invalid = submitted !== null
+---
+
+<Layout title="Practice from a card | transbot" noindex>
+    <section>
+        <h1>Practice from a pronouns.page card</h1>
+        <p>
+            Enter the pronouns.page username of the person you want to practice
+            with, and transbot will start from their card.
+        </p>
+        <form method="get" action="/profile">
+            <label for="username">pronouns.page username</label>
+            <input
+                id="username"
+                name="username"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+                aria-invalid={invalid ? 'true' : undefined}
+                aria-describedby={invalid ? 'username-error' : undefined}
+            />
+            {
+                invalid && (
+                    <p id="username-error" role="alert">
+                        That doesn't look like a pronouns.page username. Use
+                        letters, numbers, dots, dashes or underscores.
+                    </p>
+                )
+            }
+            <button type="submit">Start practicing</button>
+        </form>
+    </section>
+</Layout>

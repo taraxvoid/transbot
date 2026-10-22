@@ -41,7 +41,12 @@ test('/practice without a fragment has no axe violations', async ({ page }) => {
     await expectNoViolations(page)
 })
 
-for (const path of ['/@testcard', '/@askfirst', '/@mehonly', '/@nobody']) {
+for (const path of [
+    '/profile/testcard',
+    '/profile/askfirst',
+    '/profile/mehonly',
+    '/profile/nobody',
+]) {
     test(`${path} has no axe violations`, async ({ page }) => {
         await page.goto(path)
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
