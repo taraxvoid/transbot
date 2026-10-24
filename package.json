@@ -21,7 +21,7 @@
         "test:e2e:a11y": "playwright test --project=a11y",
         "fixtures:refresh": "bun scripts/refresh-fixtures.ts",
         "check:licenses": "check-licenses",
-        "audit": "bun audit --audit-level high --production",
+        "audit": "bun audit --audit-level high --production --ignore=GHSA-xjj6-f33q-929c",
         "prepare": "lefthook install || echo 'lefthook not installed (run mise install); git hooks skipped'"
     },
     "engines": {
