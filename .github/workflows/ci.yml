@@ -17,7 +17,7 @@ jobs:
     uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@2702230a04e50c6592bbc816042371f695e2db93 # v0.13.0
     with:
       single-environment: true
-      e2e-extra-paths: '["wrangler.jsonc", "scripts/e2e-preview.ts", "test/fixtures/**"]'
+      e2e-extra-paths: '["scripts/e2e-preview.ts", "test/fixtures/**"]'
 
   resolve-env:
     uses: taraxvoid/voidflow/.github/workflows/resolve-env.yml@2702230a04e50c6592bbc816042371f695e2db93 # v0.13.0
