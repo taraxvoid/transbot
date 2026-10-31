@@ -51,7 +51,7 @@ async function mockCards(page: Page): Promise<void> {
     })
 }
 
-const SETUP = 'Set up your pronouns.page card'
+const SETUP = 'set up a pronouns.page card'
 const PROMPT = 'Made your card? Enter your username to get your link.'
 
 test.beforeEach(async ({ page }) => {
@@ -60,7 +60,6 @@ test.beforeEach(async ({ page }) => {
 
 test('the setup link opens pronouns.page in a new tab', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: "I don't have one yet" }).click()
     const link = page.getByRole('link', { name: SETUP })
     await expect(link).toHaveAttribute(
         'href',
@@ -68,9 +67,6 @@ test('the setup link opens pronouns.page in a new tab', async ({ page }) => {
     )
     await expect(link).toHaveAttribute('target', '_blank')
     await expect(link).toHaveAttribute('rel', /noopener/)
-    await expect(
-        page.getByText('The link builder below works without an account.'),
-    ).toBeVisible()
 })
 
 test('coming back after setup asks for the username', async ({
@@ -81,7 +77,6 @@ test('coming back after setup asks for the username', async ({
         route.fulfill({ body: 'ok' }),
     )
     await page.goto('/')
-    await page.getByRole('button', { name: "I don't have one yet" }).click()
     const popup = page.waitForEvent('popup')
     await page.getByRole('link', { name: SETUP }).click()
     await (await popup).close()
@@ -89,7 +84,9 @@ test('coming back after setup asks for the username', async ({
         document.dispatchEvent(new Event('visibilitychange')),
     )
     await expect(page.getByText(PROMPT)).toBeVisible()
-    await expect(page.getByLabel('pronouns.page username')).toBeFocused()
+    await expect(
+        page.getByLabel('pronouns.page username or link'),
+    ).toBeFocused()
 })
 
 test('a later visit shows the prompt until 14 days pass', async ({ page }) => {
@@ -135,11 +132,13 @@ test('a found card shows the preview, link and copy button', async ({
         localStorage.setItem('transbot:setup-clicked', String(Date.now())),
     )
     await page.goto('/')
-    await page.getByLabel('pronouns.page username').fill('@found')
+    await page.getByLabel('pronouns.page username or link').fill('@found')
     await expect(
         page.getByText('transbot will teach: Sam, xe/xem'),
     ).toBeVisible()
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
     expect(
         await page.evaluate(() =>
@@ -153,7 +152,7 @@ test('a missing card keeps the prompt open', async ({ page }) => {
         localStorage.setItem('transbot:setup-clicked', String(Date.now())),
     )
     await page.goto('/')
-    await page.getByLabel('pronouns.page username').fill('nobody')
+    await page.getByLabel('pronouns.page username or link').fill('nobody')
     await expect(
         page.getByText(
             "We couldn't find that card yet. Cards show up once they're saved on pronouns.page.",
@@ -164,10 +163,7 @@ test('a missing card keeps the prompt open', async ({ page }) => {
 
 test('a card with nothing marked yes says so', async ({ page }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    await page.getByLabel('pronouns.page username').fill('empty')
+    await page.getByLabel('pronouns.page username or link').fill('empty')
     await expect(
         page.getByText('nothing on it is marked yes yet'),
     ).toBeVisible()
@@ -177,23 +173,28 @@ test('a slow earlier lookup never replaces the latest one', async ({
     page,
 }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    const field = page.getByLabel('pronouns.page username')
+    const field = page.getByLabel('pronouns.page username or link')
     await field.fill('slow')
     await page.waitForTimeout(600)
     await field.fill('found')
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
     await page.waitForTimeout(1500)
-    await expect(page.getByRole('link', { name: /\/@slow$/ })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/slow$/ }),
+    ).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
 })
 
-test('the link builder makes a working practice link', async ({ page }) => {
+test('the name and pronouns form makes a working practice link', async ({
+    page,
+}) => {
     await mockPronounsPage(page)
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam Lee')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam Lee')
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
@@ -202,7 +203,7 @@ test('the link builder makes a working practice link', async ({ page }) => {
         ),
     ).toBeVisible()
     const link = page.getByRole('link', {
-        name: /\/practice#n=Sam\+Lee&p=xe&p=she$/,
+        name: /\/practice\/Sam%20Lee\?p=xe&p=she$/,
     })
     await expect(link).toBeVisible()
     await link.click()
@@ -213,23 +214,27 @@ test('the link builder makes a working practice link', async ({ page }) => {
 
 test('the link builder understands typed shorthand', async ({ page }) => {
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await page.getByLabel('Other pronouns').fill('he/they')
     await expect(
-        page.getByRole('link', { name: /#n=Sam&p=she&p=he&p=they$/ }),
+        page.getByRole('link', { name: /\/practice\/Sam\?p=she&p=he&p=they$/ }),
     ).toBeVisible()
     // Picked sets come first, in pick order; rechecking moves one last.
     await page.getByRole('checkbox', { name: 'it/its' }).check()
     await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
-        page.getByRole('link', { name: /#n=Sam&p=it&p=she&p=he&p=they$/ }),
+        page.getByRole('link', {
+            name: /\/practice\/Sam\?p=it&p=she&p=he&p=they$/,
+        }),
     ).toBeVisible()
     await page.getByRole('checkbox', { name: 'it/its' }).uncheck()
     await page.getByLabel('Other pronouns').fill('')
     await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
-    await expect(page.getByRole('link', { name: /#n=Sam/ })).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/practice\/Sam/ }),
+    ).toHaveCount(0)
 })
 
 test('the link builder only links pronouns pronouns.page has', async ({
@@ -238,22 +243,24 @@ test('the link builder only links pronouns pronouns.page has', async ({
     const requests: string[] = []
     await mockPronounsPage(page, requests)
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
     await page.getByLabel('Other pronouns').fill('xee')
     await expect(
         page.getByText(
             `pronouns.page doesn't have "xee" yet. You can write out all five forms, like ae/aer/aer/aers/aerself.`,
         ),
     ).toBeVisible()
-    await expect(page.getByRole('link', { name: /#n=Sam/ })).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/practice\/Sam/ }),
+    ).toHaveCount(0)
 
     await page.getByLabel('Other pronouns').fill('ne/nem/nir/nirs/nemself')
     await expect(
         page.getByRole('link', {
-            name: /#n=Sam&p=ne%2Fnem%2Fnir%2Fnirs%2Fnemself$/,
+            name: /\/practice\/Sam\?p=ne%2Fnem%2Fnir%2Fnirs%2Fnemself$/,
         }),
     ).toBeVisible()
-    // Common sets are never looked up, and the name never goes anywhere.
+    // Common sets are never looked up, and the name never goes to pronouns.page.
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     expect(requests.some((url) => url.endsWith('/pronouns/she'))).toBe(false)
     expect(requests.some((url) => url.includes('Sam'))).toBe(false)
@@ -266,14 +273,16 @@ test('the link builder says when pronouns.page is unreachable', async ({
         route.fulfill({ status: 503 }),
     )
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
     await page.getByLabel('Other pronouns').fill('ne/nem')
     await expect(
         page.getByText(
             "Couldn't reach pronouns.page to check those pronouns. Try again in a moment.",
         ),
     ).toBeVisible()
-    await expect(page.getByRole('link', { name: /#n=Sam/ })).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/practice\/Sam/ }),
+    ).toHaveCount(0)
 })
 
 test('a response landing inside the debounce window is discarded', async ({
@@ -288,10 +297,7 @@ test('a response landing inside the debounce window is discarded', async ({
         await route.fulfill({ json: { identity: identity('Gate', true) } })
     })
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    const field = page.getByLabel('pronouns.page username')
+    const field = page.getByLabel('pronouns.page username or link')
     const requested = page.waitForRequest('**/api/card/gate')
     await field.fill('gate')
     await requested
@@ -299,18 +305,23 @@ test('a response landing inside the debounce window is discarded', async ({
     await field.fill('found')
     release()
     await page.evaluate(() => new Promise((r) => setTimeout(r, 150)))
-    await expect(page.getByRole('link', { name: /\/@gate$/ })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/gate$/ }),
+    ).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
 })
 
 test('clearing the field removes a shown card at once', async ({ page }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    const field = page.getByLabel('pronouns.page username')
+    const field = page.getByLabel('pronouns.page username or link')
     await field.fill('found')
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toBeVisible()
     await field.fill('')
-    await expect(page.getByRole('link', { name: /\/@found$/ })).toHaveCount(0)
+    await expect(
+        page.getByRole('link', { name: /\/profile\/found$/ }),
+    ).toHaveCount(0)
 })

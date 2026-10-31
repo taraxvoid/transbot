@@ -1,12 +1,58 @@
+import { entriesFromPracticePath } from '../lib/links'
 import { entriesFromFragment } from '../lib/pronouns/identity'
 import { loadIdentity } from '../lib/pronouns/load'
 import { el } from './dom'
 import { mountPractice } from './practice-ui'
 
+function askPronouns(root: HTMLElement, name: string): void {
+    const input = el('input', {
+        id: 'ask-pronouns',
+        autocomplete: 'off',
+        autocapitalize: 'none',
+        spellcheck: 'false',
+        required: '',
+        'aria-describedby': 'ask-pronouns-hint',
+    })
+    const form = el(
+        'form',
+        {},
+        el(
+            'label',
+            { for: 'ask-pronouns' },
+            `Which pronouns does ${name} use?`,
+        ),
+        input,
+        el(
+            'p',
+            { id: 'ask-pronouns-hint', class: 'hint' },
+            'Type any set, like xe, she&xe or ae/aer/aer/aers/aerself. Type null to practice using just the name.',
+        ),
+        el('button', { type: 'submit' }, 'Start practicing'),
+    )
+    form.addEventListener('submit', (event) => {
+        event.preventDefault()
+        const p = (input as HTMLInputElement).value.trim()
+        if (!p) return
+        const url = new URL(window.location.href)
+        url.search = new URLSearchParams({ p }).toString()
+        window.location.assign(url)
+    })
+    root.replaceChildren(el('h1', {}, 'Practice'), form)
+    input.focus()
+}
+
 async function start(): Promise<void> {
     const root = document.getElementById('practice')
     if (!root) return
-    const entries = entriesFromFragment(window.location.hash)
+    const { hash, pathname, search } = window.location
+    const entries =
+        entriesFromFragment(hash) ?? entriesFromPracticePath(pathname, search)
+    // A path name with no p: ask for pronouns instead of guessing. `p=null`
+    // is the explicit way to practice with just the name.
+    if (!hash && entries?.names.length && !entries.pronouns.length) {
+        askPronouns(root, entries.names[0].value)
+        return
+    }
     if (!entries) {
         root.replaceChildren(
             el('h1', {}, 'Practice'),

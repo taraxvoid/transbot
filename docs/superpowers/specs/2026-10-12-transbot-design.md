@@ -70,7 +70,7 @@ transbot is a passthrough to pronouns.page: it stores no identities. Anyone with
 
 Landing page flow:
 
-1. **Two choices.** "I have a pronouns.page card" (username field) and "I don't have one yet". The second shows a "Set up your pronouns.page card" link to `https://en.pronouns.page/account` that opens in a new tab (`target="_blank" rel="noopener"`), plus a line saying the fragment link builder works without an account.
+1. **Name and pronouns first.** The main call to action is the link builder (name plus pronoun shorthand), which needs no account and makes a `/practice/<name>` link. Below it, an always-open "Already on pronouns.page?" section takes a username or pasted profile URL. A "set up a pronouns.page card" link to `https://en.pronouns.page/account` opens in a new tab (`target="_blank" rel="noopener"`) as an optional extra, not a required step.
 2. **Remember the click locally.** Clicking the setup link sets a `localStorage` flag with a timestamp. It never leaves the browser, so transbot doesn't know who signed up. Storage access is wrapped in try/catch, and the page works without it.
 3. **Circle back.** When the flag is set and the tab becomes visible again (`visibilitychange`), or on a later visit, the page shows "Made your card? Enter your username to get your link" and focuses the username field. A "not now" button dismisses it. The flag expires after 14 days.
 4. **Check the card.** As the visitor types (debounced), the page calls `/api/card/<username>`:

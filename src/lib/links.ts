@@ -1,3 +1,6 @@
+import { entriesFromFragment } from './pronouns/identity'
+import type { Entries } from './pronouns/types'
+
 /** pronouns.page usernames; also keeps paths like ../ out of API calls. */
 export const USERNAME_PATTERN = /^[A-Za-z0-9._-]{1,64}$/
 
@@ -14,14 +17,33 @@ export function practiceLink(
     const n = name.trim()
     const values = pronouns.map((p) => p.trim()).filter(Boolean)
     if (!n || !values.length) return null
-    const params = new URLSearchParams({ n })
+    const params = new URLSearchParams()
     for (const p of values) params.append('p', p)
-    // The fragment never reaches a server, so the name stays in the browser.
-    return `${origin}/practice#${params}`
+    return `${origin}/practice/${encodeURIComponent(n)}?${params}`
+}
+
+/** Reads /practice/<name>?p=<pronouns>. Names use the same rules as fragments. */
+export function entriesFromPracticePath(
+    pathname: string,
+    search: string,
+): Entries | null {
+    const raw = pathname.replace(/^\/practice\/?/, '').replace(/\/+$/, '')
+    let name: string
+    try {
+        name = decodeURIComponent(raw)
+    } catch {
+        return null
+    }
+    if (!name.trim()) return null
+    // Name first so a stray n= in the query never wins; the fragment parser
+    // also rejoins a hand-typed `p=xe&she`.
+    return entriesFromFragment(
+        `#${new URLSearchParams({ n: name })}&${search.replace(/^\?/, '')}`,
+    )
 }
 
 export function cardLink(username: string, origin: string): string {
-    return `${origin}/@${username}`
+    return `${origin}/profile/${username}`
 }
 
 /** Accepts "name", "@name" or a pasted pronouns.page profile URL. */

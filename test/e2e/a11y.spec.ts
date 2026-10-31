@@ -13,13 +13,9 @@ test.beforeEach(async ({ page }) => {
     await mockPronounsPage(page)
 })
 
-test('/ has no axe violations with every panel open', async ({ page }) => {
+test('/ has no axe violations with a link shown', async ({ page }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    await page.getByRole('button', { name: "I don't have one yet" }).click()
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'they/them' }).check()
     await page.getByLabel('Other pronouns').fill('ne/nem')
@@ -43,7 +39,12 @@ test('/practice without a fragment has no axe violations', async ({ page }) => {
     await expectNoViolations(page)
 })
 
-for (const path of ['/@testcard', '/@askfirst', '/@mehonly', '/@nobody']) {
+for (const path of [
+    '/profile/testcard',
+    '/profile/askfirst',
+    '/profile/mehonly',
+    '/profile/nobody',
+]) {
     test(`${path} has no axe violations`, async ({ page }) => {
         await page.goto(path)
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

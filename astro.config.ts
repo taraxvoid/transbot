@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
     site: 'https://transbot.net',
-    // Prerender everything; /@username, /tara and /api/card opt out with
+    // Prerender everything; /profile, /practice, /@username, /tara and /api/card opt out with
     // `export const prerender = false`.
     output: 'static',
     devToolbar: { enabled: false },
