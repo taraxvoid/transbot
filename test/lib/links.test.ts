@@ -1,23 +1,29 @@
 import { describe, expect, it } from 'vitest'
-import { cardLink, normalizeUsername, practiceLink } from '../../src/lib/links'
-import { entriesFromFragment } from '../../src/lib/pronouns/identity'
+import {
+    cardLink,
+    entriesFromPracticePath,
+    normalizeUsername,
+    practiceLink,
+} from '../../src/lib/links'
 
 describe('practiceLink', () => {
-    it('encodes the name and shorthand into the fragment', () => {
+    it('puts the encoded name in the path and the shorthand in p', () => {
         const link = practiceLink('Sam Lee', 'xe&she', 'https://transbot.net')
-        expect(link).toBe('https://transbot.net/practice#n=Sam+Lee&p=xe%26she')
+        expect(link).toBe('https://transbot.net/practice/Sam%20Lee?p=xe%26she')
     })
 
-    it('round-trips through entriesFromFragment', () => {
-        const link = practiceLink(
-            ' Zoë ',
-            'ae/aer/aer/aers/aerself',
-            'https://x',
-        )
-        const entries = entriesFromFragment(new URL(link ?? '').hash)
-        expect(entries?.names[0].value).toBe('Zoë')
-        expect(entries?.pronouns[0].value).toBe('ae/aer/aer/aers/aerself')
-    })
+    it.each(['Zoë', 'a/b', 'what?', 'x#y', '100%', 'Jo & Sam'])(
+        'round-trips the name %s',
+        (name) => {
+            const url = new URL(
+                practiceLink(name, 'ae/aer/aer/aers/aerself', 'https://x') ??
+                    '',
+            )
+            const entries = entriesFromPracticePath(url.pathname, url.search)
+            expect(entries?.names[0].value).toBe(name)
+            expect(entries?.pronouns[0].value).toBe('ae/aer/aer/aers/aerself')
+        },
+    )
 
     it('needs both a name and pronouns', () => {
         expect(practiceLink('', 'xe', 'https://x')).toBeNull()
@@ -25,10 +31,33 @@ describe('practiceLink', () => {
     })
 })
 
+describe('entriesFromPracticePath', () => {
+    it('keeps a hand-typed p=xe&she together', () => {
+        const entries = entriesFromPracticePath('/practice/Sam', '?p=xe&she')
+        expect(entries?.pronouns[0].value).toBe('xe&she')
+    })
+
+    it('returns a name alone when p is missing', () => {
+        const entries = entriesFromPracticePath('/practice/Sam', '')
+        expect(entries?.names[0].value).toBe('Sam')
+        expect(entries?.pronouns).toEqual([])
+    })
+
+    it('ignores a stray n in the query', () => {
+        const entries = entriesFromPracticePath('/practice/Sam', '?n=Eve&p=xe')
+        expect(entries?.names[0].value).toBe('Sam')
+    })
+
+    it('rejects an empty or malformed name', () => {
+        expect(entriesFromPracticePath('/practice', '?p=xe')).toBeNull()
+        expect(entriesFromPracticePath('/practice/%E0%A4%A', '')).toBeNull()
+    })
+})
+
 describe('cardLink', () => {
-    it('builds the /@ link', () => {
+    it('builds the /profile link', () => {
         expect(cardLink('taravie', 'https://transbot.net')).toBe(
-            'https://transbot.net/@taravie',
+            'https://transbot.net/profile/taravie',
         )
     })
 })

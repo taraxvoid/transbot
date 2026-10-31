@@ -15,6 +15,10 @@ import Layout from '../layouts/Layout.astro'
 
     <section aria-labelledby="builder-heading">
         <h2 id="builder-heading">Make your link</h2>
+        <p class="hint">
+            No account needed. The name is part of the link, so transbot's
+            server can see it. Nothing is stored.
+        </p>
         <form id="builder">
             <label for="b-name">Your name</label>
             <input id="b-name" autocomplete="off" />
@@ -40,10 +44,6 @@ import Layout from '../layouts/Layout.astro'
                 <option value="null"></option>
             </datalist>
             <div id="builder-result" aria-live="polite"></div>
-            <p class="hint">
-                No account needed. Your name stays in the link and never
-                reaches transbot's server.
-            </p>
         </form>
     </section>
 

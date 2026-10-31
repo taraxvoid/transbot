@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
 
-test('/@testcard teaches the card without private entries', async ({
+test('/profile/testcard teaches the card without private entries', async ({
     page,
 }) => {
-    const response = await page.goto('/@testcard')
+    const response = await page.goto('/profile/testcard')
     expect(response?.status()).toBe(200)
     await expect(
         page.getByRole('heading', { name: 'Practice with Sam' }),
@@ -25,8 +25,8 @@ test('/@testcard teaches the card without private entries', async ({
     }
 })
 
-test('/@testcard drills the first yes set', async ({ page }) => {
-    await page.goto('/@testcard')
+test('/profile/testcard drills the first yes set', async ({ page }) => {
+    await page.goto('/profile/testcard')
     const drills = page.getByRole('region', { name: 'Fill in the blanks' })
     await drills.getByLabel('Blank 1 of 3').fill('xe')
     await drills.getByLabel('Blank 2 of 3').fill('her')
@@ -50,8 +50,8 @@ test('/api/card is a 404 for a missing card', async ({ request }) => {
     expect(await response.json()).toEqual({ error: 'not-found' })
 })
 
-test('/@nobody explains that the card is missing', async ({ page }) => {
-    const response = await page.goto('/@nobody')
+test('/profile/nobody explains that the card is missing', async ({ page }) => {
+    const response = await page.goto('/profile/nobody')
     expect(response?.status()).toBe(404)
     await expect(
         page.getByRole('heading', { name: 'Card not found' }),
@@ -61,8 +61,8 @@ test('/@nobody explains that the card is missing', async ({ page }) => {
     ).toBeVisible()
 })
 
-test('/@askfirst shows only the ask note', async ({ page }) => {
-    await page.goto('/@askfirst')
+test('/profile/askfirst shows only the ask note', async ({ page }) => {
+    await page.goto('/profile/askfirst')
     await expect(
         page.getByText('Please ask Kit which pronouns to use.'),
     ).toBeVisible()
@@ -74,8 +74,8 @@ test('/@askfirst shows only the ask note', async ({ page }) => {
     ).toHaveCount(0)
 })
 
-test('/@mehonly says there is nothing to practice', async ({ page }) => {
-    await page.goto('/@mehonly')
+test('/profile/mehonly says there is nothing to practice', async ({ page }) => {
+    await page.goto('/profile/mehonly')
     await expect(
         page.getByText("there's nothing to practice yet"),
     ).toBeVisible()
@@ -87,7 +87,7 @@ test('a card name with HTML renders as text', async ({ page }) => {
         dialog = true
         await d.dismiss()
     })
-    await page.goto('/@htmlname')
+    await page.goto('/profile/htmlname')
     await expect(
         page.getByRole('heading', { name: /<\/script><img/ }),
     ).toBeVisible()
@@ -95,8 +95,28 @@ test('a card name with HTML renders as text', async ({ page }) => {
     expect(dialog).toBe(false)
 })
 
-test('/tara points at /@taravie', async ({ request }) => {
+test('/tara points at /profile/taravie', async ({ request }) => {
     const response = await request.get('/tara', { maxRedirects: 0 })
     expect(response.status()).toBe(302)
-    expect(response.headers().location).toBe('/@taravie')
+    expect(response.headers().location).toBe('/profile/taravie')
+})
+
+test('/@testcard redirects to /profile/testcard', async ({ request }) => {
+    const response = await request.get('/@testcard', { maxRedirects: 0 })
+    expect(response.status()).toBe(302)
+    expect(response.headers().location).toBe('/profile/testcard')
+})
+
+test('/profile asks for a username, then opens the card', async ({ page }) => {
+    await page.goto('/profile')
+    await page.getByLabel('pronouns.page username').fill('@testcard')
+    await page.getByRole('button', { name: 'Start practicing' }).click()
+    await expect(page).toHaveURL(/\/profile\/testcard$/)
+})
+
+test('/profile rejects a malformed username', async ({ page }) => {
+    await page.goto('/profile?username=two%20words')
+    await expect(page.getByRole('alert')).toContainText(
+        "doesn't look like a pronouns.page username",
+    )
 })
