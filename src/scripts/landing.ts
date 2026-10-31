@@ -178,7 +178,7 @@ username.addEventListener('input', () => {
     latest++
     // Re-inserting the same text would make the live region announce it
     // again on every keystroke, so only touch the DOM when it changes.
-    const checking = normalizeUsername(username.value) !== ''
+    const checking = normalizeUsername(username.value) !== null
     if (!checking) cardResult.replaceChildren()
     else if (cardResult.textContent !== CHECKING) {
         cardResult.replaceChildren(el('p', {}, CHECKING))

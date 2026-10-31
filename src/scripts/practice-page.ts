@@ -25,7 +25,7 @@ function askPronouns(root: HTMLElement, name: string): void {
         el(
             'p',
             { id: 'ask-pronouns-hint', class: 'hint' },
-            'Type any set, like xe, she&xe or ae/aer/aer/aers/aerself. Type null to practice using just the name.',
+            'Type them however you like: he/they, xe, or all five forms like ae/aer/aer/aers/aerself. Type null to practice using just the name.',
         ),
         el('button', { type: 'submit' }, 'Start practicing'),
     )

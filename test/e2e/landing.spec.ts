@@ -325,3 +325,10 @@ test('clearing the field removes a shown card at once', async ({ page }) => {
         page.getByRole('link', { name: /\/profile\/found$/ }),
     ).toHaveCount(0)
 })
+
+test('an invalid username never shows the checking note', async ({ page }) => {
+    await page.goto('/')
+    await page.getByLabel('pronouns.page username or link').fill('not a name')
+    // Read at once: a retrying assertion would wait out the debounce.
+    expect(await page.locator('#card-result').textContent()).toBe('')
+})
