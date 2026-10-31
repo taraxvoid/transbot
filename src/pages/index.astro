@@ -4,77 +4,25 @@ import Layout from '../layouts/Layout.astro'
 
 <Layout title="transbot">
     <section>
-        <h1>Practice someone's name and pronouns</h1>
+        <h1>Help the people in your life get your name and pronouns right</h1>
         <p>
-            Someone shared this site so you can get comfortable with a name and
-            pronouns before you talk. You fill in short sentences, and
-            transbot shows the right form each time. Nobody keeps score.
+            Enter your name and pronouns to get a link. Send it to family,
+            friends or coworkers, and they can practice with short
+            fill-in-the-blank sentences before they talk to you. transbot
+            shows the right form each time, and nobody keeps score.
         </p>
-        <p>
-            Got a link from a friend? Open it and start. Want a link for
-            yourself? Make one below.
-        </p>
-    </section>
-
-    <section aria-labelledby="share-heading">
-        <h2 id="share-heading">Make your own link</h2>
-        <div class="choices">
-            <button
-                type="button"
-                id="have-card"
-                class="secondary"
-                aria-expanded="false"
-                aria-controls="card-panel">I have a pronouns.page card</button
-            >
-            <button
-                type="button"
-                id="no-card"
-                class="secondary"
-                aria-expanded="false"
-                aria-controls="setup-panel">I don't have one yet</button
-            >
-        </div>
-
-        <div id="setup-panel" hidden>
-            <p>
-                <a
-                    id="setup-link"
-                    href="https://en.pronouns.page/account"
-                    target="_blank"
-                    rel="noopener">Set up your pronouns.page card</a
-                > (opens in a new tab).
-            </p>
-            <p>The link builder below works without an account.</p>
-        </div>
-
-        <div id="card-panel" hidden>
-            <div id="return-prompt" hidden>
-                <p>Made your card? Enter your username to get your link.</p>
-                <button type="button" id="not-now" class="secondary"
-                    >Not now</button
-                >
-            </div>
-            <label for="username">pronouns.page username</label>
-            <input
-                id="username"
-                autocomplete="off"
-                autocapitalize="none"
-                spellcheck="false"
-            />
-            <div id="card-result" aria-live="polite"></div>
-        </div>
     </section>
 
     <section aria-labelledby="builder-heading">
-        <h2 id="builder-heading">Link builder</h2>
+        <h2 id="builder-heading">Make your link</h2>
         <p class="hint">
             No account needed. The name is part of the link, so transbot's
             server can see it. Nothing is stored.
         </p>
         <form id="builder">
-            <label for="b-name">Name</label>
+            <label for="b-name">Your name</label>
             <input id="b-name" autocomplete="off" />
-            <label for="b-pronouns">Pronouns</label>
+            <label for="b-pronouns">Your pronouns</label>
             <input
                 id="b-pronouns"
                 list="common-sets"
@@ -97,6 +45,43 @@ import Layout from '../layouts/Layout.astro'
             </datalist>
             <div id="builder-result" aria-live="polite"></div>
         </form>
+    </section>
+
+    <section aria-labelledby="card-heading">
+        <h2 id="card-heading">Already on pronouns.page?</h2>
+        <p>
+            Enter your username or paste your profile link instead. Your
+            transbot link follows your card, so changes you make there show up
+            within about an hour.
+        </p>
+        <div id="return-prompt" hidden>
+            <p>Made your card? Enter your username to get your link.</p>
+            <button type="button" id="not-now" class="secondary"
+                >Not now</button
+            >
+        </div>
+        <label for="username">pronouns.page username or link</label>
+        <input
+            id="username"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+        />
+        <div id="card-result" aria-live="polite"></div>
+        <p class="hint">
+            Not on pronouns.page? The form above is all you need. If you'd
+            like a card anyway, <a
+                id="setup-link"
+                href="https://en.pronouns.page/account"
+                target="_blank"
+                rel="noopener">set up a pronouns.page card</a
+            > (opens in a new tab) and come back here.
+        </p>
+    </section>
+
+    <section aria-labelledby="got-link-heading">
+        <h2 id="got-link-heading">Got a link from someone?</h2>
+        <p>Open it to start practicing. There's nothing to set up.</p>
     </section>
 </Layout>
 

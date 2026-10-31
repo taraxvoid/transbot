@@ -51,7 +51,7 @@ async function mockCards(page: Page): Promise<void> {
     })
 }
 
-const SETUP = 'Set up your pronouns.page card'
+const SETUP = 'set up a pronouns.page card'
 const PROMPT = 'Made your card? Enter your username to get your link.'
 
 test.beforeEach(async ({ page }) => {
@@ -60,7 +60,6 @@ test.beforeEach(async ({ page }) => {
 
 test('the setup link opens pronouns.page in a new tab', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: "I don't have one yet" }).click()
     const link = page.getByRole('link', { name: SETUP })
     await expect(link).toHaveAttribute(
         'href',
@@ -68,9 +67,6 @@ test('the setup link opens pronouns.page in a new tab', async ({ page }) => {
     )
     await expect(link).toHaveAttribute('target', '_blank')
     await expect(link).toHaveAttribute('rel', /noopener/)
-    await expect(
-        page.getByText('The link builder below works without an account.'),
-    ).toBeVisible()
 })
 
 test('coming back after setup asks for the username', async ({
@@ -81,7 +77,6 @@ test('coming back after setup asks for the username', async ({
         route.fulfill({ body: 'ok' }),
     )
     await page.goto('/')
-    await page.getByRole('button', { name: "I don't have one yet" }).click()
     const popup = page.waitForEvent('popup')
     await page.getByRole('link', { name: SETUP }).click()
     await (await popup).close()
@@ -89,7 +84,9 @@ test('coming back after setup asks for the username', async ({
         document.dispatchEvent(new Event('visibilitychange')),
     )
     await expect(page.getByText(PROMPT)).toBeVisible()
-    await expect(page.getByLabel('pronouns.page username')).toBeFocused()
+    await expect(
+        page.getByLabel('pronouns.page username or link'),
+    ).toBeFocused()
 })
 
 test('a later visit shows the prompt until 14 days pass', async ({ page }) => {
@@ -135,7 +132,7 @@ test('a found card shows the preview, link and copy button', async ({
         localStorage.setItem('transbot:setup-clicked', String(Date.now())),
     )
     await page.goto('/')
-    await page.getByLabel('pronouns.page username').fill('@found')
+    await page.getByLabel('pronouns.page username or link').fill('@found')
     await expect(
         page.getByText('transbot will teach: Sam, xe/xem'),
     ).toBeVisible()
@@ -155,7 +152,7 @@ test('a missing card keeps the prompt open', async ({ page }) => {
         localStorage.setItem('transbot:setup-clicked', String(Date.now())),
     )
     await page.goto('/')
-    await page.getByLabel('pronouns.page username').fill('nobody')
+    await page.getByLabel('pronouns.page username or link').fill('nobody')
     await expect(
         page.getByText(
             "We couldn't find that card yet. Cards show up once they're saved on pronouns.page.",
@@ -166,10 +163,7 @@ test('a missing card keeps the prompt open', async ({ page }) => {
 
 test('a card with nothing marked yes says so', async ({ page }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    await page.getByLabel('pronouns.page username').fill('empty')
+    await page.getByLabel('pronouns.page username or link').fill('empty')
     await expect(
         page.getByText('nothing on it is marked yes yet'),
     ).toBeVisible()
@@ -179,10 +173,7 @@ test('a slow earlier lookup never replaces the latest one', async ({
     page,
 }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    const field = page.getByLabel('pronouns.page username')
+    const field = page.getByLabel('pronouns.page username or link')
     await field.fill('slow')
     await page.waitForTimeout(600)
     await field.fill('found')
@@ -198,11 +189,13 @@ test('a slow earlier lookup never replaces the latest one', async ({
     ).toBeVisible()
 })
 
-test('the link builder makes a working practice link', async ({ page }) => {
+test('the name and pronouns form makes a working practice link', async ({
+    page,
+}) => {
     await mockPronounsPage(page)
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam Lee')
-    await page.getByLabel('Pronouns', { exact: true }).fill('xe&she')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam Lee')
+    await page.getByLabel('Your pronouns', { exact: true }).fill('xe&she')
     const link = page.getByRole('link', {
         name: /\/practice\/Sam%20Lee\?p=xe%26she$/,
     })
@@ -225,10 +218,7 @@ test('a response landing inside the debounce window is discarded', async ({
         await route.fulfill({ json: { identity: identity('Gate', true) } })
     })
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    const field = page.getByLabel('pronouns.page username')
+    const field = page.getByLabel('pronouns.page username or link')
     const requested = page.waitForRequest('**/api/card/gate')
     await field.fill('gate')
     await requested
@@ -246,10 +236,7 @@ test('a response landing inside the debounce window is discarded', async ({
 
 test('clearing the field removes a shown card at once', async ({ page }) => {
     await page.goto('/')
-    await page
-        .getByRole('button', { name: 'I have a pronouns.page card' })
-        .click()
-    const field = page.getByLabel('pronouns.page username')
+    const field = page.getByLabel('pronouns.page username or link')
     await field.fill('found')
     await expect(
         page.getByRole('link', { name: /\/profile\/found$/ }),
