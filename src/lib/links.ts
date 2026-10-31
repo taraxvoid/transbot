@@ -8,15 +8,18 @@ export function isValidUsername(value: string): boolean {
     return USERNAME_PATTERN.test(value) && !/^\.+$/.test(value)
 }
 
+/** `pronouns` are pronouns.page values, first one modeled; see parsePronounInput. */
 export function practiceLink(
     name: string,
-    pronouns: string,
+    pronouns: string[],
     origin: string,
 ): string | null {
     const n = name.trim()
-    const p = pronouns.trim()
-    if (!n || !p) return null
-    return `${origin}/practice/${encodeURIComponent(n)}?${new URLSearchParams({ p })}`
+    const values = pronouns.map((p) => p.trim()).filter(Boolean)
+    if (!n || !values.length) return null
+    const params = new URLSearchParams()
+    for (const p of values) params.append('p', p)
+    return `${origin}/practice/${encodeURIComponent(n)}?${params}`
 }
 
 /** Reads /practice/<name>?p=<pronouns>. Names use the same rules as fragments. */

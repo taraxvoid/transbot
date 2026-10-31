@@ -9,7 +9,15 @@ import { join } from 'node:path'
 import { DEFAULT_API_BASE, pronounPath } from '../src/lib/pronouns/client'
 import { fixtureName } from '../test/fixtures/resolve'
 
-const VALUES = ['xe', 'she', 'they', 'xe&she', 'ae/aer/aer/aers/aerself']
+const VALUES = [
+    'xe',
+    'she',
+    'they',
+    'xe&she',
+    'ae',
+    'ae/aer/aer/aers/aerself',
+    'ne/nem/nir/nirs/nemself',
+]
 const dir = join(import.meta.dir, '../test/fixtures/api/pronouns')
 
 mkdirSync(dir, { recursive: true })

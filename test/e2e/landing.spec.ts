@@ -195,15 +195,94 @@ test('the name and pronouns form makes a working practice link', async ({
     await mockPronounsPage(page)
     await page.goto('/')
     await page.getByLabel('Your name', { exact: true }).fill('Sam Lee')
-    await page.getByLabel('Your pronouns', { exact: true }).fill('xe&she')
+    await page.getByRole('checkbox', { name: 'xe/xem' }).check()
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await expect(
+        page.getByText(
+            'Practice sentences use xe/xem. Also accepted: she/her.',
+        ),
+    ).toBeVisible()
     const link = page.getByRole('link', {
-        name: /\/practice\/Sam%20Lee\?p=xe%26she$/,
+        name: /\/practice\/Sam%20Lee\?p=xe&p=she$/,
     })
     await expect(link).toBeVisible()
     await link.click()
     await expect(
         page.getByRole('heading', { name: 'Practice with Sam Lee' }),
     ).toBeVisible()
+})
+
+test('the link builder understands typed shorthand', async ({ page }) => {
+    await page.goto('/')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await page.getByLabel('Other pronouns').fill('he/they')
+    await expect(
+        page.getByRole('link', { name: /\/practice\/Sam\?p=she&p=he&p=they$/ }),
+    ).toBeVisible()
+    // Picked sets come first, in pick order; rechecking moves one last.
+    await page.getByRole('checkbox', { name: 'it/its' }).check()
+    await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await expect(
+        page.getByRole('link', {
+            name: /\/practice\/Sam\?p=it&p=she&p=he&p=they$/,
+        }),
+    ).toBeVisible()
+    await page.getByRole('checkbox', { name: 'it/its' }).uncheck()
+    await page.getByLabel('Other pronouns').fill('')
+    await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
+    await expect(
+        page.getByRole('link', { name: /\/practice\/Sam/ }),
+    ).toHaveCount(0)
+})
+
+test('the link builder only links pronouns pronouns.page has', async ({
+    page,
+}) => {
+    const requests: string[] = []
+    await mockPronounsPage(page, requests)
+    await page.goto('/')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
+    await page.getByLabel('Other pronouns').fill('xee')
+    await expect(
+        page.getByText(
+            `pronouns.page doesn't have "xee" yet. You can write out all five forms, like ae/aer/aer/aers/aerself.`,
+        ),
+    ).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/practice\/Sam/ }),
+    ).toHaveCount(0)
+
+    await page.getByLabel('Other pronouns').fill('ne/nem/nir/nirs/nemself')
+    await expect(
+        page.getByRole('link', {
+            name: /\/practice\/Sam\?p=ne%2Fnem%2Fnir%2Fnirs%2Fnemself$/,
+        }),
+    ).toBeVisible()
+    // Common sets are never looked up, and the name never goes to pronouns.page.
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    expect(requests.some((url) => url.endsWith('/pronouns/she'))).toBe(false)
+    expect(requests.some((url) => url.includes('Sam'))).toBe(false)
+})
+
+test('the link builder says when pronouns.page is unreachable', async ({
+    page,
+}) => {
+    await page.route('https://en.pronouns.page/api/**', (route) =>
+        route.fulfill({ status: 503 }),
+    )
+    await page.goto('/')
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
+    await page.getByLabel('Other pronouns').fill('ne/nem')
+    await expect(
+        page.getByText(
+            "Couldn't reach pronouns.page to check those pronouns. Try again in a moment.",
+        ),
+    ).toBeVisible()
+    await expect(
+        page.getByRole('link', { name: /\/practice\/Sam/ }),
+    ).toHaveCount(0)
 })
 
 test('a response landing inside the debounce window is discarded', async ({

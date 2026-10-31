@@ -7,34 +7,45 @@ import {
 } from '../../src/lib/links'
 
 describe('practiceLink', () => {
-    it('puts the encoded name in the path and the shorthand in p', () => {
-        const link = practiceLink('Sam Lee', 'xe&she', 'https://transbot.net')
-        expect(link).toBe('https://transbot.net/practice/Sam%20Lee?p=xe%26she')
+    it('puts the encoded name in the path and each set in its own p', () => {
+        const link = practiceLink(
+            'Sam Lee',
+            ['xe', 'she'],
+            'https://transbot.net',
+        )
+        expect(link).toBe('https://transbot.net/practice/Sam%20Lee?p=xe&p=she')
     })
 
     it.each(['Zoë', 'a/b', 'what?', 'x#y', '100%', 'Jo & Sam'])(
         'round-trips the name %s',
         (name) => {
             const url = new URL(
-                practiceLink(name, 'ae/aer/aer/aers/aerself', 'https://x') ??
-                    '',
+                practiceLink(
+                    name,
+                    ['ne/nem/nir/nirs/nemself', 'he'],
+                    'https://x',
+                ) ?? '',
             )
             const entries = entriesFromPracticePath(url.pathname, url.search)
             expect(entries?.names[0].value).toBe(name)
-            expect(entries?.pronouns[0].value).toBe('ae/aer/aer/aers/aerself')
+            expect(entries?.pronouns.map((p) => p.value)).toEqual([
+                'ne/nem/nir/nirs/nemself',
+                'he',
+            ])
         },
     )
 
     it('needs both a name and pronouns', () => {
-        expect(practiceLink('', 'xe', 'https://x')).toBeNull()
-        expect(practiceLink('Sam', '  ', 'https://x')).toBeNull()
+        expect(practiceLink('', ['xe'], 'https://x')).toBeNull()
+        expect(practiceLink('Sam', [], 'https://x')).toBeNull()
+        expect(practiceLink('Sam', ['  '], 'https://x')).toBeNull()
     })
 })
 
 describe('entriesFromPracticePath', () => {
-    it('keeps a hand-typed p=xe&she together', () => {
+    it('splits a hand-typed p=xe&she into both sets', () => {
         const entries = entriesFromPracticePath('/practice/Sam', '?p=xe&she')
-        expect(entries?.pronouns[0].value).toBe('xe&she')
+        expect(entries?.pronouns.map((p) => p.value)).toEqual(['xe', 'she'])
     })
 
     it('returns a name alone when p is missing', () => {

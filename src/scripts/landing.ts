@@ -1,5 +1,11 @@
 import { cardLink, normalizeUsername, practiceLink } from '../lib/links'
+import { getPronouns } from '../lib/pronouns/client'
 import { summarize } from '../lib/pronouns/identity'
+import {
+    needsLookup,
+    parsePronounInput,
+    pronounLabel,
+} from '../lib/pronouns/parse'
 import type { Identity } from '../lib/pronouns/types'
 import {
     clearSetup,
@@ -30,7 +36,13 @@ const username = byId<HTMLInputElement>('username')
 const cardResult = byId('card-result')
 const builder = byId<HTMLFormElement>('builder')
 const builderName = byId<HTMLInputElement>('b-name')
-const builderPronouns = byId<HTMLInputElement>('b-pronouns')
+const builderPicks = [
+    ...byId('b-pronouns').querySelectorAll<HTMLInputElement>(
+        'input[type=checkbox]',
+    ),
+]
+const builderOther = byId<HTMLInputElement>('b-other')
+const builderOrder = byId('b-order')
 const builderResult = byId('builder-result')
 
 const CHECKING = 'Checking pronouns.page...'
@@ -175,17 +187,110 @@ username.addEventListener('input', () => {
     timer = setTimeout(() => void lookup(), DEBOUNCE_MS)
 })
 
-function updateBuilder(): void {
-    const link = practiceLink(
-        builderName.value,
-        builderPronouns.value,
-        window.location.origin,
-    )
-    builderResult.replaceChildren(...(link ? [linkRow(link)] : []))
+/** Checked sets in the order they were picked; the first is modeled. */
+let picked: string[] = []
+
+function builderPronouns(): string[] {
+    return [...new Set([...picked, ...parsePronounInput(builderOther.value)])]
 }
 
+type Known = 'found' | 'not-found'
+
+/** Typed values pronouns.page has answered for. Errors aren't kept. */
+const known = new Map<string, Known>()
+let builderRun = 0
+let builderTimer: ReturnType<typeof setTimeout> | undefined
+
+async function checkPronoun(value: string): Promise<Known | 'error'> {
+    const cached = known.get(value)
+    if (cached) return cached
+    // Only the pronoun value goes to pronouns.page, never the name.
+    const result = await getPronouns(value)
+    if (!result.ok && result.reason === 'error') return 'error'
+    const answer = result.ok ? 'found' : 'not-found'
+    known.set(value, answer)
+    return answer
+}
+
+function setBuilderResult(...nodes: Node[]): void {
+    // Same text again would make the live region repeat itself.
+    const text = nodes.map((n) => n.textContent).join('')
+    if (nodes.length && builderResult.textContent === text) return
+    builderResult.replaceChildren(...nodes)
+}
+
+function renderBuilder(
+    link: string,
+    checked: string[],
+    answers: Array<Known | 'error'>,
+): void {
+    const missing = checked.filter((_, i) => answers[i] === 'not-found')
+    if (missing.length) {
+        const quoted = missing.map((v) => `"${v}"`).join(' or ')
+        setBuilderResult(
+            el(
+                'p',
+                {},
+                `pronouns.page doesn't have ${quoted} yet. You can write out all five forms, like ae/aer/aer/aers/aerself.`,
+            ),
+        )
+    } else if (answers.includes('error')) {
+        setBuilderResult(
+            el(
+                'p',
+                {},
+                "Couldn't reach pronouns.page to check those pronouns. Try again in a moment.",
+            ),
+        )
+    } else setBuilderResult(linkRow(link))
+}
+
+function updateBuilder(): void {
+    // Any older check still in flight is now stale.
+    const run = ++builderRun
+    clearTimeout(builderTimer)
+    const pronouns = builderPronouns()
+    const order =
+        pronouns.length > 1
+            ? `Practice sentences use ${pronounLabel(pronouns[0])}. Also accepted: ${pronouns.slice(1).map(pronounLabel).join(', ')}.`
+            : ''
+    if (builderOrder.textContent !== order) builderOrder.textContent = order
+    const link = practiceLink(
+        builderName.value,
+        pronouns,
+        window.location.origin,
+    )
+    if (!link) {
+        setBuilderResult()
+        return
+    }
+    // A link is only offered for pronouns pronouns.page has: no guessing.
+    const toCheck = pronouns.filter(needsLookup)
+    const cached = toCheck.map((v) => known.get(v))
+    if (cached.every((answer) => answer !== undefined)) {
+        renderBuilder(link, toCheck, cached as Known[])
+        return
+    }
+    setBuilderResult(el('p', {}, CHECKING))
+    builderTimer = setTimeout(async () => {
+        const answers = await Promise.all(toCheck.map(checkPronoun))
+        if (run === builderRun) renderBuilder(link, toCheck, answers)
+    }, DEBOUNCE_MS)
+}
+
+for (const box of builderPicks) {
+    // Restored form state after a reload keeps DOM order, which is the best
+    // guess at pick order there is.
+    if (box.checked) picked.push(box.value)
+    box.addEventListener('change', () => {
+        picked = picked.filter((v) => v !== box.value)
+        if (box.checked) picked.push(box.value)
+        updateBuilder()
+    })
+}
+updateBuilder()
 builderName.addEventListener('input', updateBuilder)
-builderPronouns.addEventListener('input', updateBuilder)
+builderOther.addEventListener('input', updateBuilder)
 builder.addEventListener('submit', (event) => {
     event.preventDefault()
     updateBuilder()

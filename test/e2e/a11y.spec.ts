@@ -16,7 +16,9 @@ test.beforeEach(async ({ page }) => {
 test('/ has no axe violations with a link shown', async ({ page }) => {
     await page.goto('/')
     await page.getByLabel('Your name', { exact: true }).fill('Sam')
-    await page.getByLabel('Your pronouns', { exact: true }).fill('xe')
+    await page.getByRole('checkbox', { name: 'xe/xem' }).check()
+    await page.getByRole('checkbox', { name: 'they/them' }).check()
+    await page.getByLabel('Other pronouns').fill('ne/nem')
     await expectNoViolations(page)
 })
 
