@@ -20,6 +20,8 @@ export type PronounSet = {
     /** "xe/xem", "void/void's", or the name for kind 'name'. */
     label: string
     forms: Forms
+    /** Verb agreement: "they are", not "they is". Name and void sets are singular. */
+    plural: boolean
     pronunciations: Pronunciations
     opinion: 'yes' | 'meh'
 }

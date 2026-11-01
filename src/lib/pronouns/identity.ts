@@ -118,18 +118,24 @@ function labelFor(forms: Forms): string {
     return `${forms.pronoun_subject}/${second}`
 }
 
-/** "Use the name instead of pronouns", same shape pronouns.page uses for :Name. */
+/** The name in every slot, same shape pronouns.page uses for :Name. */
+export function nameForms(name: string): Forms {
+    return {
+        pronoun_subject: name,
+        pronoun_object: name,
+        possessive_determiner: `${name}'s`,
+        possessive_pronoun: `${name}'s`,
+        reflexive: `${name}self`,
+    }
+}
+
+/** "Use the name instead of pronouns". */
 function nameSet(name: string): BareSet {
     return {
         kind: 'name',
         label: name,
-        forms: {
-            pronoun_subject: name,
-            pronoun_object: name,
-            possessive_determiner: `${name}'s`,
-            possessive_pronoun: `${name}'s`,
-            reflexive: `${name}self`,
-        },
+        forms: nameForms(name),
+        plural: false,
         pronunciations: {},
     }
 }
@@ -157,6 +163,11 @@ function splitSets(raw: RawPronoun): BareSet[] {
             kind: 'pronouns',
             label: labelFor(setForms),
             forms: setForms,
+            // pronouns.page marks written-out sets singular, even
+            // they/them/their/theirs/themself, so trust the subject too.
+            plural:
+                raw.plural?.[i] === true ||
+                setForms.pronoun_subject.toLowerCase() === 'they',
             pronunciations,
         })
     }
@@ -176,6 +187,7 @@ function resolveEntry(
             kind: 'pronouns',
             label: labelFor(VOID_FORMS),
             forms: VOID_FORMS,
+            plural: false,
             pronunciations: {},
         }
         return { sets: [set], examples: null }
