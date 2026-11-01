@@ -23,6 +23,14 @@ Design: `docs/superpowers/specs/2026-10-12-transbot-design.md`.
 
 Tests never call the live pronouns.page API. Pronoun-set fixtures live in `test/fixtures/api/pronouns` and are refreshed by hand with `bun run fixtures:refresh`. Profile fixtures are synthetic: never copy a real profile into the repo.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+The code is [MIT](LICENSE) licensed.
+
 ## Credits
 
-Pronoun data comes from [pronouns.page](https://en.pronouns.page), used under the [Opinionated Queer License v1.4](https://en.pronouns.page/license).
+Pronoun data comes from [pronouns.page](https://en.pronouns.page), used under the [Opinionated Queer License v1.4](https://en.pronouns.page/license). That data is not covered by the MIT license: this includes the copies in `test/fixtures/api/pronouns`, which stay under the Opinionated Queer License.

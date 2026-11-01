@@ -3,6 +3,7 @@
     "type": "module",
     "version": "0.1.0",
     "private": true,
+    "license": "MIT",
     "description": "Practice someone's name and pronouns",
     "scripts": {
         "types": "wrangler types --include-runtime=false",
