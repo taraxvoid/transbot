@@ -1,9 +1,51 @@
-node_modules/
+# Build output
 dist/
+
+# Generated types
 .astro/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+.env.fish
+!.env.example
+
+# Editor / bots
+.poolside/
+.kilo/
+.claude/
+.delta/
+.cursor
+.vscode/
+.idea
+.superpowers
+docs/superpowers
+.playwright-mcp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Wrangler (local dev state, secrets)
 .wrangler/
 .dev.vars*
 worker-configuration.d.ts
-test-results/
+
+# Playwright
 playwright-report/
+test-results/
+.playwright/
+.last-run.json
+
+# Lighthouse CI
 .unlighthouse/
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
