@@ -25,7 +25,7 @@ function askPronouns(root: HTMLElement, name: string): void {
         el(
             'p',
             { id: 'ask-pronouns-hint', class: 'hint' },
-            'Type any set, like xe, she&xe or ae/aer/aer/aers/aerself. Type null to practice using just the name.',
+            'Type them however you like: he/they, xe, or all five forms like ae/aer/aer/aers/aerself. Type null to practice using just the name.',
         ),
         el('button', { type: 'submit' }, 'Start practicing'),
     )
@@ -45,11 +45,13 @@ async function start(): Promise<void> {
     const root = document.getElementById('practice')
     if (!root) return
     const { hash, pathname, search } = window.location
-    const entries =
-        entriesFromFragment(hash) ?? entriesFromPracticePath(pathname, search)
+    const fromFragment = entriesFromFragment(hash)
+    const entries = fromFragment ?? entriesFromPracticePath(pathname, search)
     // A path name with no p: ask for pronouns instead of guessing. `p=null`
-    // is the explicit way to practice with just the name.
-    if (!hash && entries?.names.length && !entries.pronouns.length) {
+    // is the explicit way to practice with just the name. Key this on where
+    // the entries came from, not on whether a hash exists: an unrelated
+    // fragment like #top must not hide the prompt.
+    if (!fromFragment && entries?.names.length && !entries.pronouns.length) {
         askPronouns(root, entries.names[0].value)
         return
     }

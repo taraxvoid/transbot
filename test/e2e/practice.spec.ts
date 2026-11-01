@@ -126,3 +126,13 @@ test('a name in the path without p asks for pronouns', async ({ page }) => {
         page.getByRole('heading', { name: 'Practice with Quillon' }),
     ).toBeVisible()
 })
+
+test('an unrelated fragment still asks for pronouns', async ({ page }) => {
+    await page.goto('/practice/Quillon#practice')
+    await page.getByLabel('Which pronouns does Quillon use?').fill('xe')
+    await page.getByRole('button', { name: 'Start practicing' }).click()
+    await expect(page).toHaveURL(/\/practice\/Quillon\?p=xe#practice$/)
+    await expect(
+        page.getByRole('heading', { name: 'Practice with Quillon' }),
+    ).toBeVisible()
+})
