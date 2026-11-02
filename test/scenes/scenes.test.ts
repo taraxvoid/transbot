@@ -153,6 +153,15 @@ describe('pickFriends', () => {
         }
     })
 
+    it('matches names regardless of Unicode normalization', () => {
+        const decomposed = 'Luci\u0301a'
+        for (let seed = 1; seed < 300; seed++) {
+            expect(pickFriends([decomposed], seeded(seed))).not.toContain(
+                'Lucía',
+            )
+        }
+    })
+
     it('works without a name', () => {
         const [a, b] = pickFriends([null], () => 0.999)
         expect(a).not.toBe(b)

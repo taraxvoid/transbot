@@ -30,6 +30,11 @@ export const FRIEND_POOL: readonly string[] = [
     'Omar',
 ]
 
+/** NFC so a decomposed "Lucía" typed in a link matches the pool's. */
+function nameKey(name: string): string {
+    return name.normalize('NFC').trim().toLowerCase()
+}
+
 /**
  * Two different friends, neither sharing a name with the person: their
  * preferred name or a name used in place of pronouns (`:Kai`).
@@ -38,10 +43,8 @@ export function pickFriends(
     personNames: ReadonlyArray<string | null>,
     rng: () => number,
 ): [string, string] {
-    const taken = new Set(
-        personNames.flatMap((n) => (n?.trim() ? [n.trim().toLowerCase()] : [])),
-    )
-    const pool = FRIEND_POOL.filter((n) => !taken.has(n.toLowerCase()))
+    const taken = new Set(personNames.flatMap((n) => (n ? [nameKey(n)] : [])))
+    const pool = FRIEND_POOL.filter((n) => !taken.has(nameKey(n)))
     const first = Math.floor(rng() * pool.length)
     let second = Math.floor(rng() * (pool.length - 1))
     if (second >= first) second++
