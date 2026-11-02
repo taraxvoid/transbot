@@ -30,13 +30,18 @@ export const FRIEND_POOL: readonly string[] = [
     'Omar',
 ]
 
-/** Two different friends, neither sharing a name with the person. */
+/**
+ * Two different friends, neither sharing a name with the person: their
+ * preferred name or a name used in place of pronouns (`:Kai`).
+ */
 export function pickFriends(
-    personName: string | null,
+    personNames: ReadonlyArray<string | null>,
     rng: () => number,
 ): [string, string] {
-    const taken = personName?.trim().toLocaleLowerCase()
-    const pool = FRIEND_POOL.filter((n) => n.toLocaleLowerCase() !== taken)
+    const taken = new Set(
+        personNames.flatMap((n) => (n?.trim() ? [n.trim().toLowerCase()] : [])),
+    )
+    const pool = FRIEND_POOL.filter((n) => !taken.has(n.toLowerCase()))
     const first = Math.floor(rng() * pool.length)
     let second = Math.floor(rng() * (pool.length - 1))
     if (second >= first) second++

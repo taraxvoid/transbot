@@ -52,6 +52,11 @@ export function renderSession(
     rng: () => number = Math.random,
 ): RenderedScene[] {
     return SCENES.map((scene) =>
-        renderScene(scene, person, pickFriends(person.name, rng)),
+        renderScene(
+            scene,
+            person,
+            // The subject form is the name for name sets like :Kai.
+            pickFriends([person.name, person.forms.pronoun_subject], rng),
+        ),
     )
 }

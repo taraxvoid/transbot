@@ -133,7 +133,7 @@ describe('chatPerson', () => {
 describe('pickFriends', () => {
     it('never repeats a friend or takes the person name', () => {
         for (let seed = 1; seed < 300; seed++) {
-            const [a, b] = pickFriends('sam', seeded(seed))
+            const [a, b] = pickFriends(['sam'], seeded(seed))
             expect(a).not.toBe(b)
             expect([a, b]).not.toContain('Sam')
             expect(FRIEND_POOL).toContain(a)
@@ -141,8 +141,20 @@ describe('pickFriends', () => {
         }
     })
 
+    it('never takes a name used in place of pronouns', () => {
+        const p = person('n=Tara&p=:Kai')
+        expect(p.name).toBe('Tara')
+        for (let seed = 1; seed < 300; seed++) {
+            for (const scene of renderSession(p, seeded(seed))) {
+                const friends = scene.lines.map((l) => l.sender)
+                expect(friends).not.toContain('Kai')
+                expect(friends).not.toContain('Tara')
+            }
+        }
+    })
+
     it('works without a name', () => {
-        const [a, b] = pickFriends(null, () => 0.999)
+        const [a, b] = pickFriends([null], () => 0.999)
         expect(a).not.toBe(b)
     })
 })
