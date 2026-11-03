@@ -6,8 +6,6 @@
 - `/practice#n=<name>&p=<pronouns>`: the private form. The name stays in the URL fragment and never reaches the server.
 - `/profile/<username>`: practice from a [pronouns.page](https://en.pronouns.page) card. Only entries marked yes or meh are used. Names marked no, private custom opinions, "close" and "jokingly" are filtered out on the server and never reach the browser.
 
-Design: `docs/superpowers/specs/2026-10-12-transbot-design.md`.
-
 ## Develop
 
     mise install

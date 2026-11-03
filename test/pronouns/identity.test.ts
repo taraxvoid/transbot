@@ -280,3 +280,35 @@ describe('summarize', () => {
         )
     })
 })
+
+describe('plural', () => {
+    it('comes from pronouns.page per set, and name and void sets are singular', () => {
+        const id = buildIdentity(
+            {
+                names: [{ value: 'Tara', opinion: 'yes' }],
+                pronouns: ['they', 'xe&she', 'null', ':void'].map((value) => ({
+                    value,
+                    opinion: 'yes' as const,
+                })),
+            },
+            fetched,
+            xe.examples,
+        )
+        expect(id.sets.map((s) => [s.label, s.plural])).toEqual([
+            ['they/them', true],
+            ['xe/xem', false],
+            ['she/her', false],
+            ['Tara', false],
+            ["void/void's", false],
+        ])
+    })
+
+    it('treats a they subject as plural even when the API says singular', () => {
+        const id = buildIdentity(
+            { names: [], pronouns: [{ value: 'tw', opinion: 'yes' }] },
+            { tw: { ...fetched.they, plural: [false] } as RawPronoun },
+            xe.examples,
+        )
+        expect(id.sets[0].plural).toBe(true)
+    })
+})
