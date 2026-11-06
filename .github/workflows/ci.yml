@@ -10,30 +10,25 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   validate:
-    uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@2702230a04e50c6592bbc816042371f695e2db93 # v0.13.0
-    with:
-      single-environment: true
-      e2e-extra-paths: '["scripts/e2e-preview.ts", "test/fixtures/**"]'
-
-  resolve-env:
-    uses: taraxvoid/voidflow/.github/workflows/resolve-env.yml@2702230a04e50c6592bbc816042371f695e2db93 # v0.13.0
-    with:
-      single-environment: true
+    uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@8f02fb9616caadd3aa11d575b5c6038cef09de8d # v1.0.0-next.3
 
   deploy:
-    name: Deploy [${{ needs.resolve-env.outputs.env }}]
-    needs: [validate, resolve-env]
+    name: Deploy
+    needs: validate
     if: github.event_name == 'push'
-    environment: ${{ needs.resolve-env.outputs.env }}
+    environment: prod
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: false
     steps:
+      - id: env
+        uses: taraxvoid/voidflow/actions/branch-env-map@8f02fb9616caadd3aa11d575b5c6038cef09de8d # v1.0.0-next.3
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -45,9 +40,9 @@ jobs:
         run: bun run build
 
       - name: Deploy
-        uses: taraxvoid/voidflow/actions/cloudflare-deploy@2702230a04e50c6592bbc816042371f695e2db93 # v0.13.0
+        uses: taraxvoid/voidflow/actions/cloudflare-deploy@8f02fb9616caadd3aa11d575b5c6038cef09de8d # v1.0.0-next.3
         with:
-          env: ${{ needs.resolve-env.outputs.env }}
+          env: ${{ steps.env.outputs.env }}
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
