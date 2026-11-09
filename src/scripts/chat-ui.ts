@@ -158,7 +158,8 @@ export function mountChat(
     let session = renderSession(person, rng)
 
     async function play(index: number): Promise<void> {
-        const scene = session[index]
+        const scene = session.at(index)
+        if (!scene) return
         const friends = friendsIn(scene)
         group.textContent = scene.group
         avatars.replaceChildren(

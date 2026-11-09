@@ -1,10 +1,5 @@
 import { modeledSet, setLabel } from '../lib/pronouns/identity'
-import {
-    FORM_KEYS,
-    type FormKey,
-    type Identity,
-    type PronounSet,
-} from '../lib/pronouns/types'
+import type { Identity, PronounSet } from '../lib/pronouns/types'
 import { chatPerson } from '../lib/scenes/render'
 import type { Person } from '../lib/scenes/template'
 import { mountChat } from './chat-ui'
@@ -34,14 +29,6 @@ export function mountPractice(
     }
 }
 
-const FORM_NAMES: Record<FormKey, string> = {
-    pronoun_subject: 'Subject',
-    pronoun_object: 'Object',
-    possessive_determiner: 'Possessive',
-    possessive_pronoun: 'Possessive pronoun',
-    reflexive: 'Reflexive',
-}
-
 /** Other names and every set besides the modeled one, yes before meh. */
 function alsoFine(identity: Identity, modeled: PronounSet | null): string[] {
     const { preferred, accepted } = identity.names
@@ -58,16 +45,24 @@ function formsBox(identity: Identity, person: Person): HTMLElement {
         !modeled || modeled.kind === 'name'
             ? 'no pronouns, just the name'
             : modeled.label
+    const forms = person.forms
+    const ipa = modeled?.pronunciations ?? {}
+    const rows: Array<[string, string, string | undefined]> = [
+        ['Subject', forms.pronoun_subject, ipa.pronoun_subject],
+        ['Object', forms.pronoun_object, ipa.pronoun_object],
+        ['Possessive', forms.possessive_determiner, ipa.possessive_determiner],
+        [
+            'Possessive pronoun',
+            forms.possessive_pronoun,
+            ipa.possessive_pronoun,
+        ],
+        ['Reflexive', forms.reflexive, ipa.reflexive],
+    ]
     const list = el('dl')
-    for (const key of FORM_KEYS) {
-        const ipa = modeled?.pronunciations[key]
+    for (const [term, form, sound] of rows) {
         list.append(
-            el('dt', {}, FORM_NAMES[key]),
-            el(
-                'dd',
-                {},
-                ipa ? `${person.forms[key]} /${ipa}/` : person.forms[key],
-            ),
+            el('dt', {}, term),
+            el('dd', {}, sound ? `${form} /${sound}/` : form),
         )
     }
     const others = alsoFine(identity, modeled)
