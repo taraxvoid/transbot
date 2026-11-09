@@ -25,7 +25,7 @@ test('/ has no axe violations with a link shown', async ({ page }) => {
 test('/practice has no axe violations, with feedback shown', async ({
     page,
 }) => {
-    await page.goto('/practice#n=Quillon&p=xe')
+    await page.goto('/practice/Quillon?p=xe')
     const drills = page.getByRole('region', { name: 'Fill in the blanks' })
     await drills.getByLabel('Blank 1 of 3').fill('he')
     await drills.getByRole('button', { name: 'Check' }).click()
@@ -33,7 +33,7 @@ test('/practice has no axe violations, with feedback shown', async ({
     await expectNoViolations(page)
 })
 
-test('/practice without a fragment has no axe violations', async ({ page }) => {
+test('/practice with no name has no axe violations', async ({ page }) => {
     await page.goto('/practice')
     await expect(page.getByRole('heading', { name: 'Practice' })).toBeVisible()
     await expectNoViolations(page)

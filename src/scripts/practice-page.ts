@@ -1,5 +1,6 @@
-import { entriesFromPracticePath } from '../lib/links'
+import { entriesFromPracticePath, pronounQuery } from '../lib/links'
 import { loadIdentity } from '../lib/pronouns/load'
+import { parsePronounInput } from '../lib/pronouns/parse'
 import { el } from './dom'
 import { mountPractice } from './practice-ui'
 
@@ -30,10 +31,12 @@ function askPronouns(root: HTMLElement, name: string): void {
     )
     form.addEventListener('submit', (event) => {
         event.preventDefault()
-        const p = (input as HTMLInputElement).value.trim()
-        if (!p) return
+        const query = pronounQuery(
+            parsePronounInput((input as HTMLInputElement).value),
+        )
+        if (!query) return
         const url = new URL(window.location.href)
-        url.search = new URLSearchParams({ p }).toString()
+        url.search = query
         window.location.assign(url)
     })
     root.replaceChildren(el('h1', {}, 'Practice'), form)

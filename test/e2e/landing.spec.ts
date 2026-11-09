@@ -203,7 +203,7 @@ test('the name and pronouns form makes a working practice link', async ({
         ),
     ).toBeVisible()
     const link = page.getByRole('link', {
-        name: /\/practice\/Sam%20Lee\?p=xe&p=she$/,
+        name: /\/practice\/Sam%20Lee\?p=xe\+she$/,
     })
     await expect(link).toBeVisible()
     await link.click()
@@ -218,7 +218,7 @@ test('the link builder understands typed shorthand', async ({ page }) => {
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await page.getByLabel('Other pronouns').fill('he/they')
     await expect(
-        page.getByRole('link', { name: /\/practice\/Sam\?p=she&p=he&p=they$/ }),
+        page.getByRole('link', { name: /\/practice\/Sam\?p=she\+he\+they$/ }),
     ).toBeVisible()
     // Picked sets come first, in pick order; rechecking moves one last.
     await page.getByRole('checkbox', { name: 'it/its' }).check()
@@ -226,7 +226,7 @@ test('the link builder understands typed shorthand', async ({ page }) => {
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
         page.getByRole('link', {
-            name: /\/practice\/Sam\?p=it&p=she&p=he&p=they$/,
+            name: /\/practice\/Sam\?p=it\+she\+he\+they$/,
         }),
     ).toBeVisible()
     await page.getByRole('checkbox', { name: 'it/its' }).uncheck()
@@ -257,7 +257,7 @@ test('the link builder only links pronouns pronouns.page has', async ({
     await page.getByLabel('Other pronouns').fill('ne/nem/nir/nirs/nemself')
     await expect(
         page.getByRole('link', {
-            name: /\/practice\/Sam\?p=ne%2Fnem%2Fnir%2Fnirs%2Fnemself$/,
+            name: /\/practice\/Sam\?p=ne\/nem\/nir\/nirs\/nemself$/,
         }),
     ).toBeVisible()
     // Common sets are never looked up, and the name never goes to pronouns.page.
