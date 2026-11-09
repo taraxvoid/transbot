@@ -31,9 +31,7 @@ function askPronouns(root: HTMLElement, name: string): void {
     )
     form.addEventListener('submit', (event) => {
         event.preventDefault()
-        const query = pronounQuery(
-            parsePronounInput((input as HTMLInputElement).value),
-        )
+        const query = pronounQuery(parsePronounInput(input.value))
         if (!query) return
         const url = new URL(window.location.href)
         url.search = query
