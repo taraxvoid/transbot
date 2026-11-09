@@ -22,14 +22,15 @@ test('/ has no axe violations with a link shown', async ({ page }) => {
     await expectNoViolations(page)
 })
 
-test('/practice has no axe violations, with feedback shown', async ({
-    page,
-}) => {
+test('/practice has no axe violations mid-chat', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/practice/Quillon?p=xe')
-    const drills = page.getByRole('region', { name: 'Fill in the blanks' })
-    await drills.getByLabel('Blank 1 of 3').fill('he')
-    await drills.getByRole('button', { name: 'Check' }).click()
-    await expect(drills.locator('.feedback li')).toHaveCount(3)
+    const send = page
+        .getByRole('region', { name: 'Group chat' })
+        .getByRole('button', { name: 'Send' })
+    await expect(send).toHaveAttribute('aria-disabled', 'false')
+    await send.click()
+    await expect(page.getByText('Delivered')).toBeVisible()
     await expectNoViolations(page)
 })
 
