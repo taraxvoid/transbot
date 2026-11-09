@@ -1,4 +1,4 @@
-import { entriesFromFragment } from './pronouns/identity'
+import { entriesFromQuery } from './pronouns/identity'
 import type { Entries } from './pronouns/types'
 
 /** pronouns.page usernames; also keeps paths like ../ out of API calls. */
@@ -35,7 +35,7 @@ export function practiceLink(
     return `${origin}/practice/${encodeURIComponent(n)}?${query}`
 }
 
-/** Reads /practice/<name>?p=<pronouns>. Names use the same rules as fragments. */
+/** Reads /practice/<name>?p=<pronouns>. The name goes through entriesFromQuery too. */
 export function entriesFromPracticePath(
     pathname: string,
     search: string,
@@ -48,10 +48,10 @@ export function entriesFromPracticePath(
         return null
     }
     if (!name.trim()) return null
-    // Name first so a stray n= in the query never wins; the fragment parser
+    // Name first so a stray n= in the query never wins; the query parser
     // also rejoins a hand-typed `p=xe&she`.
-    return entriesFromFragment(
-        `#${new URLSearchParams({ n: name })}&${search.replace(/^\?/, '')}`,
+    return entriesFromQuery(
+        `?${new URLSearchParams({ n: name })}&${search.replace(/^\?/, '')}`,
     )
 }
 

@@ -1,5 +1,4 @@
 import { entriesFromPracticePath } from '../lib/links'
-import { entriesFromFragment } from '../lib/pronouns/identity'
 import { loadIdentity } from '../lib/pronouns/load'
 import { el } from './dom'
 import { mountPractice } from './practice-ui'
@@ -44,14 +43,13 @@ function askPronouns(root: HTMLElement, name: string): void {
 async function start(): Promise<void> {
     const root = document.getElementById('practice')
     if (!root) return
-    const { hash, pathname, search } = window.location
-    const fromFragment = entriesFromFragment(hash)
-    const entries = fromFragment ?? entriesFromPracticePath(pathname, search)
-    // A path name with no p: ask for pronouns instead of guessing. `p=null`
-    // is the explicit way to practice with just the name. Key this on where
-    // the entries came from, not on whether a hash exists: an unrelated
-    // fragment like #top must not hide the prompt.
-    if (!fromFragment && entries?.names.length && !entries.pronouns.length) {
+    // Old /practice#n=... links are no longer read; they land on the
+    // missing-name message below.
+    const { pathname, search } = window.location
+    const entries = entriesFromPracticePath(pathname, search)
+    // A name with no p: ask for pronouns instead of guessing. `p=null` is
+    // the explicit way to practice with just the name.
+    if (entries?.names.length && !entries.pronouns.length) {
         askPronouns(root, entries.names[0].value)
         return
     }
@@ -61,7 +59,7 @@ async function start(): Promise<void> {
             el(
                 'p',
                 {},
-                'This link is missing a name and pronouns. ',
+                'This link is missing a name. ',
                 el('a', { href: '/' }, 'Make a practice link'),
                 '.',
             ),
@@ -103,4 +101,3 @@ async function start(): Promise<void> {
 }
 
 void start()
-window.addEventListener('hashchange', () => void start())

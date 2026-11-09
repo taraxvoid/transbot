@@ -78,14 +78,20 @@ test('the name never leaves the browser', async ({ page }) => {
     for (const url of urls) expect(url).not.toContain('Quillon')
 })
 
-test('a link without a fragment explains what to do', async ({ page }) => {
+test('/practice with no name explains what to do', async ({ page }) => {
     await page.goto('/practice')
-    await expect(
-        page.getByText('This link is missing a name and pronouns.'),
-    ).toBeVisible()
+    await expect(page.getByText('This link is missing a name.')).toBeVisible()
     await expect(
         page.getByRole('link', { name: 'Make a practice link' }),
     ).toHaveAttribute('href', '/')
+})
+
+test('an old fragment link gets the same message', async ({ page }) => {
+    await page.goto('/practice#n=Quillon&p=xe')
+    await expect(page.getByText('This link is missing a name.')).toBeVisible()
+    await expect(
+        page.getByRole('heading', { name: 'Practice with Quillon' }),
+    ).toHaveCount(0)
 })
 
 test('an unknown set gets a gentle message', async ({ page }) => {

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { RawProfile, RawPronoun } from '../../src/lib/pronouns/client'
 import {
     buildIdentity,
-    entriesFromFragment,
     entriesFromProfile,
+    entriesFromQuery,
     modeledSet,
     normalizePronounValue,
     pronounValuesToFetch,
@@ -66,9 +66,9 @@ describe('entriesFromProfile', () => {
     })
 })
 
-describe('entriesFromFragment', () => {
+describe('entriesFromQuery', () => {
     it('splits an encoded compound set', () => {
-        expect(entriesFromFragment('#n=Sam&p=xe%26she')).toEqual({
+        expect(entriesFromQuery('?n=Sam&p=xe%26she')).toEqual({
             names: [{ value: 'Sam', opinion: 'yes' }],
             pronouns: [
                 { value: 'xe', opinion: 'yes' },
@@ -78,57 +78,55 @@ describe('entriesFromFragment', () => {
     })
 
     it('repairs a hand-typed & inside p', () => {
-        expect(entriesFromFragment('#n=Sam&p=xe&she')?.pronouns).toEqual([
+        expect(entriesFromQuery('?n=Sam&p=xe&she')?.pronouns).toEqual([
             { value: 'xe', opinion: 'yes' },
             { value: 'she', opinion: 'yes' },
         ])
     })
 
     it('reads repeated p in order', () => {
-        expect(
-            entriesFromFragment('#n=Sam&p=he&p=they&p=he')?.pronouns,
-        ).toEqual([
+        expect(entriesFromQuery('?n=Sam&p=he&p=they&p=he')?.pronouns).toEqual([
             { value: 'he', opinion: 'yes' },
             { value: 'they', opinion: 'yes' },
         ])
     })
 
     it('parses human shorthand in p', () => {
-        expect(entriesFromFragment('#n=Sam&p=he%2Fthey')?.pronouns).toEqual([
+        expect(entriesFromQuery('?n=Sam&p=he%2Fthey')?.pronouns).toEqual([
             { value: 'he', opinion: 'yes' },
             { value: 'they', opinion: 'yes' },
         ])
     })
 
     it('keeps a hand-typed & in a name out of p', () => {
-        expect(entriesFromFragment('#n=Sam&Jo&p=xe')).toEqual({
+        expect(entriesFromQuery('?n=Sam&Jo&p=xe')).toEqual({
             names: [{ value: 'Sam&Jo', opinion: 'yes' }],
             pronouns: [{ value: 'xe', opinion: 'yes' }],
         })
-        expect(entriesFromFragment('#n=Sam&Jo')?.pronouns).toEqual([])
+        expect(entriesFromQuery('?n=Sam&Jo')?.pronouns).toEqual([])
     })
 
     it('drops stray empty keys that follow neither n nor p', () => {
-        expect(entriesFromFragment('#stray&n=Sam&p=xe')).toEqual({
+        expect(entriesFromQuery('?stray&n=Sam&p=xe')).toEqual({
             names: [{ value: 'Sam', opinion: 'yes' }],
             pronouns: [{ value: 'xe', opinion: 'yes' }],
         })
     })
 
     it('decodes + as a space in names', () => {
-        expect(entriesFromFragment('#n=Sam+Lee&p=they')?.names[0].value).toBe(
+        expect(entriesFromQuery('?n=Sam+Lee&p=they')?.names[0].value).toBe(
             'Sam Lee',
         )
     })
 
     it('allows a name without pronouns and pronouns without a name', () => {
-        expect(entriesFromFragment('#n=Sam')?.pronouns).toEqual([])
-        expect(entriesFromFragment('#p=xe')?.names).toEqual([])
+        expect(entriesFromQuery('?n=Sam')?.pronouns).toEqual([])
+        expect(entriesFromQuery('?p=xe')?.names).toEqual([])
     })
 
-    it('returns null for an empty fragment', () => {
-        expect(entriesFromFragment('')).toBeNull()
-        expect(entriesFromFragment('#')).toBeNull()
+    it('returns null for an empty query', () => {
+        expect(entriesFromQuery('')).toBeNull()
+        expect(entriesFromQuery('?')).toBeNull()
     })
 })
 
@@ -248,7 +246,7 @@ describe('buildIdentity', () => {
     })
 
     it('never infers pronouns from a name alone', () => {
-        const entries = entriesFromFragment('#n=Sam') as Entries
+        const entries = entriesFromQuery('?n=Sam') as Entries
         const identity = buildIdentity(entries, fetched, xe.examples)
         expect(identity.sets).toEqual([])
         expect(modeledSet(identity)).toBeNull()

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { RawPronoun } from '../../src/lib/pronouns/client'
 import {
     buildIdentity,
-    entriesFromFragment,
+    entriesFromQuery,
 } from '../../src/lib/pronouns/identity'
 import { FORM_KEYS, type Identity } from '../../src/lib/pronouns/types'
 import { FRIEND_POOL, pickFriends } from '../../src/lib/scenes/friends'
@@ -26,15 +26,15 @@ const fetched: Record<string, RawPronoun | null> = {
     'they/them/their/theirs/themself': { ...they, plural: [false] },
 }
 
-function identity(hash: string): Identity {
-    const entries = entriesFromFragment(hash)
-    if (!entries) throw new Error(`no entries for ${hash}`)
+function identity(query: string): Identity {
+    const entries = entriesFromQuery(query)
+    if (!entries) throw new Error(`no entries for ${query}`)
     return buildIdentity(entries, fetched, xe.examples)
 }
 
-function person(hash: string): Person {
-    const p = chatPerson(identity(hash))
-    if (!p) throw new Error(`no person for ${hash}`)
+function person(query: string): Person {
+    const p = chatPerson(identity(query))
+    if (!p) throw new Error(`no person for ${query}`)
     return p
 }
 
@@ -191,14 +191,14 @@ describe('renderScene', () => {
     })
 
     it('renders every scene for every kind of set without leftover slots', () => {
-        for (const hash of [
+        for (const query of [
             'n=Tara&p=xe',
             'n=Sam&p=they',
             'n=Tara',
             'n=Tara&p=:void',
             'p=she',
         ]) {
-            for (const scene of renderSession(person(hash), seeded(7))) {
+            for (const scene of renderSession(person(query), seeded(7))) {
                 for (const line of scene.lines) {
                     expect(line.text).not.toMatch(/[{}]/)
                 }

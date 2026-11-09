@@ -4,8 +4,8 @@ import type { RawProfile, RawPronoun } from '../../src/lib/pronouns/client'
 import type { Blank } from '../../src/lib/pronouns/drills'
 import {
     buildIdentity,
-    entriesFromFragment,
     entriesFromProfile,
+    entriesFromQuery,
 } from '../../src/lib/pronouns/identity'
 import type { Entries, Identity } from '../../src/lib/pronouns/types'
 import { fixtureResponse, loadPronounFixture } from '../fixtures/resolve'
@@ -20,9 +20,9 @@ const fetched: Record<string, RawPronoun | null> = {
     'ae/aer/aer/aers/aerself': loadPronounFixture('ae/aer/aer/aers/aerself'),
 }
 
-function fromFragment(hash: string): Identity {
+function fromQuery(query: string): Identity {
     return buildIdentity(
-        entriesFromFragment(hash) as Entries,
+        entriesFromQuery(query) as Entries,
         fetched,
         xe.examples,
     )
@@ -45,7 +45,7 @@ const blank = (key: Blank['key'], capitalize = false): Blank => ({
 })
 
 describe('checkBlank', () => {
-    const identity = fromFragment('#n=Sam&p=xe%26she')
+    const identity = fromQuery('?n=Sam&p=xe%26she')
 
     it('accepts the modeled form, ignoring case and spaces', () => {
         expect(checkBlank('  XEM ', blank('pronoun_object'), identity)).toEqual(
@@ -78,7 +78,7 @@ describe('checkBlank', () => {
     })
 
     it('handles irregular neopronouns where forms repeat', () => {
-        const ae = fromFragment('#n=Sam&p=ae/aer/aer/aers/aerself')
+        const ae = fromQuery('?n=Sam&p=ae/aer/aer/aers/aerself')
         expect(checkBlank('aer', blank('pronoun_object'), ae).correct).toBe(
             true,
         )
@@ -91,14 +91,14 @@ describe('checkBlank', () => {
     })
 
     it('accepts singular themself for themselves', () => {
-        const they = fromFragment('#n=Sam&p=they')
+        const they = fromQuery('?n=Sam&p=they')
         expect(checkBlank('themself', blank('reflexive'), they).correct).toBe(
             true,
         )
     })
 
     it('accepts the name in a pronoun slot for null, with curly apostrophes', () => {
-        const name = fromFragment('#n=Sam&p=null')
+        const name = fromQuery('?n=Sam&p=null')
         expect(checkBlank('sam', blank('pronoun_subject'), name).correct).toBe(
             true,
         )
@@ -144,19 +144,19 @@ describe('checkBlank', () => {
 describe('checkFreeText', () => {
     it('suggests the modeled form for an unlisted pronoun', () => {
         expect(
-            checkFreeText('Sam said he was tired', fromFragment('#n=Sam&p=xe')),
+            checkFreeText('Sam said he was tired', fromQuery('?n=Sam&p=xe')),
         ).toEqual([{ text: '"he": Sam uses xe/xem,', suggestion: 'xe' }])
     })
 
     it('offers both forms for an ambiguous word', () => {
-        expect(checkFreeText('I saw her', fromFragment('#n=Sam&p=xe'))).toEqual(
-            [{ text: '"her": Sam uses xe/xem,', suggestion: 'xem or xyr' }],
-        )
+        expect(checkFreeText('I saw her', fromQuery('?n=Sam&p=xe'))).toEqual([
+            { text: '"her": Sam uses xe/xem,', suggestion: 'xem or xyr' },
+        ])
     })
 
     it('flags each word once', () => {
         expect(
-            checkFreeText('he and he', fromFragment('#n=Sam&p=xe')),
+            checkFreeText('he and he', fromQuery('?n=Sam&p=xe')),
         ).toHaveLength(1)
     })
 
@@ -180,9 +180,7 @@ describe('checkFreeText', () => {
     })
 
     it('suggests the name when the card uses no pronouns', () => {
-        expect(
-            checkFreeText('she left', fromFragment('#n=Sam&p=null')),
-        ).toEqual([
+        expect(checkFreeText('she left', fromQuery('?n=Sam&p=null'))).toEqual([
             {
                 text: '"she": Sam goes by name, not pronouns,',
                 suggestion: 'Sam',
@@ -192,7 +190,7 @@ describe('checkFreeText', () => {
 
     it('never infers pronouns from a name alone', () => {
         expect(
-            checkFreeText('Sam said she was tired', fromFragment('#n=Sam')),
+            checkFreeText('Sam said she was tired', fromQuery('?n=Sam')),
         ).toEqual([])
     })
 
@@ -213,7 +211,7 @@ describe('checkFreeText', () => {
 
     it('stays quiet when the card lists no sets at all', () => {
         expect(
-            checkFreeText('Sam said she left', fromFragment('#n=Sam&p=nope')),
+            checkFreeText('Sam said she left', fromQuery('?n=Sam&p=nope')),
         ).toEqual([])
     })
 
