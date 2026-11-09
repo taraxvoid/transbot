@@ -8,18 +8,31 @@ export function isValidUsername(value: string): boolean {
     return USERNAME_PATTERN.test(value) && !/^\.+$/.test(value)
 }
 
-/** `pronouns` are pronouns.page values, first one modeled; see parsePronounInput. */
+/**
+ * `p=she+they`: one param, sets joined with `+`, slashes and colons left
+ * readable. `+` reads back as a space, and parsePronounInput splits on
+ * whitespace and never returns a value with whitespace, `+`, `&` or `,` in
+ * it, so the join can't be ambiguous. '' when there is nothing to link.
+ */
+export function pronounQuery(values: string[]): string {
+    const kept = values.map((v) => v.trim()).filter(Boolean)
+    if (!kept.length) return ''
+    const encoded = kept.map((v) =>
+        encodeURIComponent(v).replaceAll('%2F', '/').replaceAll('%3A', ':'),
+    )
+    return `p=${encoded.join('+')}`
+}
+
+/** `pronouns` are pronouns.page values, first one modeled, sharing one p. */
 export function practiceLink(
     name: string,
     pronouns: string[],
     origin: string,
 ): string | null {
     const n = name.trim()
-    const values = pronouns.map((p) => p.trim()).filter(Boolean)
-    if (!n || !values.length) return null
-    const params = new URLSearchParams()
-    for (const p of values) params.append('p', p)
-    return `${origin}/practice/${encodeURIComponent(n)}?${params}`
+    const query = pronounQuery(pronouns)
+    if (!n || !query) return null
+    return `${origin}/practice/${encodeURIComponent(n)}?${query}`
 }
 
 /** Reads /practice/<name>?p=<pronouns>. Names use the same rules as fragments. */

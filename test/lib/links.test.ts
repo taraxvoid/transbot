@@ -4,16 +4,17 @@ import {
     entriesFromPracticePath,
     normalizeUsername,
     practiceLink,
+    pronounQuery,
 } from '../../src/lib/links'
 
 describe('practiceLink', () => {
-    it('puts the encoded name in the path and each set in its own p', () => {
+    it('puts the encoded name in the path and the sets in one p', () => {
         const link = practiceLink(
             'Sam Lee',
             ['xe', 'she'],
             'https://transbot.net',
         )
-        expect(link).toBe('https://transbot.net/practice/Sam%20Lee?p=xe&p=she')
+        expect(link).toBe('https://transbot.net/practice/Sam%20Lee?p=xe+she')
     })
 
     it.each(['Zoë', 'a/b', 'what?', 'x#y', '100%', 'Jo & Sam'])(
@@ -39,6 +40,46 @@ describe('practiceLink', () => {
         expect(practiceLink('', ['xe'], 'https://x')).toBeNull()
         expect(practiceLink('Sam', [], 'https://x')).toBeNull()
         expect(practiceLink('Sam', ['  '], 'https://x')).toBeNull()
+    })
+})
+
+describe('pronounQuery', () => {
+    it('joins sets with + and keeps slashes and colons readable', () => {
+        expect(pronounQuery(['ne/nem/nir/nirs/nemself', 'she'])).toBe(
+            'p=ne/nem/nir/nirs/nemself+she',
+        )
+        expect(pronounQuery([':Sam'])).toBe('p=:Sam')
+        expect(pronounQuery(['null'])).toBe('p=null')
+        expect(pronounQuery([' ', ''])).toBe('')
+    })
+
+    it.each([
+        [[':Zoë', 'they']],
+        [[":O'Neil"]],
+        [['ne/nem/nir/nirs/nemself', 'he', 'it']],
+    ])('round-trips %j through entriesFromPracticePath', (values) => {
+        const entries = entriesFromPracticePath(
+            '/practice/Sam',
+            `?${pronounQuery(values)}`,
+        )
+        expect(entries?.pronouns.map((p) => p.value)).toEqual(values)
+    })
+})
+
+describe('entriesFromPracticePath, links sent before short links', () => {
+    it('still reads repeated p params', () => {
+        const entries = entriesFromPracticePath('/practice/Sam', '?p=xe&p=she')
+        expect(entries?.pronouns.map((p) => p.value)).toEqual(['xe', 'she'])
+    })
+
+    it('still reads percent-encoded slashes', () => {
+        const entries = entriesFromPracticePath(
+            '/practice/Sam',
+            '?p=ne%2Fnem%2Fnir%2Fnirs%2Fnemself',
+        )
+        expect(entries?.pronouns.map((p) => p.value)).toEqual([
+            'ne/nem/nir/nirs/nemself',
+        ])
     })
 })
 
