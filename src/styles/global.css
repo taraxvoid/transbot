@@ -398,3 +398,36 @@ label.pick:has(input:checked) {
     margin: 0;
     flex-basis: 100%;
 }
+
+.forms {
+    margin-top: 1rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--field);
+}
+
+.forms summary {
+    cursor: pointer;
+    font-weight: 600;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    overflow-wrap: anywhere;
+}
+
+.forms dl {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+    margin: 0.5rem 0 0.25rem;
+}
+
+.forms dt {
+    color: var(--muted);
+}
+
+.forms dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}

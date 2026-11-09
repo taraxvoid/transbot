@@ -83,13 +83,16 @@ async function start(): Promise<void> {
         )
         return
     }
-    mountPractice(root, identity)
+    // The link listed pronouns and none resolved: say so instead of falling
+    // back to the name-only chat, which would be a guess.
     const unknown =
         entries.pronouns.length > 0 &&
         identity.sets.length === 0 &&
         identity.askMe === null
     if (unknown) {
-        root.querySelector('h1')?.after(
+        const name = identity.names.preferred
+        root.replaceChildren(
+            el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
             el(
                 'p',
                 { role: 'alert' },
@@ -98,7 +101,9 @@ async function start(): Promise<void> {
                 '.',
             ),
         )
+        return
     }
+    mountPractice(root, identity)
 }
 
 void start()
