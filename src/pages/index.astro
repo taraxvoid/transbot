@@ -1,9 +1,6 @@
 ---
+import PronounPicker from '../components/PronounPicker.astro'
 import Layout from '../layouts/Layout.astro'
-import { KNOWN_SETS } from '../lib/pronouns/parse'
-
-// ze/hir is still reachable by typing; the picker keeps to common sets.
-const PICKS = KNOWN_SETS.filter((set) => set.value !== 'ze')
 ---
 
 <Layout title="transbot">
@@ -26,44 +23,12 @@ const PICKS = KNOWN_SETS.filter((set) => set.value !== 'ze')
         <form id="builder">
             <label for="b-name">Your name</label>
             <input id="b-name" autocomplete="off" />
-            <fieldset id="b-pronouns" aria-describedby="b-pronouns-hint">
-                <legend>Your pronouns</legend>
-                <p id="b-pronouns-hint" class="hint">
-                    Pick all that apply. The first one you pick is used in the
-                    practice sentences.
-                </p>
-                <div class="picks">
-                    {
-                        PICKS.map((set) => (
-                            <label class="pick">
-                                <input
-                                    type="checkbox"
-                                    name="pronoun"
-                                    value={set.value}
-                                />
-                                {set.label}
-                            </label>
-                        ))
-                    }
-                    <label class="pick">
-                        <input type="checkbox" name="pronoun" value="null" />
-                        No pronouns, just my name
-                    </label>
-                </div>
-                <label for="b-other">Other pronouns</label>
-                <input
-                    id="b-other"
-                    autocomplete="off"
-                    autocapitalize="none"
-                    spellcheck="false"
-                    aria-describedby="b-other-hint"
-                />
-                <p id="b-other-hint" class="hint">
-                    Type them however you like: he/they, ne/nem, or all five
-                    forms like ae/aer/aer/aers/aerself.
-                </p>
-                <p id="b-order" class="hint" aria-live="polite"></p>
-            </fieldset>
+            <PronounPicker
+                prefix="b"
+                legend="Your pronouns"
+                hint="Pick all that apply. The first one you pick is the one practiced in the chat."
+                nullLabel="No pronouns, just my name"
+            />
             <div id="builder-result" aria-live="polite"></div>
         </form>
     </section>

@@ -1,4 +1,5 @@
 ---
+import PronounPicker from '../../components/PronounPicker.astro'
 import Layout from '../../layouts/Layout.astro'
 
 // Serves /practice and /practice/<name>; the page script reads the URL.
@@ -9,6 +10,17 @@ export const prerender = false
     <div id="practice">
         <p>Loading practice...</p>
     </div>
+    <!-- Shown by the page script when the link has a name and no p. -->
+    <form id="ask-form" hidden>
+        <PronounPicker
+            prefix="ask"
+            legend="Which pronouns?"
+            hint="Pick all that apply. The first one is the one practiced."
+            nullLabel="No pronouns, just the name"
+        />
+        <p id="ask-error" role="alert"></p>
+        <button type="submit">Start practicing</button>
+    </form>
     <noscript>
         <p>Practice needs JavaScript to load the name and pronouns in this link.</p>
     </noscript>
