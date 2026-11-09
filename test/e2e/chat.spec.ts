@@ -137,6 +137,34 @@ test('a long name never scrolls the page sideways at 360px', async ({
     expect(width).toBeLessThanOrEqual(360)
 })
 
+test('the forms box lists the five forms with IPA', async ({ page }) => {
+    await page.goto('/practice/Quillon?p=xe')
+    const box = page.locator('details.forms')
+    await expect(box.locator('summary')).toHaveText('Quillon: xe/xem')
+    await box.locator('summary').click()
+    for (const [term, value] of [
+        ['Subject', 'xe /zi/'],
+        ['Object', 'xem /zɛm/'],
+        ['Possessive', 'xyr /ziɹ/'],
+        ['Possessive pronoun', 'xyrs /ziɹz/'],
+        ['Reflexive', 'xemself /zɛmˈsɛlf/'],
+    ]) {
+        await expect(box.locator(`dt:text-is("${term}") + dd`)).toHaveText(
+            value,
+        )
+    }
+})
+
+test('the forms box lists what else is fine', async ({ page }) => {
+    await page.goto('/profile/testcard')
+    const box = page.locator('details.forms')
+    await box.locator('summary').click()
+    const also = box.locator('dt:text-is("Also fine") + dd')
+    for (const text of ['Sammy', 'she/her', 'they/them']) {
+        await expect(also).toContainText(text)
+    }
+})
+
 test.describe('with motion', () => {
     test.use({ reducedMotion: 'no-preference' })
 

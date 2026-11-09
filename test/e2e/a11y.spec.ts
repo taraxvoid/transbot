@@ -31,6 +31,13 @@ test('/practice has no axe violations mid-chat', async ({ page }) => {
     await expect(send).toHaveAttribute('aria-disabled', 'false')
     await send.click()
     await expect(page.getByText('Delivered')).toBeVisible()
+    await page.locator('details.forms summary').click()
+    await expectNoViolations(page)
+})
+
+test('/practice/<name> ask page has no axe violations', async ({ page }) => {
+    await page.goto('/practice/Quillon')
+    await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await expectNoViolations(page)
 })
 
