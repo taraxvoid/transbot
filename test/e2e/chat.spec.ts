@@ -124,17 +124,32 @@ test('a name-only link chats with the name', async ({ page }) => {
     ).toBeVisible()
 })
 
-test('a long name never scrolls the page sideways at 360px', async ({
-    page,
-}) => {
-    await page.setViewportSize({ width: 360, height: 740 })
-    await page.goto('/practice/Maximiliana-Alexandrovna?p=xe')
-    await expect(chat(page)).toBeVisible()
-    await sendButton(page).click()
-    const width = await page.evaluate(
-        () => document.documentElement.scrollWidth,
-    )
-    expect(width).toBeLessThanOrEqual(360)
+const LONG = 'Wolfeschlegelsteinhausenbergerdorff'
+
+for (const path of [
+    `/practice/${LONG}?p=xe`,
+    `/practice/${LONG}`,
+    `/practice/${LONG}?p=ask-me`,
+]) {
+    test(`a long name never scrolls ${path} sideways at 360px`, async ({
+        page,
+    }) => {
+        await page.setViewportSize({ width: 360, height: 740 })
+        await page.goto(path)
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+        if (path.endsWith('?p=xe')) await sendButton(page).click()
+        const width = await page.evaluate(
+            () => document.documentElement.scrollWidth,
+        )
+        expect(width).toBeLessThanOrEqual(360)
+    })
+}
+
+test('the thread can take keyboard focus to scroll', async ({ page }) => {
+    await page.goto('/practice/Quillon?p=xe')
+    const thread = chat(page).getByRole('log', { name: 'Messages' })
+    await thread.focus()
+    await expect(thread).toBeFocused()
 })
 
 test('the forms box lists the five forms with IPA', async ({ page }) => {
