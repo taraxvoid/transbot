@@ -48,6 +48,11 @@ main,
     padding: 1rem;
 }
 
+/* Names come from links: one long word must wrap, not widen the page. */
+main {
+    overflow-wrap: anywhere;
+}
+
 .brand {
     font-weight: 700;
     color: var(--fg);
@@ -430,4 +435,9 @@ label.pick:has(input:checked) {
 .forms dd {
     margin: 0;
     overflow-wrap: anywhere;
+}
+
+.thread:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
 }
