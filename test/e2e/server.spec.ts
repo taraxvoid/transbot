@@ -25,14 +25,12 @@ test('/profile/testcard teaches the card without private entries', async ({
     }
 })
 
-test('/profile/testcard drills the first yes set', async ({ page }) => {
+test('/profile/testcard renders the chat', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/profile/testcard')
-    const drills = page.getByRole('region', { name: 'Fill in the blanks' })
-    await drills.getByLabel('Blank 1 of 3').fill('xe')
-    await drills.getByLabel('Blank 2 of 3').fill('her')
-    await drills.getByLabel('Blank 3 of 3').fill('them')
-    await drills.getByRole('button', { name: 'Check' }).click()
-    await expect(drills.locator('.feedback .correct')).toHaveCount(3)
+    const chat = page.getByRole('region', { name: 'Group chat' })
+    await expect(chat).toBeVisible()
+    await expect(chat.getByText('Is Sam still coming Saturday?')).toBeVisible()
 })
 
 test('/api/card returns the filtered identity', async ({ request }) => {
@@ -66,12 +64,9 @@ test('/profile/askfirst shows only the ask note', async ({ page }) => {
     await expect(
         page.getByText('Please ask Kit which pronouns to use.'),
     ).toBeVisible()
-    await expect(
-        page.getByRole('region', { name: 'Fill in the blanks' }),
-    ).toHaveCount(0)
-    await expect(
-        page.getByRole('region', { name: 'Say it your way' }),
-    ).toHaveCount(0)
+    await expect(page.getByRole('region', { name: 'Group chat' })).toHaveCount(
+        0,
+    )
 })
 
 test('/profile/mehonly says there is nothing to practice', async ({ page }) => {

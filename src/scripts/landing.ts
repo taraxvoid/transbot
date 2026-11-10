@@ -1,11 +1,7 @@
 import { cardLink, normalizeUsername, practiceLink } from '../lib/links'
 import { getPronouns } from '../lib/pronouns/client'
 import { summarize } from '../lib/pronouns/identity'
-import {
-    needsLookup,
-    parsePronounInput,
-    pronounLabel,
-} from '../lib/pronouns/parse'
+import { needsLookup } from '../lib/pronouns/parse'
 import type { Identity } from '../lib/pronouns/types'
 import {
     clearSetup,
@@ -14,6 +10,7 @@ import {
     safeStorage,
 } from '../lib/setup-flag'
 import { el } from './dom'
+import { pronounPicker } from './picker'
 
 type Lookup =
     | { kind: 'found'; identity: Identity }
@@ -36,13 +33,7 @@ const username = byId<HTMLInputElement>('username')
 const cardResult = byId('card-result')
 const builder = byId<HTMLFormElement>('builder')
 const builderName = byId<HTMLInputElement>('b-name')
-const builderPicks = [
-    ...byId('b-pronouns').querySelectorAll<HTMLInputElement>(
-        'input[type=checkbox]',
-    ),
-]
-const builderOther = byId<HTMLInputElement>('b-other')
-const builderOrder = byId('b-order')
+const builderPicker = pronounPicker('b')
 const builderResult = byId('builder-result')
 
 const CHECKING = 'Checking pronouns.page...'
@@ -187,13 +178,6 @@ username.addEventListener('input', () => {
     timer = setTimeout(() => void lookup(), DEBOUNCE_MS)
 })
 
-/** Checked sets in the order they were picked; the first is modeled. */
-let picked: string[] = []
-
-function builderPronouns(): string[] {
-    return [...new Set([...picked, ...parsePronounInput(builderOther.value)])]
-}
-
 type Known = 'found' | 'not-found'
 
 /** Typed values pronouns.page has answered for. Errors aren't kept. */
@@ -249,12 +233,8 @@ function updateBuilder(): void {
     // Any older check still in flight is now stale.
     const run = ++builderRun
     clearTimeout(builderTimer)
-    const pronouns = builderPronouns()
-    const order =
-        pronouns.length > 1
-            ? `Practice sentences use ${pronounLabel(pronouns[0])}. Also accepted: ${pronouns.slice(1).map(pronounLabel).join(', ')}.`
-            : ''
-    if (builderOrder.textContent !== order) builderOrder.textContent = order
+    // The first one is the one practiced.
+    const pronouns = builderPicker.values()
     const link = practiceLink(
         builderName.value,
         pronouns,
@@ -278,19 +258,9 @@ function updateBuilder(): void {
     }, DEBOUNCE_MS)
 }
 
-for (const box of builderPicks) {
-    // Restored form state after a reload keeps DOM order, which is the best
-    // guess at pick order there is.
-    if (box.checked) picked.push(box.value)
-    box.addEventListener('change', () => {
-        picked = picked.filter((v) => v !== box.value)
-        if (box.checked) picked.push(box.value)
-        updateBuilder()
-    })
-}
+builderPicker.onChange(updateBuilder)
 updateBuilder()
 builderName.addEventListener('input', updateBuilder)
-builderOther.addEventListener('input', updateBuilder)
 builder.addEventListener('submit', (event) => {
     event.preventDefault()
     updateBuilder()

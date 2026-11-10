@@ -198,9 +198,7 @@ test('the name and pronouns form makes a working practice link', async ({
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
-        page.getByText(
-            'Practice sentences use xe/xem. Also accepted: she/her.',
-        ),
+        page.getByText('The chat uses xe/xem. Also fine: she/her.'),
     ).toBeVisible()
     const link = page.getByRole('link', {
         name: /\/practice\/Sam%20Lee\?p=xe\+she$/,
