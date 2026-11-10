@@ -61,7 +61,7 @@ export function mountChat(
     const members = el('p', { class: 'visually-hidden' })
     // Focusable so the keyboard can scroll it where browsers don't make
     // scrollers focusable on their own (Safari).
-    const thread = el('ol', {
+    const thread = el('div', {
         class: 'thread',
         role: 'log',
         'aria-label': 'Messages',
@@ -102,7 +102,7 @@ export function mountChat(
     }
 
     function friendBubble(line: RenderedLine, firstInRun: boolean): void {
-        const item = el('li', { class: 'them' })
+        const item = el('div', { class: 'them' })
         if (firstInRun) item.append(el('p', { class: 'sender' }, line.sender))
         else item.append(hidden(`${line.sender}: `))
         item.append(el('p', { class: 'text' }, line.text))
@@ -113,7 +113,7 @@ export function mountChat(
         for (const old of thread.querySelectorAll('.delivered')) old.remove()
         show(
             el(
-                'li',
+                'div',
                 { class: 'me' },
                 hidden('You: '),
                 el('p', { class: 'text' }, line.text),
@@ -129,7 +129,7 @@ export function mountChat(
     async function friendStep(step: Extract<Step, { kind: 'friend' }>) {
         if (!reduceMotion) {
             const typing = el(
-                'li',
+                'div',
                 { class: 'typing', 'aria-hidden': 'true' },
                 el('span', { class: 'dot' }),
                 el('span', { class: 'dot' }),

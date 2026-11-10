@@ -240,7 +240,7 @@ label.pick:has(input:checked) {
     gap: 0.25rem;
 }
 
-.thread li {
+.thread > div {
     max-width: 80%;
     min-width: 0;
 }
