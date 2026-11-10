@@ -1,57 +1,49 @@
-import { entriesFromPracticePath } from '../lib/links'
-import { entriesFromFragment } from '../lib/pronouns/identity'
+import { entriesFromPracticePath, pronounQuery } from '../lib/links'
 import { loadIdentity } from '../lib/pronouns/load'
 import { el } from './dom'
+import { pronounPicker } from './picker'
 import { mountPractice } from './practice-ui'
 
+/** Shows the server-rendered picker form for a link with a name and no p. */
 function askPronouns(root: HTMLElement, name: string): void {
-    const input = el('input', {
-        id: 'ask-pronouns',
-        autocomplete: 'off',
-        autocapitalize: 'none',
-        spellcheck: 'false',
-        required: '',
-        'aria-describedby': 'ask-pronouns-hint',
+    const form = document.getElementById('ask-form')
+    const legend = document.getElementById('ask-legend')
+    const error = document.getElementById('ask-error')
+    if (!(form instanceof HTMLFormElement) || !legend || !error) return
+    legend.textContent = `Which pronouns does ${name} use?`
+    const picker = pronounPicker('ask')
+    picker.onChange(() => {
+        error.textContent = ''
     })
-    const form = el(
-        'form',
-        {},
-        el(
-            'label',
-            { for: 'ask-pronouns' },
-            `Which pronouns does ${name} use?`,
-        ),
-        input,
-        el(
-            'p',
-            { id: 'ask-pronouns-hint', class: 'hint' },
-            'Type them however you like: he/they, xe, or all five forms like ae/aer/aer/aers/aerself. Type null to practice using just the name.',
-        ),
-        el('button', { type: 'submit' }, 'Start practicing'),
-    )
     form.addEventListener('submit', (event) => {
         event.preventDefault()
-        const p = (input as HTMLInputElement).value.trim()
-        if (!p) return
+        // No pronouns.page check here: an unknown value lands on the
+        // unknown-pronouns message.
+        const query = pronounQuery(picker.values())
+        if (!query) {
+            error.textContent =
+                'Pick at least one, or type them under Other pronouns.'
+            return
+        }
         const url = new URL(window.location.href)
-        url.search = new URLSearchParams({ p }).toString()
+        url.search = query
         window.location.assign(url)
     })
     root.replaceChildren(el('h1', {}, 'Practice'), form)
-    input.focus()
+    form.hidden = false
+    form.querySelector<HTMLInputElement>('input[type=checkbox]')?.focus()
 }
 
 async function start(): Promise<void> {
     const root = document.getElementById('practice')
     if (!root) return
-    const { hash, pathname, search } = window.location
-    const fromFragment = entriesFromFragment(hash)
-    const entries = fromFragment ?? entriesFromPracticePath(pathname, search)
-    // A path name with no p: ask for pronouns instead of guessing. `p=null`
-    // is the explicit way to practice with just the name. Key this on where
-    // the entries came from, not on whether a hash exists: an unrelated
-    // fragment like #top must not hide the prompt.
-    if (!fromFragment && entries?.names.length && !entries.pronouns.length) {
+    // Old /practice#n=... links are no longer read; they land on the
+    // missing-name message below.
+    const { pathname, search } = window.location
+    const entries = entriesFromPracticePath(pathname, search)
+    // A name with no p: ask for pronouns instead of guessing. `p=null` is
+    // the explicit way to practice with just the name.
+    if (entries?.names.length && !entries.pronouns.length) {
         askPronouns(root, entries.names[0].value)
         return
     }
@@ -61,7 +53,7 @@ async function start(): Promise<void> {
             el(
                 'p',
                 {},
-                'This link is missing a name and pronouns. ',
+                'This link is missing a name. ',
                 el('a', { href: '/' }, 'Make a practice link'),
                 '.',
             ),
@@ -84,13 +76,16 @@ async function start(): Promise<void> {
         )
         return
     }
-    mountPractice(root, identity)
+    // The link listed pronouns and none resolved: say so instead of falling
+    // back to the name-only chat, which would be a guess.
     const unknown =
         entries.pronouns.length > 0 &&
         identity.sets.length === 0 &&
         identity.askMe === null
     if (unknown) {
-        root.querySelector('h1')?.after(
+        const name = identity.names.preferred
+        root.replaceChildren(
+            el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
             el(
                 'p',
                 { role: 'alert' },
@@ -99,8 +94,9 @@ async function start(): Promise<void> {
                 '.',
             ),
         )
+        return
     }
+    mountPractice(root, identity)
 }
 
 void start()
-window.addEventListener('hashchange', () => void start())

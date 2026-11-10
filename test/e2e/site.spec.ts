@@ -20,3 +20,11 @@ test('unknown paths get the 404 page', async ({ page }) => {
         'Page not found',
     )
 })
+
+test('/ describes the group chat, not sentences', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByText(/a short pretend group chat/)).toBeVisible()
+    await expect(
+        page.getByText(/fill-in-the-blank|practice sentences/),
+    ).toHaveCount(0)
+})

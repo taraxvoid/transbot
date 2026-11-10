@@ -67,8 +67,9 @@ export function entriesFromProfile(profile: RawProfile): Entries | null {
     }
 }
 
-export function entriesFromFragment(hash: string): Entries | null {
-    const params = new URLSearchParams(hash.replace(/^#/, ''))
+/** Reads `?n=<name>&p=<pronouns>`, the leading `?` optional. */
+export function entriesFromQuery(query: string): Entries | null {
+    const params = new URLSearchParams(query.replace(/^\?/, ''))
     let name = params.get('n')?.trim() ?? ''
     const typed: string[] = []
     // A hand-typed `p=xe&she` or `n=Sam&Jo` arrives as the key plus an empty

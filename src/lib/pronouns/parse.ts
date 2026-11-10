@@ -174,3 +174,10 @@ export function pronounLabel(value: string): string {
     if (value === 'null') return 'name only'
     return KNOWN_SETS.find((s) => s.value === value)?.label ?? value
 }
+
+/** Under the picker: which set the chat practices, and what else is fine. */
+export function orderHint(values: string[]): string {
+    if (values.length < 2) return ''
+    const [first, ...rest] = values
+    return `The chat uses ${pronounLabel(first)}. Also fine: ${rest.map(pronounLabel).join(', ')}.`
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
     needsLookup,
+    orderHint,
     parsePronounInput,
     pronounLabel,
 } from '../../src/lib/pronouns/parse'
@@ -100,5 +101,18 @@ describe('pronounLabel', () => {
         expect(pronounLabel('ze/zir')).toBe('ze/zir')
         expect(pronounLabel('null')).toBe('name only')
         expect(pronounLabel('ne/nem')).toBe('ne/nem')
+    })
+})
+
+describe('orderHint', () => {
+    it('says nothing for one set', () => {
+        expect(orderHint(['xe'])).toBe('')
+        expect(orderHint([])).toBe('')
+    })
+
+    it('names the practiced set and what else is fine', () => {
+        expect(orderHint(['xe', 'she', 'null'])).toBe(
+            'The chat uses xe/xem. Also fine: she/her, name only.',
+        )
     })
 })

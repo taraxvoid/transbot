@@ -5,72 +5,12 @@ test.beforeEach(async ({ page }) => {
     await mockPronounsPage(page)
 })
 
-test('the sandwich line accepts the modeled set', async ({ page }) => {
-    await page.goto('/practice#n=Quillon&p=xe')
-    await expect(
-        page.getByRole('heading', { name: 'Practice with Quillon' }),
-    ).toBeVisible()
-    const drills = page.getByRole('region', { name: 'Fill in the blanks' })
-    await drills.getByLabel('Blank 1 of 3').fill('xe')
-    await drills.getByLabel('Blank 2 of 3').fill('xyr')
-    await drills.getByLabel('Blank 3 of 3').fill('xem')
-    await drills.getByRole('button', { name: 'Check' }).click()
-    await expect(drills.locator('.feedback .correct')).toHaveCount(3)
-    await drills.getByRole('button', { name: 'Next' }).click()
-    await expect(drills.getByText('The sandwich is')).toBeVisible()
-    await expect(drills.getByLabel('Blank 1 of 1')).toBeFocused()
-})
-
-test('a miss shows the right form and its pronunciation', async ({ page }) => {
-    await page.goto('/practice#n=Quillon&p=xe')
-    const drills = page.getByRole('region', { name: 'Fill in the blanks' })
-    await drills.getByLabel('Blank 1 of 3').fill('he')
-    await drills.getByRole('button', { name: 'Check' }).click()
-    await expect(drills.getByText("It's Xe /zi/ here.")).toBeVisible()
-})
-
-test('a secondary set counts as correct', async ({ page }) => {
-    await page.goto('/practice#n=Quillon&p=xe%26she')
-    const drills = page.getByRole('region', { name: 'Fill in the blanks' })
-    await drills.getByLabel('Blank 2 of 3').fill('her')
-    await drills.getByRole('button', { name: 'Check' }).click()
-    await expect(
-        drills.getByText('That works too. Most often: xyr /ziɹ/'),
-    ).toBeVisible()
-})
-
-test('null drills the name', async ({ page }) => {
-    await page.goto('/practice#n=Quillon&p=null')
-    const drills = page.getByRole('region', { name: 'Fill in the blanks' })
-    await drills.getByLabel('Blank 1 of 3').fill('Quillon')
-    await drills.getByLabel('Blank 2 of 3').fill("Quillon's")
-    await drills.getByLabel('Blank 3 of 3').fill('Quillon')
-    await drills.getByRole('button', { name: 'Check' }).click()
-    await expect(drills.locator('.feedback .correct')).toHaveCount(3)
-})
-
-test('a card with no known sets offers no free typing', async ({ page }) => {
-    await page.goto('/practice#n=Sam&p=notaset')
-    await expect(
-        page.getByRole('region', { name: 'Say it your way' }),
-    ).toHaveCount(0)
-})
-
-test('free typing flags pronouns outside the link', async ({ page }) => {
-    await page.goto('/practice#n=Quillon&p=xe')
-    const free = page.getByRole('region', { name: 'Say it your way' })
-    await free
-        .getByLabel('Tell me what Quillon did this weekend.')
-        .fill('Quillon said he went hiking')
-    await free.getByRole('button', { name: 'Check' }).click()
-    await expect(free.getByText('"he": Quillon uses xe/xem,')).toBeVisible()
-    await expect(free.locator('em')).toHaveText('xe')
-})
-
-test('the name never leaves the browser', async ({ page }) => {
+test('the name never goes to pronouns.page', async ({ page }) => {
     const urls: string[] = []
-    page.on('request', (request) => urls.push(request.url()))
-    await page.goto('/practice#n=Quillon&p=xe')
+    page.on('request', (request) => {
+        if (request.url().includes('pronouns.page')) urls.push(request.url())
+    })
+    await page.goto('/practice/Quillon?p=xe')
     await expect(
         page.getByRole('heading', { name: 'Practice with Quillon' }),
     ).toBeVisible()
@@ -78,33 +18,53 @@ test('the name never leaves the browser', async ({ page }) => {
     for (const url of urls) expect(url).not.toContain('Quillon')
 })
 
-test('a link without a fragment explains what to do', async ({ page }) => {
+test('/practice with no name explains what to do', async ({ page }) => {
     await page.goto('/practice')
-    await expect(
-        page.getByText('This link is missing a name and pronouns.'),
-    ).toBeVisible()
+    await expect(page.getByText('This link is missing a name.')).toBeVisible()
     await expect(
         page.getByRole('link', { name: 'Make a practice link' }),
     ).toHaveAttribute('href', '/')
 })
 
+test('an old fragment link gets the same message', async ({ page }) => {
+    await page.goto('/practice#n=Quillon&p=xe')
+    await expect(page.getByText('This link is missing a name.')).toBeVisible()
+    await expect(
+        page.getByRole('heading', { name: 'Practice with Quillon' }),
+    ).toHaveCount(0)
+})
+
 test('an unknown set gets a gentle message', async ({ page }) => {
-    await page.goto('/practice#n=Quillon&p=notaset')
+    await page.goto('/practice/Quillon?p=notaset')
     await expect(
         page.getByText(
             "pronouns.page doesn't have these pronouns yet, so there's nothing to practice here.",
         ),
     ).toBeVisible()
     await expect(
-        page.getByRole('region', { name: 'Fill in the blanks' }),
-    ).toHaveCount(0)
+        page.getByRole('heading', { name: 'Practice with Quillon' }),
+    ).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Group chat' })).toHaveCount(
+        0,
+    )
+})
+
+test('ask-me first shows only the note', async ({ page }) => {
+    await page.goto('/practice/Quillon?p=ask-me+xe')
+    await expect(
+        page.getByText('Please ask Quillon which pronouns to use.'),
+    ).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Group chat' })).toHaveCount(
+        0,
+    )
+    await expect(page.locator('details.forms')).toHaveCount(0)
 })
 
 test('an unreachable pronouns.page gets a retry message', async ({ page }) => {
     await page.route('https://en.pronouns.page/api/**', (route) =>
         route.fulfill({ status: 503, body: 'down' }),
     )
-    await page.goto('/practice#n=Quillon&p=xe')
+    await page.goto('/practice/Quillon?p=xe')
     await expect(page.getByText("Couldn't reach pronouns.page.")).toBeVisible()
 })
 
@@ -119,7 +79,10 @@ test('a name in the path starts practice with p from the query', async ({
 
 test('a name in the path without p asks for pronouns', async ({ page }) => {
     await page.goto('/practice/Quillon')
-    await page.getByLabel('Which pronouns does Quillon use?').fill('xe')
+    const picker = page.getByRole('group', {
+        name: 'Which pronouns does Quillon use?',
+    })
+    await picker.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('button', { name: 'Start practicing' }).click()
     await expect(page).toHaveURL(/\/practice\/Quillon\?p=xe$/)
     await expect(
@@ -127,12 +90,48 @@ test('a name in the path without p asks for pronouns', async ({ page }) => {
     ).toBeVisible()
 })
 
+test('the ask form turns shorthand into a short link', async ({ page }) => {
+    await page.goto('/practice/Quillon')
+    await page.getByLabel('Other pronouns').fill('xe/she')
+    await page.getByRole('button', { name: 'Start practicing' }).click()
+    await expect(page).toHaveURL(/\/practice\/Quillon\?p=xe\+she$/)
+    await expect(
+        page.getByRole('heading', { name: 'Practice with Quillon' }),
+    ).toBeVisible()
+})
+
+test('a link with repeated p params still works', async ({ page }) => {
+    await page.goto('/practice/Sam?p=xe&p=she')
+    await expect(
+        page.getByRole('heading', { name: 'Practice with Sam' }),
+    ).toBeVisible()
+})
+
 test('an unrelated fragment still asks for pronouns', async ({ page }) => {
     await page.goto('/practice/Quillon#practice')
-    await page.getByLabel('Which pronouns does Quillon use?').fill('xe')
+    await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('button', { name: 'Start practicing' }).click()
     await expect(page).toHaveURL(/\/practice\/Quillon\?p=xe#practice$/)
     await expect(
         page.getByRole('heading', { name: 'Practice with Quillon' }),
     ).toBeVisible()
+})
+
+test('the ask picker keeps pick order', async ({ page }) => {
+    await page.goto('/practice/Quillon')
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await page.getByRole('checkbox', { name: 'they/them' }).check()
+    await page.getByRole('button', { name: 'Start practicing' }).click()
+    await expect(page).toHaveURL(/\/practice\/Quillon\?p=she\+they$/)
+})
+
+test('the ask picker says what to do when nothing is picked', async ({
+    page,
+}) => {
+    await page.goto('/practice/Quillon')
+    await page.getByRole('button', { name: 'Start practicing' }).click()
+    await expect(page.getByRole('alert')).toHaveText(
+        'Pick at least one, or type them under Other pronouns.',
+    )
+    await expect(page).toHaveURL(/\/practice\/Quillon$/)
 })

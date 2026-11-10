@@ -1,0 +1,41 @@
+---
+import { KNOWN_SETS } from '../lib/pronouns/parse'
+
+type Props = { prefix: string; legend: string; hint: string; nullLabel: string }
+const { prefix, legend, hint, nullLabel } = Astro.props
+
+// ze/hir is still reachable by typing; the picker keeps to common sets.
+const PICKS = KNOWN_SETS.filter((set) => set.value !== 'ze')
+---
+
+<fieldset id={`${prefix}-pronouns`} aria-describedby={`${prefix}-pronouns-hint`}>
+    <legend id={`${prefix}-legend`}>{legend}</legend>
+    <p id={`${prefix}-pronouns-hint`} class="hint">{hint}</p>
+    <div class="picks">
+        {
+            PICKS.map((set) => (
+                <label class="pick">
+                    <input type="checkbox" name="pronoun" value={set.value} />
+                    {set.label}
+                </label>
+            ))
+        }
+        <label class="pick">
+            <input type="checkbox" name="pronoun" value="null" />
+            {nullLabel}
+        </label>
+    </div>
+    <label for={`${prefix}-other`}>Other pronouns</label>
+    <input
+        id={`${prefix}-other`}
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+        aria-describedby={`${prefix}-other-hint`}
+    />
+    <p id={`${prefix}-other-hint`} class="hint">
+        Type them however you like: he/they, ne/nem, or all five forms like
+        ae/aer/aer/aers/aerself.
+    </p>
+    <p id={`${prefix}-order`} class="hint" aria-live="polite"></p>
+</fieldset>
