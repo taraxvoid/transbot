@@ -17,7 +17,7 @@
         "test": "bun run build && npm-run-all -l -p check test:unit -s test:e2e:full",
         "test:push": "bun run lint && bun run test",
         "test:unit": "vitest run",
-        "test:e2e:full": "playwright test --project=mobile-chrome --project=desktop-chrome",
+        "test:e2e:full": "playwright test --project=mobile-chrome --project=desktop-chrome --project=a11y",
         "test:e2e:all": "bun run test:e2e:full",
         "test:e2e:a11y": "playwright test --project=a11y",
         "fixtures:refresh": "bun scripts/refresh-fixtures.ts",

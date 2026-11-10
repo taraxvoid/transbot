@@ -16,8 +16,8 @@
 
     bun run test:unit        # Vitest, core logic
     bun run build
-    bun run test:e2e:full    # Playwright against astro preview
-    bun run test:e2e:a11y    # axe at phone width
+    bun run test:e2e:full    # Playwright against astro preview, axe included
+    bun run test:e2e:a11y    # axe at phone width only
 
 Tests never call the live pronouns.page API. Pronoun-set fixtures live in `test/fixtures/api/pronouns` and are refreshed by hand with `bun run fixtures:refresh`. Profile fixtures are synthetic: never copy a real profile into the repo.
 
