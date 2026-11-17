@@ -44,7 +44,7 @@ async function mockCards(page: Page): Promise<void> {
     })
 }
 
-const SETUP = 'set up a pronouns.page card'
+const SETUP = 'Create card on pronouns.page'
 const PROMPT = 'Made your card? Enter your username to get your link.'
 
 test.beforeEach(async ({ page }) => {
@@ -118,10 +118,12 @@ test('not now dismisses the prompt', async ({ page }) => {
     ).toBeNull()
 })
 
-const USERNAME = 'pronouns.page username or link'
+const USERNAME = 'pronouns.page username / sharing link'
 
 function cardForm(page: Page) {
-    return page.getByRole('form', { name: 'Already on pronouns.page?' })
+    return page.getByRole('form', {
+        name: 'Or enter your pronouns.page profile',
+    })
 }
 
 function builderForm(page: Page) {
