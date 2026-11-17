@@ -4,6 +4,7 @@ import { chatPerson } from '../lib/scenes/render'
 import type { Person } from '../lib/scenes/template'
 import { mountChat } from './chat-ui'
 import { el } from './dom'
+import { shareBanner, wasJustMade } from './share'
 
 export function mountPractice(
     root: HTMLElement,
@@ -15,6 +16,9 @@ export function mountPractice(
     const children: Node[] = [
         el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
     ]
+    if (wasJustMade(window.location)) {
+        children.push(shareBanner(window.location.href))
+    }
     if (person) children.push(formsBox(identity, person))
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
     const chat = person ? el('div', { class: 'chat-mount' }) : null

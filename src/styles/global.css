@@ -6,6 +6,7 @@
     --accent: #6b3fa0;
     --ok: #1f6b45;
     --soft: #8a4b00;
+    --danger: #b3261e;
     --border: #d9d4e4;
     --field: #ffffff;
     --bubble-me: #0b5ed7;
@@ -24,6 +25,7 @@
         --accent: #c9a7f2;
         --ok: #7fd6a6;
         --soft: #f0b36a;
+        --danger: #ff8f85;
         --border: #3a3550;
         --field: #201d2b;
         --bubble-them: #2c2939;
@@ -125,6 +127,47 @@ button.secondary {
 .hint {
     color: var(--muted);
     font-size: 0.875rem;
+}
+
+/* Required-field marker; the field itself says "required" to screen readers. */
+.req {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.error {
+    color: var(--danger);
+    font-weight: 600;
+    margin: 0.25rem 0 0;
+}
+
+.error:empty {
+    display: none;
+}
+
+input[aria-invalid="true"] {
+    border-color: var(--danger);
+    box-shadow: inset 0 0 0 1px var(--danger);
+}
+
+form button[type="submit"] {
+    margin-top: 1.25rem;
+}
+
+.share {
+    margin: 1rem 0;
+    padding: 1rem;
+    border: 1px solid var(--accent);
+    border-radius: 0.75rem;
+    background: var(--field);
+}
+
+.share h2 {
+    margin-top: 0;
+}
+
+.share-url a {
+    word-break: break-all;
 }
 
 fieldset {

@@ -4,32 +4,28 @@ import Layout from '../layouts/Layout.astro'
 ---
 
 <Layout title="transbot">
-    <section>
-        <h1>Help the people in your life get your name and pronouns right</h1>
-        <p>
-            Enter your name and pronouns to get a link. Send it to family,
-            friends or coworkers, and they can practice in a short pretend
-            group chat before they talk to you. Nothing to type, and nobody
-            keeps score.
-        </p>
-    </section>
-
     <section aria-labelledby="builder-heading">
-        <h2 id="builder-heading">Make your link</h2>
-        <p class="hint">
-            No account needed. The name is part of the link, so transbot's
-            server can see it. Nothing is stored.
-        </p>
-        <form id="builder">
-            <label for="b-name">Your name</label>
-            <input id="b-name" autocomplete="off" />
+        <h2 id="builder-heading">Choose Name / Pronouns</h2>
+        <p class="hint"><span class="req" aria-hidden="true">*</span> Required</p>
+        <form id="builder" novalidate aria-labelledby="builder-heading">
+            <label for="b-name"
+                >Name <span class="req" aria-hidden="true">*</span></label
+            >
+            <input
+                id="b-name"
+                autocomplete="off"
+                required
+                aria-describedby="b-name-error"
+            />
+            <p id="b-name-error" class="error" role="alert"></p>
             <PronounPicker
                 prefix="b"
-                legend="Your pronouns"
-                hint="Pick all that apply. The first one you pick is the one practiced in the chat."
+                legend="Pronouns"
                 nullLabel="No pronouns, just my name"
+                required
             />
-            <div id="builder-result" aria-live="polite"></div>
+            <p id="builder-status" class="error" role="alert"></p>
+            <button type="submit" id="builder-submit">Submit</button>
         </form>
     </section>
 
@@ -46,14 +42,32 @@ import Layout from '../layouts/Layout.astro'
                 >Not now</button
             >
         </div>
-        <label for="username">pronouns.page username or link</label>
-        <input
-            id="username"
-            autocomplete="off"
-            autocapitalize="none"
-            spellcheck="false"
-        />
-        <div id="card-result" aria-live="polite"></div>
+        <!-- Without JavaScript, /profile?username= redirects on its own. -->
+        <form
+            id="card-form"
+            method="get"
+            action="/profile"
+            novalidate
+            aria-labelledby="card-heading"
+        >
+            <label for="username"
+                >pronouns.page username or link <span
+                    class="req"
+                    aria-hidden="true">*</span
+                ></label
+            >
+            <input
+                id="username"
+                name="username"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+                aria-describedby="card-result"
+            />
+            <p id="card-result" class="error" role="alert"></p>
+            <button type="submit" id="card-submit">Submit</button>
+        </form>
         <p class="hint">
             Not on pronouns.page? The form above is all you need. If you'd
             like a card anyway, <a

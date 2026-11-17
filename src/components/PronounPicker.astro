@@ -1,16 +1,40 @@
 ---
 import { KNOWN_SETS } from '../lib/pronouns/parse'
 
-type Props = { prefix: string; legend: string; hint: string; nullLabel: string }
-const { prefix, legend, hint, nullLabel } = Astro.props
+type Props = {
+    prefix: string
+    legend: string
+    hint?: string
+    nullLabel: string
+    required?: boolean
+}
+const { prefix, legend, hint, nullLabel, required = false } = Astro.props
 
 // ze/hir is still reachable by typing; the picker keeps to common sets.
 const PICKS = KNOWN_SETS.filter((set) => set.value !== 'ze')
+const describedBy = [
+    hint && `${prefix}-pronouns-hint`,
+    `${prefix}-pronouns-error`,
+]
+    .filter(Boolean)
+    .join(' ')
 ---
 
-<fieldset id={`${prefix}-pronouns`} aria-describedby={`${prefix}-pronouns-hint`}>
-    <legend id={`${prefix}-legend`}>{legend}</legend>
-    <p id={`${prefix}-pronouns-hint`} class="hint">{hint}</p>
+<fieldset id={`${prefix}-pronouns`} aria-describedby={describedBy}>
+    <legend
+        ><span id={`${prefix}-legend`}>{legend}</span>{
+            required && (
+                <>
+                    <span class="req" aria-hidden="true">
+                        {' '}
+                        *
+                    </span>
+                    <span class="visually-hidden"> (required)</span>
+                </>
+            )
+        }</legend
+    >
+    {hint && <p id={`${prefix}-pronouns-hint`} class="hint">{hint}</p>}
     <div class="picks">
         {
             PICKS.map((set) => (
@@ -25,7 +49,7 @@ const PICKS = KNOWN_SETS.filter((set) => set.value !== 'ze')
             {nullLabel}
         </label>
     </div>
-    <label for={`${prefix}-other`}>Other pronouns</label>
+    <label for={`${prefix}-other`}>Custom pronouns</label>
     <input
         id={`${prefix}-other`}
         autocomplete="off"
@@ -38,4 +62,5 @@ const PICKS = KNOWN_SETS.filter((set) => set.value !== 'ze')
         ae/aer/aer/aers/aerself.
     </p>
     <p id={`${prefix}-order`} class="hint" aria-live="polite"></p>
+    <p id={`${prefix}-pronouns-error`} class="error" role="alert"></p>
 </fieldset>

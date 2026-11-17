@@ -92,7 +92,7 @@ test('a name in the path without p asks for pronouns', async ({ page }) => {
 
 test('the ask form turns shorthand into a short link', async ({ page }) => {
     await page.goto('/practice/Quillon')
-    await page.getByLabel('Other pronouns').fill('xe/she')
+    await page.getByLabel('Custom pronouns').fill('xe/she')
     await page.getByRole('button', { name: 'Start practicing' }).click()
     await expect(page).toHaveURL(/\/practice\/Quillon\?p=xe\+she$/)
     await expect(
@@ -131,7 +131,7 @@ test('the ask picker says what to do when nothing is picked', async ({
     await page.goto('/practice/Quillon')
     await page.getByRole('button', { name: 'Start practicing' }).click()
     await expect(page.getByRole('alert')).toHaveText(
-        'Pick at least one, or type them under Other pronouns.',
+        'Pick at least one, or type them under Custom pronouns.',
     )
     await expect(page).toHaveURL(/\/practice\/Quillon$/)
 })

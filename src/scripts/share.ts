@@ -1,0 +1,85 @@
+import { el } from './dom'
+
+// Set by the landing page right before it redirects to a new link, so the
+// page it lands on can say "your link is ready". sessionStorage keeps it to
+// this tab: whoever the link is sent to never sees the banner.
+const JUST_MADE_KEY = 'transbot:just-made'
+
+function session(): Storage | null {
+    try {
+        return window.sessionStorage
+    } catch {
+        return null
+    }
+}
+
+/** `path` is pathname plus search, as location shows it after the redirect. */
+export function markJustMade(path: string): void {
+    try {
+        session()?.setItem(JUST_MADE_KEY, path)
+    } catch {
+        // Storage blocked: the page just skips the banner.
+    }
+}
+
+export function wasJustMade(location: Location): boolean {
+    try {
+        return (
+            session()?.getItem(JUST_MADE_KEY) ===
+            location.pathname + location.search
+        )
+    } catch {
+        return false
+    }
+}
+
+export const SHARE_TEXT = 'I made a quick way to practice my name and pronouns:'
+
+function copyButton(url: string, status: HTMLElement): HTMLButtonElement {
+    const button = el('button', { type: 'button' }, 'Copy link')
+    button.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(url)
+            button.textContent = 'Copied'
+            status.textContent = 'Link copied'
+        } catch {
+            button.textContent = 'Copy failed, select the link instead'
+        }
+    })
+    return button
+}
+
+function shareButton(url: string): HTMLButtonElement | null {
+    const data = { url, text: SHARE_TEXT }
+    if (typeof navigator.share !== 'function') return null
+    if (navigator.canShare && !navigator.canShare(data)) return null
+    const button = el('button', { type: 'button', class: 'secondary' }, 'Share')
+    button.addEventListener('click', () => {
+        // Cancelling the share sheet rejects; nothing to report.
+        navigator.share(data).catch(() => {})
+    })
+    return button
+}
+
+/** "Your link is ready" box with the link, Copy and (where supported) Share. */
+export function shareBanner(url: string): HTMLElement {
+    // The button's own text changes too, but screen readers don't announce
+    // that, so the result also goes to a status region.
+    const status = el('span', { class: 'visually-hidden', role: 'status' })
+    const actions = el('div', { class: 'link-out' }, copyButton(url, status))
+    const share = shareButton(url)
+    if (share) actions.append(share)
+    actions.append(status)
+    return el(
+        'section',
+        { class: 'share', 'aria-labelledby': 'share-heading' },
+        el('h2', { id: 'share-heading' }, 'Your link is ready'),
+        el(
+            'p',
+            {},
+            'Send it to family, friends or coworkers. Below is what they will see.',
+        ),
+        el('p', { class: 'share-url' }, el('a', { href: url }, url)),
+        actions,
+    )
+}
