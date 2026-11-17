@@ -44,7 +44,7 @@ async function mockCards(page: Page): Promise<void> {
     })
 }
 
-const SETUP = 'Create card on pronouns.page'
+const SETUP = 'Create profile on pronouns.page'
 
 test.beforeEach(async ({ page }) => {
     await mockCards(page)
@@ -61,7 +61,7 @@ test('the setup link opens pronouns.page in a new tab', async ({ page }) => {
     await expect(link).toHaveAttribute('rel', /noopener/)
 })
 
-const USERNAME = 'pronouns.page username / sharing link'
+const USERNAME = 'username / link'
 
 function cardForm(page: Page) {
     return page.getByRole('form', {
@@ -161,6 +161,12 @@ test('the form redirects to a working practice link with Copy link', async ({
     await expect(
         banner.getByRole('button', { name: 'Copy link' }),
     ).toBeVisible()
+    // The box sits at the bottom, after the chat.
+    expect(
+        await page.evaluate(
+            () => document.querySelector('#practice > :last-child')?.className,
+        ),
+    ).toBe('share')
 })
 
 test('a practice link opened fresh has no "link is ready" box', async ({

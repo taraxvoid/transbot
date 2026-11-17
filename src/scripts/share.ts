@@ -83,7 +83,7 @@ export function shareBanner(url: string): HTMLElement {
         el(
             'p',
             {},
-            'Send it to family, friends or coworkers. Below is what they will see.',
+            "Send it to family, friends or coworkers. They'll see the practice above.",
         ),
         el('p', { class: 'share-url' }, el('a', { href: url }, url)),
         actions,

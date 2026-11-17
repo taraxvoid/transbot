@@ -16,13 +16,14 @@ export function mountPractice(
     const children: Node[] = [
         el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
     ]
-    if (wasJustMade(window.location)) {
-        children.push(shareBanner(window.location.href))
-    }
     if (person) children.push(formsBox(identity, person))
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
     const chat = person ? el('div', { class: 'chat-mount' }) : null
     if (chat) children.push(chat)
+    // Last, so the creator sees the practice first, as visitors will.
+    if (wasJustMade(window.location)) {
+        children.push(shareBanner(window.location.href))
+    }
     root.replaceChildren(...children)
     if (chat && person) {
         mountChat(chat, person, {
