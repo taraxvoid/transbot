@@ -339,3 +339,29 @@ test('the builder says when pronouns.page is unreachable', async ({ page }) => {
     ).toBeVisible()
     await expect(page).toHaveURL(/\/$/)
 })
+
+test('editing during a pronouns.page check cancels the redirect', async ({
+    page,
+}) => {
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => {
+        release = resolve
+    })
+    await page.route('https://en.pronouns.page/api/**', async (route) => {
+        await gate
+        await route.fulfill({ status: 503 })
+    })
+    await page.goto('/')
+    const name = page.getByRole('textbox', { name: 'Name', exact: true })
+    await name.fill('Sam')
+    await page.getByLabel('Custom pronouns').fill('ne/nem')
+    const requested = page.waitForRequest('https://en.pronouns.page/api/**')
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
+    await requested
+    await name.fill('Sammy')
+    release()
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 200)))
+    // The stale answer is dropped: no error shown for the old values.
+    await expect(page.getByText("Couldn't reach pronouns.page")).toHaveCount(0)
+    await expect(page).toHaveURL(/\/$/)
+})
