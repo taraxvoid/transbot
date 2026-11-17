@@ -30,12 +30,7 @@ import Layout from '../layouts/Layout.astro'
     </section>
 
     <section aria-labelledby="card-heading">
-        <h2 id="card-heading">Already on pronouns.page?</h2>
-        <p>
-            Enter your username or paste your profile link instead. Your
-            transbot link follows your card, so changes you make there show up
-            within about an hour.
-        </p>
+        <h2 id="card-heading">Or enter your pronouns.page profile</h2>
         <div id="return-prompt" hidden>
             <p>Made your card? Enter your username to get your link.</p>
             <button type="button" id="not-now" class="secondary"
@@ -51,7 +46,7 @@ import Layout from '../layouts/Layout.astro'
             aria-labelledby="card-heading"
         >
             <label for="username"
-                >pronouns.page username or link <span
+		   >username / link <span
                     class="req"
                     aria-hidden="true">*</span
                 ></label
@@ -66,23 +61,19 @@ import Layout from '../layouts/Layout.astro'
                 aria-describedby="card-result"
             />
             <p id="card-result" class="error" role="alert"></p>
+	    <br />
             <button type="submit" id="card-submit">Submit</button>
         </form>
         <p class="hint">
-            Not on pronouns.page? The form above is all you need. If you'd
-            like a card anyway, <a
+             <a
                 id="setup-link"
                 href="https://en.pronouns.page/account"
                 target="_blank"
-                rel="noopener">set up a pronouns.page card</a
-            > (opens in a new tab) and come back here.
+                rel="noopener">Create profile on pronouns.page</a
+            > 
         </p>
     </section>
 
-    <section aria-labelledby="got-link-heading">
-        <h2 id="got-link-heading">Got a link from someone?</h2>
-        <p>Open it to start practicing. There's nothing to set up.</p>
-    </section>
 </Layout>
 
 <script>

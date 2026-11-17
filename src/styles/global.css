@@ -484,3 +484,17 @@ label.pick:has(input:checked) {
     outline: 3px solid var(--accent);
     outline-offset: -3px;
 }
+
+/* Tighten the gap between the site header and the page's first heading. */
+.site-header {
+    padding-bottom: 0;
+}
+
+main {
+    padding-top: 0;
+}
+
+main h1:first-child,
+main section:first-child > h1:first-child {
+    margin-top: 0.5rem;
+}
