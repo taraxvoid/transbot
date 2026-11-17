@@ -110,9 +110,9 @@ describe('orderHint', () => {
         expect(orderHint([])).toBe('')
     })
 
-    it('names the practiced set and what else is fine', () => {
+    it('names the primary set and the secondary ones', () => {
         expect(orderHint(['xe', 'she', 'null'])).toBe(
-            'The chat uses xe/xem. Also fine: she/her, name only.',
+            'Primary: xe/xem. Secondary: she/her, name only.',
         )
     })
 })

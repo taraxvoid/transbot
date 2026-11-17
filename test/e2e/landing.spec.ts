@@ -216,7 +216,7 @@ test('the form redirects to a working practice link with Copy link', async ({
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
-        page.getByText('The chat uses xe/xem. Also fine: she/her.'),
+        page.getByText('Primary: xe/xem. Secondary: she/her.'),
     ).toBeVisible()
     await builderForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(page).toHaveURL(/\/practice\/Sam%20Lee\?p=xe\+she$/)
