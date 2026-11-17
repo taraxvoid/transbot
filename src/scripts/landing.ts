@@ -3,12 +3,6 @@ import { getPronouns } from '../lib/pronouns/client'
 import { summarize } from '../lib/pronouns/identity'
 import { needsLookup } from '../lib/pronouns/parse'
 import type { Identity } from '../lib/pronouns/types'
-import {
-    clearSetup,
-    isSetupPending,
-    markSetupClicked,
-    safeStorage,
-} from '../lib/setup-flag'
 import { pronounPicker } from './picker'
 import { markJustMade } from './share'
 
@@ -17,17 +11,12 @@ type Lookup =
     | { kind: 'not-found' }
     | { kind: 'error' }
 
-const storage = safeStorage()
-
 function byId<T extends HTMLElement>(id: string): T {
     const node = document.getElementById(id)
     if (!node) throw new Error(`#${id} is missing`)
     return node as T
 }
 
-const setupLink = byId<HTMLAnchorElement>('setup-link')
-const returnPrompt = byId('return-prompt')
-const notNow = byId<HTMLButtonElement>('not-now')
 const cardForm = byId<HTMLFormElement>('card-form')
 const username = byId<HTMLInputElement>('username')
 const cardResult = byId('card-result')
@@ -40,27 +29,6 @@ const pronounsError = byId('b-pronouns-error')
 const builderStatus = byId('builder-status')
 
 const CHECKING = 'Checking pronouns.page...'
-
-setupLink.addEventListener('click', () => markSetupClicked(storage, Date.now()))
-
-function circleBack(): void {
-    if (!isSetupPending(storage, Date.now())) return
-    // Only take focus the first time, or when nothing else has it, so coming
-    // back to the tab never steals focus from a field being typed in.
-    const firstTime = returnPrompt.hidden
-    returnPrompt.hidden = false
-    const active = document.activeElement
-    if (firstTime || !active || active === document.body) username.focus()
-}
-
-circleBack()
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') circleBack()
-})
-notNow.addEventListener('click', () => {
-    clearSetup(storage)
-    returnPrompt.hidden = true
-})
 
 /** Shows `message` on a field, or clears it when `message` is empty. */
 function setError(
@@ -143,7 +111,6 @@ async function submitCard(run: number): Promise<void> {
         username.focus()
         return
     }
-    clearSetup(storage)
     goTo(cardLink(name, window.location.origin))
 }
 

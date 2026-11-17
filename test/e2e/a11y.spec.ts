@@ -29,7 +29,7 @@ test('/ has no axe violations with errors shown', async ({ page }) => {
         .getByRole('button', { name: 'Submit' })
         .click()
     await page
-        .getByRole('form', { name: 'Already on pronouns.page?' })
+        .getByRole('form', { name: 'Or enter your pronouns.page profile' })
         .getByRole('button', { name: 'Submit' })
         .click()
     await expect(page.getByText('Enter your name.')).toBeVisible()

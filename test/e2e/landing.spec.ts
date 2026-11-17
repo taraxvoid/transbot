@@ -45,7 +45,6 @@ async function mockCards(page: Page): Promise<void> {
 }
 
 const SETUP = 'Create card on pronouns.page'
-const PROMPT = 'Made your card? Enter your username to get your link.'
 
 test.beforeEach(async ({ page }) => {
     await mockCards(page)
@@ -60,62 +59,6 @@ test('the setup link opens pronouns.page in a new tab', async ({ page }) => {
     )
     await expect(link).toHaveAttribute('target', '_blank')
     await expect(link).toHaveAttribute('rel', /noopener/)
-})
-
-test('coming back after setup asks for the username', async ({
-    page,
-    context,
-}) => {
-    await context.route('https://en.pronouns.page/**', (route) =>
-        route.fulfill({ body: 'ok' }),
-    )
-    await page.goto('/')
-    const popup = page.waitForEvent('popup')
-    await page.getByRole('link', { name: SETUP }).click()
-    await (await popup).close()
-    await page.evaluate(() =>
-        document.dispatchEvent(new Event('visibilitychange')),
-    )
-    await expect(page.getByText(PROMPT)).toBeVisible()
-    await expect(
-        page.getByLabel('pronouns.page username or link'),
-    ).toBeFocused()
-})
-
-test('a later visit shows the prompt until 14 days pass', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem(
-            'transbot:setup-clicked',
-            String(Date.now() - 1000),
-        ),
-    )
-    await page.goto('/')
-    await expect(page.getByText(PROMPT)).toBeVisible()
-})
-
-test('a stale flag is ignored', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem(
-            'transbot:setup-clicked',
-            String(Date.now() - 15 * 24 * 60 * 60 * 1000),
-        ),
-    )
-    await page.goto('/')
-    await expect(page.getByText(PROMPT)).toBeHidden()
-})
-
-test('not now dismisses the prompt', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem('transbot:setup-clicked', String(Date.now())),
-    )
-    await page.goto('/')
-    await page.getByRole('button', { name: 'Not now' }).click()
-    await expect(page.getByText(PROMPT)).toBeHidden()
-    expect(
-        await page.evaluate(() =>
-            localStorage.getItem('transbot:setup-clicked'),
-        ),
-    ).toBeNull()
 })
 
 const USERNAME = 'pronouns.page username / sharing link'
@@ -144,11 +87,6 @@ test('required fields are marked', async ({ page }) => {
 
 test('a found card redirects to its page with Copy link', async ({ page }) => {
     await page.goto('/')
-    // Set after load, not in an init script, which would set it again on
-    // the page the redirect lands on.
-    await page.evaluate(() =>
-        localStorage.setItem('transbot:setup-clicked', String(Date.now())),
-    )
     await page.getByLabel(USERNAME).fill('@testcard')
     await cardForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(page).toHaveURL(/\/profile\/testcard$/)
@@ -156,17 +94,9 @@ test('a found card redirects to its page with Copy link', async ({ page }) => {
         page.getByRole('heading', { name: 'Your link is ready' }),
     ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
-    expect(
-        await page.evaluate(() =>
-            localStorage.getItem('transbot:setup-clicked'),
-        ),
-    ).toBeNull()
 })
 
-test('a missing card keeps the prompt open', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem('transbot:setup-clicked', String(Date.now())),
-    )
+test('a missing card says so and stays on the page', async ({ page }) => {
     await page.goto('/')
     await page.getByLabel(USERNAME).fill('nobody')
     await cardForm(page).getByRole('button', { name: 'Submit' }).click()
@@ -179,7 +109,6 @@ test('a missing card keeps the prompt open', async ({ page }) => {
         'aria-invalid',
         'true',
     )
-    await expect(page.getByText(PROMPT)).toBeVisible()
     await expect(page).toHaveURL(/\/$/)
 })
 
