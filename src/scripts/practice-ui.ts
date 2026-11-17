@@ -13,13 +13,11 @@ export function mountPractice(
 ): void {
     const name = identity.names.preferred
     const person = chatPerson(identity)
-    const children: Node[] = [
-        el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
-    ]
-    if (person) children.push(formsBox(identity, person))
+    const children: Node[] = [el('h1', {}, heading(identity, person))]
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
+    if (person) children.push(formsBox(identity, person))
     const chat = person ? el('div', { class: 'chat-mount' }) : null
-    if (chat) children.push(chat)
+    if (chat && person) children.push(chatIntro(person), chat)
     // Last, so the creator sees the practice first, as visitors will.
     if (wasJustMade(window.location)) {
         children.push(shareBanner(window.location.href))
@@ -34,6 +32,29 @@ export function mountPractice(
     }
 }
 
+/** Pronouns as the label shows them, or null for name-only. */
+function pronounLabel(modeled: PronounSet | null): string | null {
+    return modeled && modeled.kind !== 'name' ? modeled.label : null
+}
+
+/** "Sam uses xe/xem": who the page is about and what to call them. */
+function heading(identity: Identity, person: Person | null): string {
+    const name = person?.name ?? identity.names.preferred
+    const pronouns = person ? pronounLabel(modeledSet(identity)) : null
+    if (!name) return pronouns ? `Practice ${pronouns}` : 'Practice'
+    if (!person) return name
+    return pronouns ? `${name} uses ${pronouns}` : `${name} uses no pronouns`
+}
+
+function chatIntro(person: Person): HTMLElement {
+    const who = person.name ?? 'them'
+    return el(
+        'p',
+        { class: 'chat-intro' },
+        `Practice in the group chat below: friends talk about ${who}, and your replies are typed out for you. Press Send to post each one.`,
+    )
+}
+
 /** Other names and every set besides the modeled one, yes before meh. */
 function alsoFine(identity: Identity, modeled: PronounSet | null): string[] {
     const { preferred, accepted } = identity.names
@@ -46,10 +67,7 @@ function alsoFine(identity: Identity, modeled: PronounSet | null): string[] {
 /** Collapsed reference card: the five forms in use, with IPA. Not graded. */
 function formsBox(identity: Identity, person: Person): HTMLElement {
     const modeled = modeledSet(identity)
-    const label =
-        !modeled || modeled.kind === 'name'
-            ? 'no pronouns, just the name'
-            : modeled.label
+    const pronouns = pronounLabel(modeled)
     const forms = person.forms
     const ipa = modeled?.pronunciations ?? {}
     const rows: Array<[string, string, string | undefined]> = [
@@ -77,7 +95,11 @@ function formsBox(identity: Identity, person: Person): HTMLElement {
     return el(
         'details',
         { class: 'forms' },
-        el('summary', {}, `${person.name ?? 'Pronouns'}: ${label}`),
+        el(
+            'summary',
+            {},
+            pronouns ? `All forms of ${pronouns}` : 'Using just the name',
+        ),
         list,
     )
 }

@@ -6,7 +6,7 @@ test('/profile/testcard teaches the card without private entries', async ({
     const response = await page.goto('/profile/testcard')
     expect(response?.status()).toBe(200)
     await expect(
-        page.getByRole('heading', { name: 'Practice with Sam' }),
+        page.getByRole('heading', { name: /^Sam uses / }),
     ).toBeVisible()
     await expect(page.getByText('You can also ask Sam')).toBeVisible()
     const html = await page.content()

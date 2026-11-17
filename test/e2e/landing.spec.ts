@@ -152,7 +152,7 @@ test('the form redirects to a working practice link with Copy link', async ({
     await builderForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(page).toHaveURL(/\/practice\/Sam%20Lee\?p=xe\+she$/)
     await expect(
-        page.getByRole('heading', { name: 'Practice with Sam Lee' }),
+        page.getByRole('heading', { name: 'Sam Lee uses xe/xem' }),
     ).toBeVisible()
     const banner = page.getByRole('region', { name: 'Your link is ready' })
     await expect(
@@ -175,7 +175,7 @@ test('a practice link opened fresh has no "link is ready" box', async ({
     await mockPronounsPage(page)
     await page.goto('/practice/Sam?p=xe')
     await expect(
-        page.getByRole('heading', { name: 'Practice with Sam' }),
+        page.getByRole('heading', { name: 'Sam uses xe/xem' }),
     ).toBeVisible()
     await expect(
         page.getByRole('heading', { name: 'Your link is ready' }),

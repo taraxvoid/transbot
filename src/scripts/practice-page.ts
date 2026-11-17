@@ -85,7 +85,7 @@ async function start(): Promise<void> {
     if (unknown) {
         const name = identity.names.preferred
         root.replaceChildren(
-            el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
+            el('h1', {}, name ?? 'Practice'),
             el(
                 'p',
                 { role: 'alert' },

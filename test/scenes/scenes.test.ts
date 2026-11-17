@@ -174,7 +174,7 @@ describe('renderScene', () => {
             'Alex',
             'Priya',
         ])
-        expect(scene.group).toBe('Lunch crew')
+        expect(scene.group).toBe('Saturday lunch crew')
         expect(scene.lines.slice(0, 2)).toEqual([
             {
                 from: 'a',
