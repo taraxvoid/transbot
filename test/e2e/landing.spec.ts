@@ -130,10 +130,9 @@ function builderForm(page: Page) {
 
 test('required fields are marked', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByLabel('Name', { exact: true })).toHaveAttribute(
-        'required',
-        '',
-    )
+    await expect(
+        page.getByRole('textbox', { name: 'Name', exact: true }),
+    ).toHaveAttribute('required', '')
     await expect(page.getByLabel(USERNAME)).toHaveAttribute('required', '')
     await expect(
         page.getByRole('group', { name: 'Pronouns (required)' }),
@@ -142,10 +141,12 @@ test('required fields are marked', async ({ page }) => {
 })
 
 test('a found card redirects to its page with Copy link', async ({ page }) => {
-    await page.addInitScript(() =>
+    await page.goto('/')
+    // Set after load, not in an init script, which would set it again on
+    // the page the redirect lands on.
+    await page.evaluate(() =>
         localStorage.setItem('transbot:setup-clicked', String(Date.now())),
     )
-    await page.goto('/')
     await page.getByLabel(USERNAME).fill('@testcard')
     await cardForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(page).toHaveURL(/\/profile\/testcard$/)
@@ -209,7 +210,9 @@ test('the form redirects to a working practice link with Copy link', async ({
 }) => {
     await mockPronounsPage(page)
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam Lee')
+    await page
+        .getByRole('textbox', { name: 'Name', exact: true })
+        .fill('Sam Lee')
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
@@ -268,10 +271,12 @@ test('submitting with nothing filled in marks both fields', async ({
             'Pick at least one, or type them under Custom pronouns.',
         ),
     ).toBeVisible()
-    await expect(page.getByLabel('Name', { exact: true })).toBeFocused()
+    await expect(
+        page.getByRole('textbox', { name: 'Name', exact: true }),
+    ).toBeFocused()
     await expect(page).toHaveURL(/\/$/)
     // Fixing a field clears its message.
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
     await expect(page.getByText('Enter your name.')).toBeHidden()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
@@ -285,7 +290,7 @@ test('the builder understands typed shorthand and pick order', async ({
     page,
 }) => {
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
     await page.getByRole('checkbox', { name: 'it/its' }).check()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await page.getByLabel('Custom pronouns').fill('he/they')
@@ -298,7 +303,7 @@ test('the builder only links pronouns pronouns.page has', async ({ page }) => {
     await mockPronounsPage(page, requests)
     await page.goto('/')
     const submit = builderForm(page).getByRole('button', { name: 'Submit' })
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
     await page.getByLabel('Custom pronouns').fill('xee')
     await submit.click()
     await expect(
@@ -324,7 +329,7 @@ test('the builder says when pronouns.page is unreachable', async ({ page }) => {
         route.fulfill({ status: 503 }),
     )
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
     await page.getByLabel('Custom pronouns').fill('ne/nem')
     await builderForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(

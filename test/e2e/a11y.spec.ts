@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 
 test('/ has no axe violations when filled in', async ({ page }) => {
     await page.goto('/')
-    await page.getByLabel('Name', { exact: true }).fill('Sam')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'they/them' }).check()
     await page.getByLabel('Custom pronouns').fill('ne/nem')
