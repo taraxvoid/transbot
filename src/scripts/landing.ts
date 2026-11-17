@@ -178,10 +178,17 @@ async function submitBuilder(run: number): Promise<void> {
     const toCheck = pronouns.filter(needsLookup)
     if (toCheck.length) {
         builderStatus.textContent = CHECKING
-        const answers = await Promise.all(toCheck.map(checkPronoun))
+        // Each answer stays paired with its value, so no index lookups.
+        const results = await Promise.all(
+            toCheck.map((value) =>
+                checkPronoun(value).then((answer) => ({ value, answer })),
+            ),
+        )
         if (run !== builderRun) return
         builderStatus.textContent = ''
-        const missing = toCheck.filter((_, i) => answers[i] === 'not-found')
+        const missing = results
+            .filter((r) => r.answer === 'not-found')
+            .map((r) => r.value)
         if (missing.length) {
             const quoted = missing.map((v) => `"${v}"`).join(' or ')
             setError(
@@ -192,7 +199,7 @@ async function submitBuilder(run: number): Promise<void> {
             byId('b-other').focus()
             return
         }
-        if (answers.includes('error')) {
+        if (results.some((r) => r.answer === 'error')) {
             builderStatus.textContent =
                 "Couldn't reach pronouns.page to check those pronouns. Try again in a moment."
             return
