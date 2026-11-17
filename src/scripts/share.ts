@@ -37,14 +37,19 @@ export const SHARE_TEXT = 'I made a quick way to practice my name and pronouns:'
 
 function copyButton(url: string, status: HTMLElement): HTMLButtonElement {
     const button = el('button', { type: 'button' }, 'Copy link')
-    button.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(url)
-            button.textContent = 'Copied'
-            status.textContent = 'Link copied'
-        } catch {
-            button.textContent = 'Copy failed, select the link instead'
-        }
+    const failed = (): void => {
+        button.textContent = 'Copy failed, select the link instead'
+        status.textContent = 'Copy failed, select the link instead'
+    }
+    button.addEventListener('click', () => {
+        // clipboard is missing outside secure contexts; that is a failure too.
+        Promise.resolve()
+            .then(() => navigator.clipboard.writeText(url))
+            .then(() => {
+                button.textContent = 'Copied'
+                status.textContent = 'Link copied'
+            })
+            .catch(failed)
     })
     return button
 }
@@ -52,7 +57,7 @@ function copyButton(url: string, status: HTMLElement): HTMLButtonElement {
 function shareButton(url: string): HTMLButtonElement | null {
     const data = { url, text: SHARE_TEXT }
     if (typeof navigator.share !== 'function') return null
-    if (navigator.canShare && !navigator.canShare(data)) return null
+    if (navigator.canShare?.(data) === false) return null
     const button = el('button', { type: 'button', class: 'secondary' }, 'Share')
     button.addEventListener('click', () => {
         // Cancelling the share sheet rejects; nothing to report.

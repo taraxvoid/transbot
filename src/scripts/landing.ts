@@ -108,11 +108,13 @@ function lookupProblem(lookup: Lookup): string | null {
     return null
 }
 
-let cardBusy = false
+/**
+ * Each submit and each edit bumps its form's run, so a lookup that finishes
+ * after the fields changed is dropped instead of redirecting with old values.
+ */
+let cardRun = 0
 
-cardForm.addEventListener('submit', async (event) => {
-    event.preventDefault()
-    if (cardBusy) return
+async function submitCard(run: number): Promise<void> {
     const raw = username.value.trim()
     const name = normalizeUsername(raw)
     if (!name) {
@@ -126,11 +128,10 @@ cardForm.addEventListener('submit', async (event) => {
         username.focus()
         return
     }
-    cardBusy = true
     setError(username, cardResult, '')
     cardResult.textContent = CHECKING
     const problem = lookupProblem(await fetchCard(name))
-    cardBusy = false
+    if (run !== cardRun) return
     if (problem) {
         setError(username, cardResult, problem)
         username.focus()
@@ -138,10 +139,21 @@ cardForm.addEventListener('submit', async (event) => {
     }
     clearSetup(storage)
     goTo(cardLink(name, window.location.origin))
+}
+
+cardForm.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const run = ++cardRun
+    submitCard(run).catch(() => {
+        if (run === cardRun) {
+            setError(username, cardResult, 'Something went wrong. Try again.')
+        }
+    })
 })
 
 username.addEventListener('input', () => {
-    if (!cardBusy) setError(username, cardResult, '')
+    cardRun++
+    setError(username, cardResult, '')
 })
 
 type Known = 'found' | 'not-found'
@@ -160,11 +172,9 @@ async function checkPronoun(value: string): Promise<Known | 'error'> {
     return answer
 }
 
-let builderBusy = false
+let builderRun = 0
 
-builder.addEventListener('submit', async (event) => {
-    event.preventDefault()
-    if (builderBusy) return
+async function submitBuilder(run: number): Promise<void> {
     builderStatus.textContent = ''
     // The first one is the one practiced.
     const pronouns = builderPicker.values()
@@ -194,10 +204,9 @@ builder.addEventListener('submit', async (event) => {
     // A link is only made for pronouns pronouns.page has: no guessing.
     const toCheck = pronouns.filter(needsLookup)
     if (toCheck.length) {
-        builderBusy = true
         builderStatus.textContent = CHECKING
         const answers = await Promise.all(toCheck.map(checkPronoun))
-        builderBusy = false
+        if (run !== builderRun) return
         builderStatus.textContent = ''
         const missing = toCheck.filter((_, i) => answers[i] === 'not-found')
         if (missing.length) {
@@ -217,12 +226,30 @@ builder.addEventListener('submit', async (event) => {
         }
     }
     goTo(link)
+}
+
+builder.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const run = ++builderRun
+    submitBuilder(run).catch(() => {
+        if (run === builderRun) {
+            builderStatus.textContent = 'Something went wrong. Try again.'
+        }
+    })
 })
 
+function builderEdited(): void {
+    // An edit makes any lookup in flight stale.
+    builderRun++
+    if (builderStatus.textContent === CHECKING) builderStatus.textContent = ''
+}
+
 builderName.addEventListener('input', () => {
+    builderEdited()
     if (builderName.value.trim()) setError(builderName, nameError, '')
 })
 builderPicker.onChange(() => {
+    builderEdited()
     if (builderPicker.values().length) {
         setError(pronounsFieldset, pronounsError, '')
     }
