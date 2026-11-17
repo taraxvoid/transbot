@@ -57,7 +57,8 @@ function copyButton(url: string, status: HTMLElement): HTMLButtonElement {
 function shareButton(url: string): HTMLButtonElement | null {
     const data = { url, text: SHARE_TEXT }
     if (typeof navigator.share !== 'function') return null
-    if (navigator.canShare?.(data) === false) return null
+    // Older browsers have share() without canShare(); only a "no" counts.
+    if ('canShare' in navigator && !navigator.canShare(data)) return null
     const button = el('button', { type: 'button', class: 'secondary' }, 'Share')
     button.addEventListener('click', () => {
         // Cancelling the share sheet rejects; nothing to report.

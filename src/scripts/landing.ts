@@ -83,16 +83,22 @@ function goTo(href: string): void {
     window.location.assign(url)
 }
 
-async function fetchCard(name: string): Promise<Lookup> {
-    try {
-        const res = await fetch(`/api/card/${encodeURIComponent(name)}`)
-        if (res.status === 404) return { kind: 'not-found' }
-        if (!res.ok) return { kind: 'error' }
-        const body = (await res.json()) as { identity: Identity }
-        return { kind: 'found', identity: body.identity }
-    } catch {
-        return { kind: 'error' }
-    }
+function readCard(res: Response): Lookup | Promise<Lookup> {
+    if (res.status === 404) return { kind: 'not-found' }
+    if (!res.ok) return { kind: 'error' }
+    return res.json().then(
+        (body: { identity: Identity }): Lookup => ({
+            kind: 'found',
+            identity: body.identity,
+        }),
+    )
+}
+
+/** Never rejects: a network or parse failure is an 'error' lookup. */
+function fetchCard(name: string): Promise<Lookup> {
+    return fetch(`/api/card/${encodeURIComponent(name)}`)
+        .then(readCard)
+        .catch((): Lookup => ({ kind: 'error' }))
 }
 
 function lookupProblem(lookup: Lookup): string | null {
