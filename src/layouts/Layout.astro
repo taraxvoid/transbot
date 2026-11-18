@@ -4,7 +4,7 @@ import '../styles/global.css'
 type Props = { title: string; description?: string; noindex?: boolean }
 const {
     title,
-    description = 'Make a link that helps family and friends practice your name and pronouns.',
+    description = "Choose and practice your (or someone else's) name and pronouns.",
     noindex = false,
 } = Astro.props
 ---
@@ -20,19 +20,17 @@ const {
     </head>
     <body>
         <header class="site-header">
-            <a href="/" class="brand">transbot</a>
+            <a href="/" class="brand">transbot.net</a>
         </header>
         <main id="main">
             <slot />
         </main>
         <footer class="site-footer">
             <p>
-                Pronoun data comes from
-                <a href="https://en.pronouns.page"> pronouns.page</a>, used
-                under the
+                Pronouns via <a href="https://en.pronouns.page">pronouns.page</a> under the
                 <a href="https://en.pronouns.page/license"
-                    > Opinionated Queer License v1.4</a
-                >. transbot is not affiliated with pronouns.page.
+                    >Opinionated Queer License v1.4</a
+                >. This site is not affiliated with pronouns.page.
             </p>
         </footer>
     </body>

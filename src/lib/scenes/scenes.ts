@@ -15,7 +15,7 @@ export type Scene = { id: string; group: string; lines: Line[] }
 export const SCENES: readonly Scene[] = [
     {
         id: 'lunch',
-        group: 'Lunch crew',
+        group: 'Saturday lunch crew',
         lines: [
             { from: 'a', text: 'Is {name} still coming Saturday?' },
             {
@@ -39,7 +39,7 @@ export const SCENES: readonly Scene[] = [
     },
     {
         id: 'gift',
-        group: 'Gift ideas',
+        group: 'Birthday gift ideas',
         lines: [
             { from: 'a', text: 'Birthday ideas for {name}?' },
             { from: 'b', text: 'A scarf? I saw a green one at the market' },
@@ -63,7 +63,7 @@ export const SCENES: readonly Scene[] = [
     },
     {
         id: 'late',
-        group: 'Show tonight',
+        group: 'Show tonight, doors at 7',
         lines: [
             { from: 'a', text: 'Doors open at 7. Where is {name}?' },
             {
@@ -80,7 +80,7 @@ export const SCENES: readonly Scene[] = [
     },
     {
         id: 'moving',
-        group: 'Moving crew',
+        group: 'Sunday moving crew',
         lines: [
             { from: 'a', text: 'Who is helping {name} move on Sunday?' },
             {

@@ -33,26 +33,18 @@ async function mockCards(page: Page): Promise<void> {
         const username = new URL(route.request().url()).pathname
             .split('/')
             .pop()
-        if (username === 'found') {
-            return route.fulfill({ json: { identity: identity('Sam', true) } })
-        }
+        // The real card fixture, so the redirect has a page to land on.
+        if (username === 'testcard') return route.fallback()
         if (username === 'empty') {
             return route.fulfill({
                 json: { identity: identity(null, false) },
-            })
-        }
-        if (username === 'slow') {
-            await new Promise((r) => setTimeout(r, 1500))
-            return route.fulfill({
-                json: { identity: identity('Slow', true) },
             })
         }
         return route.fulfill({ status: 404, json: { error: 'not-found' } })
     })
 }
 
-const SETUP = 'set up a pronouns.page card'
-const PROMPT = 'Made your card? Enter your username to get your link.'
+const SETUP = 'Create profile on pronouns.page'
 
 test.beforeEach(async ({ page }) => {
     await mockCards(page)
@@ -69,264 +61,244 @@ test('the setup link opens pronouns.page in a new tab', async ({ page }) => {
     await expect(link).toHaveAttribute('rel', /noopener/)
 })
 
-test('coming back after setup asks for the username', async ({
-    page,
-    context,
-}) => {
-    await context.route('https://en.pronouns.page/**', (route) =>
-        route.fulfill({ body: 'ok' }),
-    )
+const USERNAME = 'username / link'
+
+function cardForm(page: Page) {
+    return page.getByRole('form', {
+        name: 'Or use your pronouns.page profile',
+    })
+}
+
+function builderForm(page: Page) {
+    return page.getByRole('form', { name: 'Choose Your Name / Pronouns' })
+}
+
+test('required fields are marked', async ({ page }) => {
     await page.goto('/')
-    const popup = page.waitForEvent('popup')
-    await page.getByRole('link', { name: SETUP }).click()
-    await (await popup).close()
-    await page.evaluate(() =>
-        document.dispatchEvent(new Event('visibilitychange')),
-    )
-    await expect(page.getByText(PROMPT)).toBeVisible()
     await expect(
-        page.getByLabel('pronouns.page username or link'),
-    ).toBeFocused()
-})
-
-test('a later visit shows the prompt until 14 days pass', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem(
-            'transbot:setup-clicked',
-            String(Date.now() - 1000),
-        ),
-    )
-    await page.goto('/')
-    await expect(page.getByText(PROMPT)).toBeVisible()
-})
-
-test('a stale flag is ignored', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem(
-            'transbot:setup-clicked',
-            String(Date.now() - 15 * 24 * 60 * 60 * 1000),
-        ),
-    )
-    await page.goto('/')
-    await expect(page.getByText(PROMPT)).toBeHidden()
-})
-
-test('not now dismisses the prompt', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem('transbot:setup-clicked', String(Date.now())),
-    )
-    await page.goto('/')
-    await page.getByRole('button', { name: 'Not now' }).click()
-    await expect(page.getByText(PROMPT)).toBeHidden()
-    expect(
-        await page.evaluate(() =>
-            localStorage.getItem('transbot:setup-clicked'),
-        ),
-    ).toBeNull()
-})
-
-test('a found card shows the preview, link and copy button', async ({
-    page,
-}) => {
-    await page.addInitScript(() =>
-        localStorage.setItem('transbot:setup-clicked', String(Date.now())),
-    )
-    await page.goto('/')
-    await page.getByLabel('pronouns.page username or link').fill('@found')
+        page.getByRole('textbox', { name: 'Name', exact: true }),
+    ).toHaveAttribute('required', '')
+    await expect(page.getByLabel(USERNAME)).toHaveAttribute('required', '')
     await expect(
-        page.getByText('transbot will teach: Sam, xe/xem'),
+        page.getByRole('group', { name: 'Pronouns (required)' }),
     ).toBeVisible()
+    await expect(page.locator('.req').first()).toBeVisible()
+})
+
+test('a found card redirects to its page with Copy link', async ({ page }) => {
+    await page.goto('/')
+    await page.getByLabel(USERNAME).fill('@testcard')
+    await cardForm(page).getByRole('button', { name: 'Submit' }).click()
+    await expect(page).toHaveURL(/\/profile\/testcard$/)
     await expect(
-        page.getByRole('link', { name: /\/profile\/found$/ }),
+        page.getByRole('heading', { name: 'Your link is ready' }),
     ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
-    expect(
-        await page.evaluate(() =>
-            localStorage.getItem('transbot:setup-clicked'),
-        ),
-    ).toBeNull()
 })
 
-test('a missing card keeps the prompt open', async ({ page }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem('transbot:setup-clicked', String(Date.now())),
-    )
+test('a missing card says so and stays on the page', async ({ page }) => {
     await page.goto('/')
-    await page.getByLabel('pronouns.page username or link').fill('nobody')
+    await page.getByLabel(USERNAME).fill('nobody')
+    await cardForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(
         page.getByText(
             "We couldn't find that card yet. Cards show up once they're saved on pronouns.page.",
         ),
     ).toBeVisible()
-    await expect(page.getByText(PROMPT)).toBeVisible()
+    await expect(page.getByLabel(USERNAME)).toHaveAttribute(
+        'aria-invalid',
+        'true',
+    )
+    await expect(page).toHaveURL(/\/$/)
 })
 
 test('a card with nothing marked yes says so', async ({ page }) => {
     await page.goto('/')
-    await page.getByLabel('pronouns.page username or link').fill('empty')
+    await page.getByLabel(USERNAME).fill('empty')
+    await cardForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(
         page.getByText('nothing on it is marked yes yet'),
     ).toBeVisible()
 })
 
-test('a slow earlier lookup never replaces the latest one', async ({
-    page,
-}) => {
+test('an empty or invalid username says what is wrong', async ({ page }) => {
     await page.goto('/')
-    const field = page.getByLabel('pronouns.page username or link')
-    await field.fill('slow')
-    await page.waitForTimeout(600)
-    await field.fill('found')
+    const submit = cardForm(page).getByRole('button', { name: 'Submit' })
+    await submit.click()
     await expect(
-        page.getByRole('link', { name: /\/profile\/found$/ }),
+        page.getByText('Enter your pronouns.page username or profile link.'),
     ).toBeVisible()
-    await page.waitForTimeout(1500)
+    await page.getByLabel(USERNAME).fill('not a name')
+    await submit.click()
     await expect(
-        page.getByRole('link', { name: /\/profile\/slow$/ }),
-    ).toHaveCount(0)
-    await expect(
-        page.getByRole('link', { name: /\/profile\/found$/ }),
+        page.getByText("That doesn't look like a pronouns.page username."),
     ).toBeVisible()
+    await expect(page.getByLabel(USERNAME)).toBeFocused()
 })
 
-test('the name and pronouns form makes a working practice link', async ({
+test('the form redirects to a working practice link with Copy link', async ({
     page,
 }) => {
     await mockPronounsPage(page)
     await page.goto('/')
-    await page.getByLabel('Your name', { exact: true }).fill('Sam Lee')
+    await page
+        .getByRole('textbox', { name: 'Name', exact: true })
+        .fill('Sam Lee')
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
-        page.getByText('The chat uses xe/xem. Also fine: she/her.'),
+        page.getByText('Primary: xe/xem. Secondary: she/her.'),
     ).toBeVisible()
-    const link = page.getByRole('link', {
-        name: /\/practice\/Sam%20Lee\?p=xe\+she$/,
-    })
-    await expect(link).toBeVisible()
-    await link.click()
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
+    await expect(page).toHaveURL(/\/practice\/Sam%20Lee\?p=xe\+she$/)
     await expect(
-        page.getByRole('heading', { name: 'Practice with Sam Lee' }),
+        page.getByRole('heading', { name: 'Sam Lee uses xe/xem' }),
     ).toBeVisible()
+    const banner = page.getByRole('region', { name: 'Your link is ready' })
+    await expect(
+        banner.getByRole('link', { name: /\/practice\/Sam%20Lee\?p=xe\+she$/ }),
+    ).toBeVisible()
+    await expect(
+        banner.getByRole('button', { name: 'Copy link' }),
+    ).toBeVisible()
+    // The box sits at the bottom, after the chat.
+    expect(
+        await page.evaluate(
+            () => document.querySelector('#practice > :last-child')?.className,
+        ),
+    ).toBe('share')
 })
 
-test('the link builder understands typed shorthand', async ({ page }) => {
-    await page.goto('/')
-    await page.getByLabel('Your name', { exact: true }).fill('Sam')
-    await page.getByRole('checkbox', { name: 'she/her' }).check()
-    await page.getByLabel('Other pronouns').fill('he/they')
+test('a practice link opened fresh has no "link is ready" box', async ({
+    page,
+}) => {
+    await mockPronounsPage(page)
+    await page.goto('/practice/Sam?p=xe')
     await expect(
-        page.getByRole('link', { name: /\/practice\/Sam\?p=she\+he\+they$/ }),
+        page.getByRole('heading', { name: 'Sam uses xe/xem' }),
     ).toBeVisible()
-    // Picked sets come first, in pick order; rechecking moves one last.
-    await page.getByRole('checkbox', { name: 'it/its' }).check()
-    await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
-    await page.getByRole('checkbox', { name: 'she/her' }).check()
     await expect(
-        page.getByRole('link', {
-            name: /\/practice\/Sam\?p=it\+she\+he\+they$/,
-        }),
-    ).toBeVisible()
-    await page.getByRole('checkbox', { name: 'it/its' }).uncheck()
-    await page.getByLabel('Other pronouns').fill('')
-    await page.getByRole('checkbox', { name: 'she/her' }).uncheck()
-    await expect(
-        page.getByRole('link', { name: /\/practice\/Sam/ }),
+        page.getByRole('heading', { name: 'Your link is ready' }),
     ).toHaveCount(0)
 })
 
-test('the link builder only links pronouns pronouns.page has', async ({
+test('Share shows only where the browser can share', async ({ page }) => {
+    await mockPronounsPage(page)
+    await page.addInitScript(() => {
+        sessionStorage.setItem('transbot:just-made', '/practice/Sam?p=xe')
+    })
+    await page.goto('/practice/Sam?p=xe')
+    await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
+    const canShare = await page.evaluate(
+        () => typeof navigator.share === 'function',
+    )
+    await expect(page.getByRole('button', { name: 'Share' })).toHaveCount(
+        canShare ? 1 : 0,
+    )
+})
+
+test('submitting with nothing filled in marks both fields', async ({
     page,
 }) => {
+    await page.goto('/')
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
+    await expect(page.getByText('Enter your name.')).toBeVisible()
+    await expect(
+        page.getByText(
+            'Pick at least one, or type them under Custom pronouns.',
+        ),
+    ).toBeVisible()
+    await expect(
+        page.getByRole('textbox', { name: 'Name', exact: true }),
+    ).toBeFocused()
+    await expect(page).toHaveURL(/\/$/)
+    // Fixing a field clears its message.
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
+    await expect(page.getByText('Enter your name.')).toBeHidden()
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await expect(
+        page.getByText(
+            'Pick at least one, or type them under Custom pronouns.',
+        ),
+    ).toBeHidden()
+})
+
+test('the builder understands typed shorthand and pick order', async ({
+    page,
+}) => {
+    await page.goto('/')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
+    await page.getByRole('checkbox', { name: 'it/its' }).check()
+    await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await page.getByLabel('Custom pronouns').fill('he/they')
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
+    await expect(page).toHaveURL(/\/practice\/Sam\?p=it\+she\+he\+they$/)
+})
+
+test('the builder only links pronouns pronouns.page has', async ({ page }) => {
     const requests: string[] = []
     await mockPronounsPage(page, requests)
     await page.goto('/')
-    await page.getByLabel('Your name', { exact: true }).fill('Sam')
-    await page.getByLabel('Other pronouns').fill('xee')
+    const submit = builderForm(page).getByRole('button', { name: 'Submit' })
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
+    await page.getByLabel('Custom pronouns').fill('xee')
+    await submit.click()
     await expect(
         page.getByText(
             `pronouns.page doesn't have "xee" yet. You can write out all five forms, like ae/aer/aer/aers/aerself.`,
         ),
     ).toBeVisible()
-    await expect(
-        page.getByRole('link', { name: /\/practice\/Sam/ }),
-    ).toHaveCount(0)
+    await expect(page).toHaveURL(/\/$/)
 
-    await page.getByLabel('Other pronouns').fill('ne/nem/nir/nirs/nemself')
-    await expect(
-        page.getByRole('link', {
-            name: /\/practice\/Sam\?p=ne\/nem\/nir\/nirs\/nemself$/,
-        }),
-    ).toBeVisible()
-    // Common sets are never looked up, and the name never goes to pronouns.page.
     await page.getByRole('checkbox', { name: 'she/her' }).check()
+    await page.getByLabel('Custom pronouns').fill('ne/nem/nir/nirs/nemself')
+    await submit.click()
+    await expect(page).toHaveURL(
+        /\/practice\/Sam\?p=she\+ne\/nem\/nir\/nirs\/nemself$/,
+    )
+    // Common sets are never looked up, and the name never goes to pronouns.page.
     expect(requests.some((url) => url.endsWith('/pronouns/she'))).toBe(false)
     expect(requests.some((url) => url.includes('Sam'))).toBe(false)
 })
 
-test('the link builder says when pronouns.page is unreachable', async ({
-    page,
-}) => {
+test('the builder says when pronouns.page is unreachable', async ({ page }) => {
     await page.route('https://en.pronouns.page/api/**', (route) =>
         route.fulfill({ status: 503 }),
     )
     await page.goto('/')
-    await page.getByLabel('Your name', { exact: true }).fill('Sam')
-    await page.getByLabel('Other pronouns').fill('ne/nem')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
+    await page.getByLabel('Custom pronouns').fill('ne/nem')
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(
         page.getByText(
             "Couldn't reach pronouns.page to check those pronouns. Try again in a moment.",
         ),
     ).toBeVisible()
-    await expect(
-        page.getByRole('link', { name: /\/practice\/Sam/ }),
-    ).toHaveCount(0)
+    await expect(page).toHaveURL(/\/$/)
 })
 
-test('a response landing inside the debounce window is discarded', async ({
+test('editing during a pronouns.page check cancels the redirect', async ({
     page,
 }) => {
     let release: () => void = () => {}
     const gate = new Promise<void>((resolve) => {
         release = resolve
     })
-    await page.route('**/api/card/gate', async (route) => {
+    await page.route('https://en.pronouns.page/api/**', async (route) => {
         await gate
-        await route.fulfill({ json: { identity: identity('Gate', true) } })
+        await route.fulfill({ status: 503 })
     })
     await page.goto('/')
-    const field = page.getByLabel('pronouns.page username or link')
-    const requested = page.waitForRequest('**/api/card/gate')
-    await field.fill('gate')
+    const name = page.getByRole('textbox', { name: 'Name', exact: true })
+    await name.fill('Sam')
+    await page.getByLabel('Custom pronouns').fill('ne/nem')
+    const requested = page.waitForRequest('https://en.pronouns.page/api/**')
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
     await requested
-    // Change the field, then let the old response land before the debounce.
-    await field.fill('found')
+    await name.fill('Sammy')
     release()
-    await page.evaluate(() => new Promise((r) => setTimeout(r, 150)))
-    await expect(
-        page.getByRole('link', { name: /\/profile\/gate$/ }),
-    ).toHaveCount(0)
-    await expect(
-        page.getByRole('link', { name: /\/profile\/found$/ }),
-    ).toBeVisible()
-})
-
-test('clearing the field removes a shown card at once', async ({ page }) => {
-    await page.goto('/')
-    const field = page.getByLabel('pronouns.page username or link')
-    await field.fill('found')
-    await expect(
-        page.getByRole('link', { name: /\/profile\/found$/ }),
-    ).toBeVisible()
-    await field.fill('')
-    await expect(
-        page.getByRole('link', { name: /\/profile\/found$/ }),
-    ).toHaveCount(0)
-})
-
-test('an invalid username never shows the checking note', async ({ page }) => {
-    await page.goto('/')
-    await page.getByLabel('pronouns.page username or link').fill('not a name')
-    // Read at once: a retrying assertion would wait out the debounce.
-    expect(await page.locator('#card-result').textContent()).toBe('')
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 200)))
+    // The stale answer is dropped: no error shown for the old values.
+    await expect(page.getByText("Couldn't reach pronouns.page")).toHaveCount(0)
+    await expect(page).toHaveURL(/\/$/)
 })

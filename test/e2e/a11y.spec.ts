@@ -13,12 +13,39 @@ test.beforeEach(async ({ page }) => {
     await mockPronounsPage(page)
 })
 
-test('/ has no axe violations with a link shown', async ({ page }) => {
+test('/ has no axe violations when filled in', async ({ page }) => {
     await page.goto('/')
-    await page.getByLabel('Your name', { exact: true }).fill('Sam')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
     await page.getByRole('checkbox', { name: 'they/them' }).check()
-    await page.getByLabel('Other pronouns').fill('ne/nem')
+    await page.getByLabel('Custom pronouns').fill('ne/nem')
+    await expectNoViolations(page)
+})
+
+test('/ has no axe violations with errors shown', async ({ page }) => {
+    await page.goto('/')
+    await page
+        .getByRole('form', { name: 'Choose Your Name / Pronouns' })
+        .getByRole('button', { name: 'Submit' })
+        .click()
+    await page
+        .getByRole('form', { name: 'Or use your pronouns.page profile' })
+        .getByRole('button', { name: 'Submit' })
+        .click()
+    await expect(page.getByText('Enter your name.')).toBeVisible()
+    await expectNoViolations(page)
+})
+
+test('/practice has no axe violations with the link-ready box', async ({
+    page,
+}) => {
+    await page.addInitScript(() => {
+        sessionStorage.setItem('transbot:just-made', '/practice/Sam?p=xe')
+    })
+    await page.goto('/practice/Sam?p=xe')
+    await expect(
+        page.getByRole('heading', { name: 'Your link is ready' }),
+    ).toBeVisible()
     await expectNoViolations(page)
 })
 

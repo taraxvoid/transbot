@@ -35,7 +35,7 @@ test('a scene plays by tapping Send', async ({ page }) => {
     await page.goto('/practice/Quillon?p=xe')
     const panel = chat(page)
     await expect(
-        panel.getByRole('heading', { name: 'Lunch crew' }),
+        panel.getByRole('heading', { name: 'Saturday lunch crew' }),
     ).toBeVisible()
     await expect(
         panel.getByText('Is Quillon still coming Saturday?'),
@@ -73,7 +73,7 @@ test('Next chat runs through to the end and Start over restarts', async ({
     await expect(again).toBeFocused()
     await again.click()
     await expect(
-        chat(page).getByRole('heading', { name: 'Lunch crew' }),
+        chat(page).getByRole('heading', { name: 'Saturday lunch crew' }),
     ).toBeVisible()
     await expect(sendButton(page)).toBeFocused()
 })
@@ -155,7 +155,7 @@ test('the thread can take keyboard focus to scroll', async ({ page }) => {
 test('the forms box lists the five forms with IPA', async ({ page }) => {
     await page.goto('/practice/Quillon?p=xe')
     const box = page.locator('details.forms')
-    await expect(box.locator('summary')).toHaveText('Quillon: xe/xem')
+    await expect(box.locator('summary')).toHaveText('All forms of xe/xem')
     await box.locator('summary').click()
     for (const [term, value] of [
         ['Subject', 'xe /zi/'],

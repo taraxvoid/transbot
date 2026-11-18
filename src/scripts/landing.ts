@@ -3,22 +3,13 @@ import { getPronouns } from '../lib/pronouns/client'
 import { summarize } from '../lib/pronouns/identity'
 import { needsLookup } from '../lib/pronouns/parse'
 import type { Identity } from '../lib/pronouns/types'
-import {
-    clearSetup,
-    isSetupPending,
-    markSetupClicked,
-    safeStorage,
-} from '../lib/setup-flag'
-import { el } from './dom'
 import { pronounPicker } from './picker'
+import { markJustMade } from './share'
 
 type Lookup =
     | { kind: 'found'; identity: Identity }
     | { kind: 'not-found' }
     | { kind: 'error' }
-
-const DEBOUNCE_MS = 400
-const storage = safeStorage()
 
 function byId<T extends HTMLElement>(id: string): T {
     const node = document.getElementById(id)
@@ -26,164 +17,122 @@ function byId<T extends HTMLElement>(id: string): T {
     return node as T
 }
 
-const setupLink = byId<HTMLAnchorElement>('setup-link')
-const returnPrompt = byId('return-prompt')
-const notNow = byId<HTMLButtonElement>('not-now')
+const cardForm = byId<HTMLFormElement>('card-form')
 const username = byId<HTMLInputElement>('username')
 const cardResult = byId('card-result')
 const builder = byId<HTMLFormElement>('builder')
 const builderName = byId<HTMLInputElement>('b-name')
+const nameError = byId('b-name-error')
 const builderPicker = pronounPicker('b')
-const builderResult = byId('builder-result')
+const pronounsFieldset = byId('b-pronouns')
+const pronounsError = byId('b-pronouns-error')
+const builderStatus = byId('builder-status')
 
 const CHECKING = 'Checking pronouns.page...'
 
-function copyButton(text: string): HTMLButtonElement {
-    const button = el(
-        'button',
-        { type: 'button', class: 'secondary' },
-        'Copy link',
+/** Shows `message` on a field, or clears it when `message` is empty. */
+function setError(
+    field: HTMLElement,
+    error: HTMLElement,
+    message: string,
+): void {
+    if (error.textContent !== message) error.textContent = message
+    // aria-invalid isn't allowed on a fieldset; its error is in its
+    // aria-describedby instead.
+    if (!(field instanceof HTMLInputElement)) return
+    if (message) field.setAttribute('aria-invalid', 'true')
+    else field.removeAttribute('aria-invalid')
+}
+
+/** Goes to a link just made here, so its page offers Copy and Share. */
+function goTo(href: string): void {
+    const url = new URL(href, window.location.origin)
+    markJustMade(url.pathname + url.search)
+    window.location.assign(url)
+}
+
+function readCard(res: Response): Lookup | Promise<Lookup> {
+    if (res.status === 404) return { kind: 'not-found' }
+    if (!res.ok) return { kind: 'error' }
+    return res.json().then(
+        (body: { identity: Identity }): Lookup => ({
+            kind: 'found',
+            identity: body.identity,
+        }),
     )
-    button.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(text)
-            button.textContent = 'Copied'
-        } catch {
-            button.textContent = 'Copy failed, select the link instead'
-        }
-    })
-    return button
 }
 
-function linkRow(href: string): HTMLElement {
-    return el(
-        'p',
-        { class: 'link-out' },
-        el('a', { href }, href),
-        copyButton(href),
-    )
+/** Never rejects: a network or parse failure is an 'error' lookup. */
+function fetchCard(name: string): Promise<Lookup> {
+    return fetch(`/api/card/${encodeURIComponent(name)}`)
+        .then(readCard)
+        .catch((): Lookup => ({ kind: 'error' }))
 }
 
-setupLink.addEventListener('click', () => markSetupClicked(storage, Date.now()))
-
-function circleBack(): void {
-    if (!isSetupPending(storage, Date.now())) return
-    // Only take focus the first time, or when nothing else has it, so coming
-    // back to the tab never steals focus from a field being typed in.
-    const firstTime = returnPrompt.hidden
-    returnPrompt.hidden = false
-    const active = document.activeElement
-    if (firstTime || !active || active === document.body) username.focus()
-}
-
-circleBack()
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') circleBack()
-})
-notNow.addEventListener('click', () => {
-    clearSetup(storage)
-    returnPrompt.hidden = true
-})
-
-function renderLookup(name: string, lookup: Lookup): void {
+function lookupProblem(lookup: Lookup): string | null {
     if (lookup.kind === 'not-found') {
-        cardResult.replaceChildren(
-            el(
-                'p',
-                {},
-                "We couldn't find that card yet. Cards show up once they're saved on pronouns.page.",
-            ),
-        )
-        return
+        return "We couldn't find that card yet. Cards show up once they're saved on pronouns.page."
     }
     if (lookup.kind === 'error') {
-        cardResult.replaceChildren(
-            el('p', {}, "Couldn't reach pronouns.page. Try again in a moment."),
-        )
-        return
+        return "Couldn't reach pronouns.page. Try again in a moment."
     }
-    const summary = summarize(lookup.identity)
-    if (summary.nothingToTeach) {
-        cardResult.replaceChildren(
-            el(
-                'p',
-                {},
-                "Found your card, but nothing on it is marked yes yet, so there's nothing to teach. Mark a name or pronouns as yes on pronouns.page, then check again.",
-            ),
-        )
-        return
+    if (summarize(lookup.identity).nothingToTeach) {
+        return "Found your card, but nothing on it is marked yes yet, so there's nothing to teach. Mark a name or pronouns as yes on pronouns.page, then try again."
     }
-    clearSetup(storage)
-    returnPrompt.hidden = true
-    const parts: Node[] = []
-    if (summary.teach.length) {
-        parts.push(
-            el('p', {}, `transbot will teach: ${summary.teach.join(', ')}`),
-        )
-    }
-    if (summary.accept.length) {
-        parts.push(el('p', {}, `Also accepted: ${summary.accept.join(', ')}`))
-    }
-    if (summary.askMe) {
-        parts.push(
-            el('p', {}, 'Visitors will see a note to ask about pronouns.'),
-        )
-    }
-    parts.push(linkRow(cardLink(name, window.location.origin)))
-    cardResult.replaceChildren(...parts)
+    return null
 }
 
-let latest = 0
-let timer: ReturnType<typeof setTimeout> | undefined
+/**
+ * Each submit and each edit bumps its form's run, so a lookup that finishes
+ * after the fields changed is dropped instead of redirecting with old values.
+ */
+let cardRun = 0
 
-async function lookup(): Promise<void> {
-    const id = ++latest
-    const name = normalizeUsername(username.value)
+async function submitCard(run: number): Promise<void> {
+    const raw = username.value.trim()
+    const name = normalizeUsername(raw)
     if (!name) {
-        cardResult.replaceChildren()
+        setError(
+            username,
+            cardResult,
+            raw
+                ? "That doesn't look like a pronouns.page username. Use letters, numbers, dots, dashes or underscores."
+                : 'Enter your pronouns.page username or profile link.',
+        )
+        username.focus()
         return
     }
-    cardResult.replaceChildren(el('p', {}, 'Checking pronouns.page...'))
-    let result: Lookup
-    try {
-        const res = await fetch(`/api/card/${encodeURIComponent(name)}`)
-        if (res.status === 404) result = { kind: 'not-found' }
-        else if (!res.ok) result = { kind: 'error' }
-        else
-            result = {
-                kind: 'found',
-                identity: ((await res.json()) as { identity: Identity })
-                    .identity,
-            }
-    } catch {
-        result = { kind: 'error' }
+    setError(username, cardResult, '')
+    cardResult.textContent = CHECKING
+    const problem = lookupProblem(await fetchCard(name))
+    if (run !== cardRun) return
+    if (problem) {
+        setError(username, cardResult, problem)
+        username.focus()
+        return
     }
-    // A slower, older lookup must not replace the newest one.
-    if (id !== latest) return
-    renderLookup(name, result)
+    goTo(cardLink(name, window.location.origin))
 }
+
+cardForm.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const run = ++cardRun
+    submitCard(run).catch(() => {
+        if (run === cardRun) {
+            setError(username, cardResult, 'Something went wrong. Try again.')
+        }
+    })
+})
 
 username.addEventListener('input', () => {
-    // Invalidate any in-flight lookup now, not after the debounce, so a late
-    // response for the old text never renders next to the new text.
-    latest++
-    // Re-inserting the same text would make the live region announce it
-    // again on every keystroke, so only touch the DOM when it changes.
-    const checking = normalizeUsername(username.value) !== null
-    if (!checking) cardResult.replaceChildren()
-    else if (cardResult.textContent !== CHECKING) {
-        cardResult.replaceChildren(el('p', {}, CHECKING))
-    }
-    clearTimeout(timer)
-    timer = setTimeout(() => void lookup(), DEBOUNCE_MS)
+    cardRun++
+    setError(username, cardResult, '')
 })
 
 type Known = 'found' | 'not-found'
 
 /** Typed values pronouns.page has answered for. Errors aren't kept. */
 const known = new Map<string, Known>()
-let builderRun = 0
-let builderTimer: ReturnType<typeof setTimeout> | undefined
 
 async function checkPronoun(value: string): Promise<Known | 'error'> {
     const cached = known.get(value)
@@ -196,72 +145,92 @@ async function checkPronoun(value: string): Promise<Known | 'error'> {
     return answer
 }
 
-function setBuilderResult(...nodes: Node[]): void {
-    // Same text again would make the live region repeat itself.
-    const text = nodes.map((n) => n.textContent).join('')
-    if (nodes.length && builderResult.textContent === text) return
-    builderResult.replaceChildren(...nodes)
-}
+let builderRun = 0
 
-function renderBuilder(
-    link: string,
-    checked: string[],
-    answers: Array<Known | 'error'>,
-): void {
-    const missing = checked.filter((_, i) => answers[i] === 'not-found')
-    if (missing.length) {
-        const quoted = missing.map((v) => `"${v}"`).join(' or ')
-        setBuilderResult(
-            el(
-                'p',
-                {},
-                `pronouns.page doesn't have ${quoted} yet. You can write out all five forms, like ae/aer/aer/aers/aerself.`,
-            ),
-        )
-    } else if (answers.includes('error')) {
-        setBuilderResult(
-            el(
-                'p',
-                {},
-                "Couldn't reach pronouns.page to check those pronouns. Try again in a moment.",
-            ),
-        )
-    } else setBuilderResult(linkRow(link))
-}
-
-function updateBuilder(): void {
-    // Any older check still in flight is now stale.
-    const run = ++builderRun
-    clearTimeout(builderTimer)
+async function submitBuilder(run: number): Promise<void> {
+    builderStatus.textContent = ''
     // The first one is the one practiced.
     const pronouns = builderPicker.values()
+    const nameMissing = !builderName.value.trim()
+    setError(builderName, nameError, nameMissing ? 'Enter your name.' : '')
+    setError(
+        pronounsFieldset,
+        pronounsError,
+        pronouns.length
+            ? ''
+            : 'Pick at least one, or type them under Custom pronouns.',
+    )
+    if (nameMissing) {
+        builderName.focus()
+        return
+    }
+    if (!pronouns.length) {
+        pronounsFieldset.querySelector<HTMLInputElement>('input')?.focus()
+        return
+    }
     const link = practiceLink(
         builderName.value,
         pronouns,
         window.location.origin,
     )
-    if (!link) {
-        setBuilderResult()
-        return
-    }
-    // A link is only offered for pronouns pronouns.page has: no guessing.
+    if (!link) return
+    // A link is only made for pronouns pronouns.page has: no guessing.
     const toCheck = pronouns.filter(needsLookup)
-    const cached = toCheck.map((v) => known.get(v))
-    if (cached.every((answer) => answer !== undefined)) {
-        renderBuilder(link, toCheck, cached as Known[])
-        return
+    if (toCheck.length) {
+        builderStatus.textContent = CHECKING
+        // Each answer stays paired with its value, so no index lookups.
+        const results = await Promise.all(
+            toCheck.map((value) =>
+                checkPronoun(value).then((answer) => ({ value, answer })),
+            ),
+        )
+        if (run !== builderRun) return
+        builderStatus.textContent = ''
+        const missing = results
+            .filter((r) => r.answer === 'not-found')
+            .map((r) => r.value)
+        if (missing.length) {
+            const quoted = missing.map((v) => `"${v}"`).join(' or ')
+            setError(
+                pronounsFieldset,
+                pronounsError,
+                `pronouns.page doesn't have ${quoted} yet. You can write out all five forms, like ae/aer/aer/aers/aerself.`,
+            )
+            byId('b-other').focus()
+            return
+        }
+        if (results.some((r) => r.answer === 'error')) {
+            builderStatus.textContent =
+                "Couldn't reach pronouns.page to check those pronouns. Try again in a moment."
+            return
+        }
     }
-    setBuilderResult(el('p', {}, CHECKING))
-    builderTimer = setTimeout(async () => {
-        const answers = await Promise.all(toCheck.map(checkPronoun))
-        if (run === builderRun) renderBuilder(link, toCheck, answers)
-    }, DEBOUNCE_MS)
+    goTo(link)
 }
 
-builderPicker.onChange(updateBuilder)
-updateBuilder()
-builderName.addEventListener('input', updateBuilder)
 builder.addEventListener('submit', (event) => {
     event.preventDefault()
-    updateBuilder()
+    const run = ++builderRun
+    submitBuilder(run).catch(() => {
+        if (run === builderRun) {
+            builderStatus.textContent = 'Something went wrong. Try again.'
+        }
+    })
+})
+
+function builderEdited(): void {
+    // An edit makes any lookup in flight stale.
+    builderRun++
+    if (builderStatus.textContent === CHECKING) builderStatus.textContent = ''
+}
+
+builderName.addEventListener('input', () => {
+    builderEdited()
+    if (builderName.value.trim()) setError(builderName, nameError, '')
+})
+builderPicker.onChange(() => {
+    builderEdited()
+    if (builderPicker.values().length) {
+        setError(pronounsFieldset, pronounsError, '')
+    }
 })

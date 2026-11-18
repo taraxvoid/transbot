@@ -58,7 +58,7 @@ export function mountChat(
 
     const group = el('h2', { class: 'chat-group' })
     const avatars = el('div', { class: 'avatars', 'aria-hidden': 'true' })
-    const members = el('p', { class: 'visually-hidden' })
+    const members = el('p', { class: 'members' })
     // Focusable so the keyboard can scroll it where browsers don't make
     // scrollers focusable on their own (Safari).
     const thread = el('div', {
@@ -79,7 +79,12 @@ export function mountChat(
     const panel = el(
         'section',
         { class: 'chat', 'aria-label': 'Group chat' },
-        el('header', { class: 'chat-header' }, avatars, group, members),
+        el(
+            'header',
+            { class: 'chat-header' },
+            group,
+            el('div', { class: 'member-row' }, avatars, members),
+        ),
         thread,
         el('div', { class: 'compose' }, composeText, send),
     )

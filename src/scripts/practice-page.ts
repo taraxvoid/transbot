@@ -8,7 +8,7 @@ import { mountPractice } from './practice-ui'
 function askPronouns(root: HTMLElement, name: string): void {
     const form = document.getElementById('ask-form')
     const legend = document.getElementById('ask-legend')
-    const error = document.getElementById('ask-error')
+    const error = document.getElementById('ask-pronouns-error')
     if (!(form instanceof HTMLFormElement) || !legend || !error) return
     legend.textContent = `Which pronouns does ${name} use?`
     const picker = pronounPicker('ask')
@@ -22,7 +22,7 @@ function askPronouns(root: HTMLElement, name: string): void {
         const query = pronounQuery(picker.values())
         if (!query) {
             error.textContent =
-                'Pick at least one, or type them under Other pronouns.'
+                'Pick at least one, or type them under Custom pronouns.'
             return
         }
         const url = new URL(window.location.href)
@@ -85,7 +85,7 @@ async function start(): Promise<void> {
     if (unknown) {
         const name = identity.names.preferred
         root.replaceChildren(
-            el('h1', {}, name ? `Practice with ${name}` : 'Practice'),
+            el('h1', {}, name ?? 'Practice'),
             el(
                 'p',
                 { role: 'alert' },
