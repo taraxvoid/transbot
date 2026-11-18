@@ -25,11 +25,11 @@ test('/ has no axe violations when filled in', async ({ page }) => {
 test('/ has no axe violations with errors shown', async ({ page }) => {
     await page.goto('/')
     await page
-        .getByRole('form', { name: 'Choose Name / Pronouns' })
+        .getByRole('form', { name: 'Choose Your Name / Pronouns' })
         .getByRole('button', { name: 'Submit' })
         .click()
     await page
-        .getByRole('form', { name: 'Or enter your pronouns.page profile' })
+        .getByRole('form', { name: 'Or use your pronouns.page profile' })
         .getByRole('button', { name: 'Submit' })
         .click()
     await expect(page.getByText('Enter your name.')).toBeVisible()

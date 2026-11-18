@@ -65,12 +65,12 @@ const USERNAME = 'username / link'
 
 function cardForm(page: Page) {
     return page.getByRole('form', {
-        name: 'Or enter your pronouns.page profile',
+        name: 'Or use your pronouns.page profile',
     })
 }
 
 function builderForm(page: Page) {
-    return page.getByRole('form', { name: 'Choose Name / Pronouns' })
+    return page.getByRole('form', { name: 'Choose Your Name / Pronouns' })
 }
 
 test('required fields are marked', async ({ page }) => {
