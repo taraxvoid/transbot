@@ -18,7 +18,8 @@ function sendButton(page: Page): Locator {
 /** Presses Send on every turn until the scene's end button shows up. */
 async function playScene(page: Page): Promise<void> {
     const done = page.getByRole('button', { name: /^(Next chat|Start over)$/ })
-    for (let round = 0; round < 20; round++) {
+    const deadline = Date.now() + 15_000
+    while (Date.now() < deadline) {
         if (await done.isVisible()) return
         if (
             (await sendButton(page).getAttribute('aria-disabled')) === 'false'
