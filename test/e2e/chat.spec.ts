@@ -45,11 +45,15 @@ test('a scene plays by tapping Send', async ({ page }) => {
     ).toBeVisible()
     await expect(panel.getByText('I hope xe is not too peeved')).toBeVisible()
     const compose = page.locator('#compose-text')
-    await expect(compose).toHaveText("Sure, let's confirm the time with xem")
+    await expect(compose).toHaveText(
+        'Buy xe two just in case (so I can snag one)',
+    )
     await sendButton(page).click()
     const mine = panel.locator('.thread .me')
     await expect(mine).toHaveCount(1)
-    await expect(mine).toContainText("Sure, let's confirm the time with xem")
+    await expect(mine).toContainText(
+        'Buy xe two just in case (so I can snag one)',
+    )
     await expect(mine.getByText('Delivered')).toBeVisible()
     await expect(compose).toHaveText('')
     await expect(sendButton(page)).toHaveAttribute('aria-disabled', 'true')
