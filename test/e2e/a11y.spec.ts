@@ -62,6 +62,27 @@ test('/practice has no axe violations mid-chat', async ({ page }) => {
     await expectNoViolations(page)
 })
 
+test('/practice has no axe violations at the end of the chat', async ({
+    page,
+}) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/practice/Quillon?p=xe')
+    const send = page
+        .getByRole('region', { name: 'Group chat' })
+        .getByRole('button', { name: 'Send' })
+    const box = page.getByRole('region', { name: 'Pass it on' })
+    const next = page.getByRole('button', { name: 'Next chat' })
+    const deadline = Date.now() + 30_000
+    while (!(await box.isVisible())) {
+        if (Date.now() > deadline) throw new Error('the chat never ended')
+        if (await next.isVisible()) await next.click()
+        else if ((await send.getAttribute('aria-disabled')) === 'false') {
+            await send.click()
+        } else await page.waitForTimeout(50)
+    }
+    await expectNoViolations(page)
+})
+
 test('/practice/<name> ask page has no axe violations', async ({ page }) => {
     await page.goto('/practice/Quillon')
     await page.getByRole('checkbox', { name: 'xe/xem' }).check()
