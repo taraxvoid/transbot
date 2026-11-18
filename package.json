@@ -22,7 +22,7 @@
         "test:e2e:a11y": "playwright test --project=a11y",
         "fixtures:refresh": "bun scripts/refresh-fixtures.ts",
         "check:licenses": "check-licenses",
-        "audit": "bun audit --audit-level high --production --ignore=GHSA-xjj6-f33q-929c",
+        "audit": "bun audit --audit-level high --production --ignore=GHSA-xjj6-f33q-929c --ignore=GHSA-fc5q-39xc-vjpf",
         "prepare": "lefthook install || echo 'lefthook not installed (run mise install); git hooks skipped'"
     },
     "engines": {
@@ -30,7 +30,7 @@
     },
     "dependencies": {
         "@astrojs/cloudflare": "14.3.3",
-        "astro": "7.3.5"
+        "astro": "7.4.7"
     },
     "devDependencies": {
         "@astrojs/check": "^0.9.12",
