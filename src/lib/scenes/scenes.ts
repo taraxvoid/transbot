@@ -15,87 +15,119 @@ export type Scene = { id: string; group: string; lines: Line[] }
 export const SCENES: readonly Scene[] = [
     {
         id: 'lunch',
-        group: 'Saturday lunch crew',
+        group: 'sandwich remuneration',
         lines: [
-            { from: 'a', text: 'Is {name} still coming Saturday?' },
             {
-                from: 'b',
-                text: 'Yes! {pronoun_subject} said {pronoun_subject} {is|are} free after 1',
+                from: 'a',
+                text: "I accidentally ate {possessive_determiner} sandwich, I didn't see it said {name}",
             },
             {
                 from: 'a',
-                text: 'Which place {does|do} {pronoun_subject} like?',
+                text: 'I hope {pronoun_subject} {is|are} not too peeved',
             },
             {
                 from: 'b',
-                text: 'The ramen spot. {pronoun_subject} loved {possessive_determiner} bowl last time',
+                text: 'bro you gotta make it right, that sandwich was {possessive_pronoun}',
+            },
+            {
+                from: 'a',
+                text: "I'll get {pronoun_object} a banh mi and Vietnamese iced coffee and hope it makes up to {pronoun_object}",
             },
             {
                 from: 'me',
-                text: "Sure, let's confirm the time with {pronoun_object}",
+                text: 'Buy {pronoun_subject} two just in case (so I can snag one)',
             },
-            { from: 'a', text: "Perfect, I'll text {pronoun_object} now" },
+            {
+                from: 'b',
+                text: '{pronoun_subject} {has|have} got you eating out of {possessive_determiner} hand :D',
+            },
         ],
     },
     {
         id: 'gift',
-        group: 'Birthday gift ideas',
+        group: 'belated bday for {name}',
         lines: [
-            { from: 'a', text: 'Birthday ideas for {name}?' },
-            { from: 'b', text: 'A scarf? I saw a green one at the market' },
             {
                 from: 'a',
-                text: 'Wait, is the green scarf in the group photo {possessive_pronoun}?',
-            },
-            {
-                from: 'me',
-                text: 'No, {possessive_pronoun} is the red one. Green would be new',
+                text: 'dangit I forgot the bday of {name} was last week - what does {pronoun_subject} want?',
             },
             {
                 from: 'b',
-                text: 'Great. {pronoun_subject} would never buy it for {reflexive}',
+                text: 'A haunted doll? I saw one on ebay the other day (it certainly saw me)',
+            },
+            {
+                from: 'a',
+                text: 'Nah I want to get {pronoun_object} something a bit less.... freaky. Or more freaky?',
             },
             {
                 from: 'me',
-                text: "I'll chip in. Let's give it to {pronoun_object} at lunch",
+                text: 'How about something {pronoun_subject} would never buy for {reflexive}?',
+            },
+            {
+                from: 'b',
+                text: 'Good idea, Stompy goth boots and fishnets it is.',
+            },
+            {
+                from: 'a',
+                text: "I'll ask {possessive_determiner} size",
             },
         ],
     },
     {
         id: 'late',
-        group: 'Show tonight, doors at 7',
+        group: 'Grrlx Rox Show @ The Quadrangle',
         lines: [
-            { from: 'a', text: 'Doors open at 7. Where is {name}?' },
+            {
+                from: 'a',
+                text: 'opening band just went on, Where is {name}???',
+            },
+            {
+                from: 'b',
+                text: "{pronoun_subject} DM'd me the BART is 10m late",
+            },
             {
                 from: 'me',
-                text: '{pronoun_subject} texted. {possessive_determiner} train is late',
+                text: "Let's pickup {possessive_determiner} ticket and meet {pronoun_subject} at merch",
             },
-            { from: 'b', text: 'Should we wait for {pronoun_object} outside?' },
             {
                 from: 'me',
-                text: "Yes, let's hold {possessive_determiner} ticket until {pronoun_subject} {gets|get} here",
+                text: 'The spot by the stage is {possessive_pronoun} to claim',
             },
-            { from: 'a', text: "Deal. I'll grab {pronoun_object} a drink" },
+            {
+                from: 'b',
+                text: "I'll get a spot near the stage like {pronoun_subject} {likes|like}!!",
+            },
+            {
+                from: 'a',
+                text: 'and nab {pronoun_object} a tour t-shirt before the merch sells out, {pronoun_subject} will treat {reflexive} to a poster too',
+            },
         ],
     },
     {
         id: 'moving',
-        group: 'Sunday moving crew',
+        group: 'Pizza and Chill',
         lines: [
-            { from: 'a', text: 'Who is helping {name} move on Sunday?' },
+            {
+                from: 'a',
+                text: 'Did you hear {name} needs help moving Sunday?',
+            },
             {
                 from: 'b',
-                text: 'Me! {pronoun_subject} {has|have} so many boxes',
+                text: "TIL, let's pwn those boxes",
             },
             {
                 from: 'me',
-                text: "Count me in. Let's not make {pronoun_object} carry the couch by {reflexive}",
+                text: "I won't make {pronoun_object} carry the ceiling mirror by {reflexive}",
             },
             {
                 from: 'a',
-                text: 'Ha. {pronoun_subject} tried to lift it {reflexive} last time',
+                text: "I'll bring the detestable Hawaiian pizza, the last slice is {possessive_pronoun}",
             },
-            { from: 'b', text: 'See you all at 10' },
+            { from: 'b', text: 'sg, cya then' },
+            {
+                from: 'a',
+                text: "I've been training for this my whole life [flexes rippling biceps]",
+            },
         ],
     },
 ]

@@ -36,14 +36,14 @@ test('a scene plays by tapping Send', async ({ page }) => {
     await page.goto('/practice/Quillon?p=xe')
     const panel = chat(page)
     await expect(
-        panel.getByRole('heading', { name: 'Saturday lunch crew' }),
+        panel.getByRole('heading', { name: 'sandwich remuneration' }),
     ).toBeVisible()
     await expect(
-        panel.getByText('Is Quillon still coming Saturday?'),
+        panel.getByText(
+            "I accidentally ate xyr sandwich, I didn't see it said Quillon",
+        ),
     ).toBeVisible()
-    await expect(
-        panel.getByText('Yes! Xe said xe is free after 1'),
-    ).toBeVisible()
+    await expect(panel.getByText('I hope xe is not too peeved')).toBeVisible()
     const compose = page.locator('#compose-text')
     await expect(compose).toHaveText("Sure, let's confirm the time with xem")
     await sendButton(page).click()
@@ -74,7 +74,7 @@ test('Next chat runs through to the end and Start over restarts', async ({
     await expect(again).toBeFocused()
     await again.click()
     await expect(
-        chat(page).getByRole('heading', { name: 'Saturday lunch crew' }),
+        chat(page).getByRole('heading', { name: 'sandwich remuneration' }),
     ).toBeVisible()
     await expect(sendButton(page)).toBeFocused()
 })
@@ -108,20 +108,24 @@ test('/profile/testcard renders the chat about Sam with xe', async ({
 }) => {
     await page.goto('/profile/testcard')
     await expect(
-        chat(page).getByText('Is Sam still coming Saturday?'),
+        chat(page).getByText(
+            "I accidentally ate xyr sandwich, I didn't see it said Sam",
+        ),
     ).toBeVisible()
     await expect(
-        chat(page).getByText('Yes! Xe said xe is free after 1'),
+        chat(page).getByText('I hope xe is not too peeved'),
     ).toBeVisible()
 })
 
 test('a name-only link chats with the name', async ({ page }) => {
     await page.goto('/practice/Tara?p=null')
     await expect(
-        chat(page).getByText('Is Tara still coming Saturday?'),
+        chat(page).getByText(
+            "I accidentally ate Tara's sandwich, I didn't see it said Tara",
+        ),
     ).toBeVisible()
     await expect(
-        chat(page).getByText('Yes! Tara said Tara is free after 1'),
+        chat(page).getByText('I hope Tara is not too peeved'),
     ).toBeVisible()
 })
 

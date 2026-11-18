@@ -174,17 +174,17 @@ describe('renderScene', () => {
             'Alex',
             'Priya',
         ])
-        expect(scene.group).toBe('Saturday lunch crew')
+        expect(scene.group).toBe('sandwich remuneration')
         expect(scene.lines.slice(0, 2)).toEqual([
             {
                 from: 'a',
                 sender: 'Alex',
-                text: 'Is Tara still coming Saturday?',
+                text: "I accidentally ate xyr sandwich, I didn't see it said Tara",
             },
             {
-                from: 'b',
-                sender: 'Priya',
-                text: 'Yes! Xe said xe is free after 1',
+                from: 'a',
+                sender: 'Alex',
+                text: 'I hope xe is not too peeved',
             },
         ])
         expect(scene.lines.find((l) => l.from === 'me')?.sender).toBe('You')
