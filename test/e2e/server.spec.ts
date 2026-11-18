@@ -30,7 +30,11 @@ test('/profile/testcard renders the chat', async ({ page }) => {
     await page.goto('/profile/testcard')
     const chat = page.getByRole('region', { name: 'Group chat' })
     await expect(chat).toBeVisible()
-    await expect(chat.getByText('Is Sam still coming Saturday?')).toBeVisible()
+    await expect(
+        chat.getByText(
+            "I accidentally ate xyr sandwich, I didn't see it said Sam",
+        ),
+    ).toBeVisible()
 })
 
 test('/api/card returns the filtered identity', async ({ request }) => {
