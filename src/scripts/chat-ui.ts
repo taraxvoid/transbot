@@ -14,6 +14,9 @@ import { el } from './dom'
 
 export type ChatOptions = { reduceMotion: boolean; rng?: () => number }
 
+/** Fixed typing pause (ms) when the visitor prefers reduced motion. */
+const REDUCED_MOTION_DELAY = 700
+
 const SVG = 'http://www.w3.org/2000/svg'
 
 function sendIcon(): SVGSVGElement {
@@ -132,18 +135,18 @@ export function mountChat(
     }
 
     async function friendStep(step: Extract<Step, { kind: 'friend' }>) {
-        if (!reduceMotion) {
-            const typing = el(
-                'div',
-                { class: 'typing', 'aria-hidden': 'true' },
-                el('span', { class: 'dot' }),
-                el('span', { class: 'dot' }),
-                el('span', { class: 'dot' }),
-            )
-            show(typing)
-            await wait(step.delay)
-            typing.remove()
-        }
+        // Reduced motion keeps the pause (so messages still arrive one at a
+        // time) but shows a static ellipsis and a shorter, fixed wait.
+        const typing = el(
+            'div',
+            { class: 'typing', 'aria-hidden': 'true' },
+            el('span', { class: 'dot' }),
+            el('span', { class: 'dot' }),
+            el('span', { class: 'dot' }),
+        )
+        show(typing)
+        await wait(reduceMotion ? REDUCED_MOTION_DELAY : step.delay)
+        typing.remove()
         friendBubble(step.line, step.firstInRun)
     }
 

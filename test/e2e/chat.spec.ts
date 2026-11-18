@@ -180,6 +180,15 @@ test('the forms box lists what else is fine', async ({ page }) => {
     }
 })
 
+test('reduced motion still pauses on a static ellipsis before each bubble', async ({
+    page,
+}) => {
+    await page.goto('/practice/Quillon?p=xe')
+    await expect(chat(page).locator('.typing')).toBeVisible()
+    await expect(chat(page).locator('.thread .them')).toHaveCount(0)
+    await expect(chat(page).locator('.thread .them').first()).toBeVisible()
+})
+
 test.describe('with motion', () => {
     test.use({ reducedMotion: 'no-preference' })
 
