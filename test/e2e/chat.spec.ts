@@ -186,6 +186,10 @@ test('reduced motion still pauses on a static ellipsis before each bubble', asyn
 }) => {
     await page.goto('/practice/Quillon?p=xe')
     await expect(chat(page).locator('.typing')).toBeVisible()
+    await expect(chat(page).locator('.typing .dot').first()).toHaveCSS(
+        'animation-name',
+        'none',
+    )
     await expect(chat(page).locator('.thread .them')).toHaveCount(0)
     await expect(chat(page).locator('.thread .them').first()).toBeVisible()
 })
