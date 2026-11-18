@@ -18,7 +18,8 @@ function sendButton(page: Page): Locator {
 /** Presses Send on every turn until the scene's end button shows up. */
 async function playScene(page: Page): Promise<void> {
     const done = page.getByRole('button', { name: /^(Next chat|Start over)$/ })
-    for (let round = 0; round < 20; round++) {
+    const deadline = Date.now() + 15_000
+    while (Date.now() < deadline) {
         if (await done.isVisible()) return
         if (
             (await sendButton(page).getAttribute('aria-disabled')) === 'false'
@@ -178,6 +179,19 @@ test('the forms box lists what else is fine', async ({ page }) => {
     for (const text of ['Sammy', 'she/her', 'they/them']) {
         await expect(also).toContainText(text)
     }
+})
+
+test('reduced motion still pauses on a static ellipsis before each bubble', async ({
+    page,
+}) => {
+    await page.goto('/practice/Quillon?p=xe')
+    await expect(chat(page).locator('.typing')).toBeVisible()
+    await expect(chat(page).locator('.typing .dot').first()).toHaveCSS(
+        'animation-name',
+        'none',
+    )
+    await expect(chat(page).locator('.thread .them')).toHaveCount(0)
+    await expect(chat(page).locator('.thread .them').first()).toBeVisible()
 })
 
 test.describe('with motion', () => {
