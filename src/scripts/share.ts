@@ -121,6 +121,8 @@ export function endShare(url: string): HTMLElement {
             {},
             'Send this practice to someone else who should get it right.',
         ),
+        // Shown so the link can be selected by hand when Copy fails.
+        el('p', { class: 'share-url' }, el('a', { href: url }, url)),
         shareActions(
             url,
             VISITOR_SHARE_TEXT,

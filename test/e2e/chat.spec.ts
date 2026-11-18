@@ -102,6 +102,11 @@ test('the last chat offers to share this link or make your own', async ({
     await expect(
         box.getByRole('link', { name: 'Make your own' }),
     ).toHaveAttribute('href', '/')
+    // The link itself, selectable for when Copy fails.
+    await expect(box.getByRole('link', { name: page.url() })).toHaveAttribute(
+        'href',
+        page.url(),
+    )
     const canShare = await page.evaluate(
         () => typeof navigator.share === 'function',
     )
