@@ -14,6 +14,27 @@
     "observability": {
         "enabled": false
     },
+    // PR previews live under a separate Worker, "transbot-preview", so the token
+    // CI uses for them has no rights on prod (see ci.yml, voidflow#405). No routes.
+    // Create it once with your own login: `wrangler deploy --env preview`.
+    "env": {
+        "preview": {
+            "vars": {
+                "PRONOUNS_API_BASE": "https://en.pronouns.page/api/public/v3"
+            },
+            "observability": {
+                "enabled": false
+            },
+            "previews": {
+                "vars": {
+                    "PRONOUNS_API_BASE": "https://en.pronouns.page/api/public/v3"
+                },
+                "observability": {
+                    "enabled": false
+                }
+            }
+        }
+    },
     "routes": [
         {
             "pattern": "transbot.net",
