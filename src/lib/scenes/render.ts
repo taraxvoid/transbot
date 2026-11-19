@@ -21,20 +21,25 @@ export function chatPerson(identity: Identity): Person | null {
     const preferred = identity.names.preferred
     const set = modeledSet(identity)
     if (set) {
-        const person = personFor(set, preferred)
+        // A :Kai set with no preferred name still has a name to use, in
+        // every scene, whichever set the scene is about.
+        const name =
+            preferred ??
+            identity.sets.find((s) => s.kind === 'name' && s.opinion === 'yes')
+                ?.label ??
+            null
+        const person = personFor(set, name)
         // Every other yes set is a secondary one, in card order.
         const secondary = identity.sets
             .filter((s) => s !== set && s.opinion === 'yes')
-            .map((s) => personFor(s, preferred))
+            .map((s) => personFor(s, name))
         return secondary.length ? { ...person, secondary } : person
     }
     if (!preferred) return null
     return { name: preferred, forms: nameForms(preferred), plural: false }
 }
 
-function personFor(set: PronounSet, preferred: string | null): Person {
-    // A :Kai set with no preferred name still has a name to use.
-    const name = preferred ?? (set.kind === 'name' ? set.label : null)
+function personFor(set: PronounSet, name: string | null): Person {
     return { name, forms: set.forms, plural: set.plural }
 }
 
