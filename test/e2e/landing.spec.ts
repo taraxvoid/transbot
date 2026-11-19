@@ -196,6 +196,10 @@ test('a practice link opened fresh offers to share it, not "link is ready"', asy
             bar.getByRole('link', { name: `Share on ${app}` }),
         ).toBeVisible()
     }
+    // A visitor may not be the person named.
+    await expect(
+        bar.getByRole('link', { name: 'Share on Email' }),
+    ).toHaveAttribute('href', /subject=Practice%20a%20name/)
     // Every target carries the URL the visitor is on, unchanged.
     const hrefs = await bar
         .locator('a.share-target')

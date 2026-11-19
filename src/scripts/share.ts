@@ -70,6 +70,13 @@ const BLUESKY =
 const MAIL = 'M3 5h18v14H3zM3 6l9 7 9-7'
 const MESSAGE = 'M4 4h16v12H8l-4 4z'
 
+/** "my" only when the person named is the one sharing. */
+function emailSubject(text: string): string {
+    return text === SHARE_TEXT
+        ? 'Practice my name and pronouns'
+        : 'Practice a name and pronouns'
+}
+
 interface ShareTarget {
     name: string
     path: string
@@ -102,7 +109,7 @@ export const SHARE_TARGETS: ShareTarget[] = [
         path: MAIL,
         stroke: true,
         href: (url, text) =>
-            `mailto:?subject=${encodeURIComponent('Practice my name and pronouns')}&body=${encodeURIComponent(`${text} ${url}`)}`,
+            `mailto:?subject=${encodeURIComponent(emailSubject(text))}&body=${encodeURIComponent(`${text} ${url}`)}`,
     },
     {
         name: 'Text message',

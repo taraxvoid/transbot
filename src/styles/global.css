@@ -193,10 +193,12 @@ form button[type="submit"] {
 
 .share-targets {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
 }
 
 .share-target {
+    flex-shrink: 0;
     width: 44px;
     height: 44px;
     display: inline-flex;
