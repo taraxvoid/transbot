@@ -77,6 +77,18 @@ describe('entriesFromQuery', () => {
         })
     })
 
+    it('reads pronouns= like p=', () => {
+        expect(entriesFromQuery('?n=Sam&pronouns=xe&she')).toEqual(
+            entriesFromQuery('?n=Sam&p=xe&she'),
+        )
+    })
+
+    it('keeps a hand-typed & in a name out of pronouns', () => {
+        expect(entriesFromQuery('?n=Sam&Jo&pronouns=xe')?.names).toEqual([
+            { value: 'Sam&Jo', opinion: 'yes' },
+        ])
+    })
+
     it('repairs a hand-typed & inside p', () => {
         expect(entriesFromQuery('?n=Sam&p=xe&she')?.pronouns).toEqual([
             { value: 'xe', opinion: 'yes' },

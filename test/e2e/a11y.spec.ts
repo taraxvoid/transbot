@@ -40,9 +40,12 @@ test('/practice has no axe violations with the link-ready box', async ({
     page,
 }) => {
     await page.addInitScript(() => {
-        sessionStorage.setItem('transbot:just-made', '/practice/Sam?p=xe')
+        sessionStorage.setItem(
+            'transbot:just-made',
+            '/practice/Sam?pronouns=xe',
+        )
     })
-    await page.goto('/practice/Sam?p=xe')
+    await page.goto('/practice/Sam?pronouns=xe')
     await expect(
         page.getByRole('heading', { name: 'Your link is ready' }),
     ).toBeVisible()
@@ -51,7 +54,7 @@ test('/practice has no axe violations with the link-ready box', async ({
 
 test('/practice has no axe violations mid-chat', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const send = page
         .getByRole('region', { name: 'Group chat' })
         .getByRole('button', { name: 'Send' })
@@ -66,7 +69,7 @@ test('/practice has no axe violations at the end of the chat', async ({
     page,
 }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const send = page
         .getByRole('region', { name: 'Group chat' })
         .getByRole('button', { name: 'Send' })
