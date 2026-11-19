@@ -37,7 +37,7 @@ export function renderScene(
     const senders = { a: friends[0], b: friends[1], me: 'You' }
     return {
         id: scene.id,
-        group: scene.group,
+        group: fill(scene.group, person),
         lines: scene.lines.map((line) => ({
             from: line.from,
             sender: senders[line.from],
