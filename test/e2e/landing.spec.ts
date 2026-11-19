@@ -292,6 +292,14 @@ test('the builder understands typed shorthand and pick order', async ({
     await expect(page).toHaveURL(/\/practice\/Sam\?pronouns=it\+she\+he\+they$/)
 })
 
+test('the builder offers void pronouns as a checkbox', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
+    await page.getByRole('checkbox', { name: "void/void's" }).check()
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
+    await expect(page).toHaveURL(/\/practice\/Sam\?pronouns=:void$/)
+})
+
 test('the builder only links pronouns pronouns.page has', async ({ page }) => {
     const requests: string[] = []
     await mockPronounsPage(page, requests)
