@@ -106,6 +106,26 @@ test('/@testcard redirects to /profile/testcard', async ({ request }) => {
     expect(response.headers().location).toBe('/profile/testcard')
 })
 
+test('/@Sam?p=she opens a practice link', async ({ request }) => {
+    const response = await request.get('/@Sam?p=she', { maxRedirects: 0 })
+    expect(response.status()).toBe(302)
+    expect(response.headers().location).toBe('/practice/Sam?p=she')
+})
+
+test('/@Sam keeps repeated and combined p params', async ({ request }) => {
+    const response = await request.get('/@Sam?p=she+they', { maxRedirects: 0 })
+    expect(response.headers().location).toBe('/practice/Sam?p=she+they')
+})
+
+test('alias lookup is case-insensitive and unknown names 404', async ({
+    request,
+}) => {
+    const hit = await request.get('/TARA', { maxRedirects: 0 })
+    expect(hit.status()).toBe(302)
+    expect(hit.headers().location).toBe('/profile/taravie')
+    expect((await request.get('/nobody-here')).status()).toBe(404)
+})
+
 test('/profile asks for a username, then opens the card', async ({ page }) => {
     await page.goto('/profile')
     await page.getByLabel('pronouns.page username').fill('@testcard')
