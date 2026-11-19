@@ -148,9 +148,18 @@ test('rapid Send clicks never skip or repeat lines', async ({ page }) => {
     expect(new Set(texts).size).toBe(texts.length)
 })
 
+/** Pins the roll that picks which of the person's sets a chat is about. */
+async function pinRoll(page: Page, roll: number): Promise<void> {
+    await page.addInitScript((value) => {
+        Math.random = () => value
+    }, roll)
+}
+
 test('/profile/testcard renders the chat about Sam with xe', async ({
     page,
 }) => {
+    // A high roll is the primary set; xe/xem is the card's first set.
+    await pinRoll(page, 0.99)
     await page.goto('/profile/testcard')
     await expect(
         chat(page).getByText(
@@ -159,6 +168,22 @@ test('/profile/testcard renders the chat about Sam with xe', async ({
     ).toBeVisible()
     await expect(
         chat(page).getByText('I hope xe is not too peeved'),
+    ).toBeVisible()
+})
+
+test('/profile/testcard can chat about Sam with her secondary set', async ({
+    page,
+}) => {
+    // A low roll lands on the first secondary set, she/her.
+    await pinRoll(page, 0)
+    await page.goto('/profile/testcard')
+    await expect(
+        chat(page).getByText(
+            "I accidentally ate her sandwich, I didn't see it said Sam",
+        ),
+    ).toBeVisible()
+    await expect(
+        chat(page).getByText('I hope she is not too peeved'),
     ).toBeVisible()
 })
 
