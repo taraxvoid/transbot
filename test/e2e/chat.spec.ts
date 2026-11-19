@@ -83,6 +83,47 @@ test('Next chat runs through to the end and Start over restarts', async ({
     await expect(sendButton(page)).toBeFocused()
 })
 
+test('the last chat offers to share this link or make your own', async ({
+    page,
+    context,
+    browserName,
+}) => {
+    await page.goto('/practice/Quillon?p=xe')
+    const box = page.getByRole('region', { name: 'Pass it on' })
+    for (let scene = 0; scene < 3; scene++) {
+        await playScene(page)
+        await expect(box).toHaveCount(0)
+        await page.getByRole('button', { name: 'Next chat' }).click()
+    }
+    await playScene(page)
+    await expect(box).toBeVisible()
+    // Start over keeps focus, so the box doesn't steal it.
+    await expect(page.getByRole('button', { name: 'Start over' })).toBeFocused()
+    await expect(
+        box.getByRole('link', { name: 'Make your own' }),
+    ).toHaveAttribute('href', '/')
+    // The link itself, selectable for when Copy fails.
+    await expect(box.getByRole('link', { name: page.url() })).toHaveAttribute(
+        'href',
+        page.url(),
+    )
+    const canShare = await page.evaluate(
+        () => typeof navigator.share === 'function',
+    )
+    await expect(box.getByRole('button', { name: 'Share' })).toHaveCount(
+        canShare ? 1 : 0,
+    )
+    if (browserName === 'chromium') {
+        await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+        await box.getByRole('button', { name: 'Copy link' }).click()
+        await expect(box.getByRole('button', { name: 'Copied' })).toBeVisible()
+        // The URL the visitor is on, unchanged.
+        expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+            page.url(),
+        )
+    }
+})
+
 test('the keyboard alone can play a scene', async ({ page }) => {
     await page.goto('/practice/Quillon?p=xe')
     await expect(sendButton(page)).toHaveAttribute('aria-disabled', 'false')

@@ -12,7 +12,12 @@ import {
 import type { Person } from '../lib/scenes/template'
 import { el } from './dom'
 
-export type ChatOptions = { reduceMotion: boolean; rng?: () => number }
+export type ChatOptions = {
+    reduceMotion: boolean
+    rng?: () => number
+    /** Shown under Start over once the last chat ends. */
+    endExtra?: () => Node
+}
 
 /** Fixed typing pause (ms) when the visitor prefers reduced motion. */
 const REDUCED_MOTION_DELAY = 700
@@ -56,7 +61,7 @@ export function mountChat(
     person: Person,
     options: ChatOptions,
 ): void {
-    const { reduceMotion, rng = Math.random } = options
+    const { reduceMotion, rng = Math.random, endExtra } = options
     const behavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth'
 
     const group = el('h2', { class: 'chat-group' })
@@ -202,6 +207,7 @@ export function mountChat(
             el('p', { class: 'chat-end' }, endMessage(person.name)),
             again,
         )
+        if (endExtra) after.append(endExtra())
         again.focus()
     }
 

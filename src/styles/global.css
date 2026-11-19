@@ -166,6 +166,17 @@ form button[type="submit"] {
     margin-top: 0;
 }
 
+.end-share {
+    flex-basis: 100%;
+    margin-bottom: 0;
+}
+
+.make-own {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+}
+
 .share-url a {
     word-break: break-all;
 }

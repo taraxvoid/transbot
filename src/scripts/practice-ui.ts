@@ -4,7 +4,7 @@ import { chatPerson } from '../lib/scenes/render'
 import type { Person } from '../lib/scenes/template'
 import { mountChat } from './chat-ui'
 import { el } from './dom'
-import { shareBanner, wasJustMade } from './share'
+import { endShare, shareBanner, wasJustMade } from './share'
 
 export function mountPractice(
     root: HTMLElement,
@@ -28,6 +28,8 @@ export function mountPractice(
             reduceMotion: window.matchMedia('(prefers-reduced-motion: reduce)')
                 .matches,
             rng,
+            // The URL the visitor is already on, as is.
+            endExtra: () => endShare(window.location.href),
         })
     }
 }
