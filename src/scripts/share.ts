@@ -89,7 +89,7 @@ export const SHARE_TARGETS: ShareTarget[] = [
         name: 'Telegram',
         path: TELEGRAM,
         href: (url, text) =>
-            `https://t.me/share/url?${new URLSearchParams({ url, text })}`,
+            `https://t.me/share/url?${new URLSearchParams({ url, text }).toString()}`,
     },
     {
         name: 'Bluesky',
