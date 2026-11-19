@@ -183,7 +183,7 @@ test('a practice link opened fresh offers to share it, not "link is ready"', asy
     await expect(
         page.getByRole('heading', { name: 'Your link is ready' }),
     ).toHaveCount(0)
-    const bar = page.getByRole('region', { name: 'Share this practice' })
+    const bar = page.getByRole('region', { name: 'Share this page' })
     await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
     for (const app of [
         'WhatsApp',
@@ -227,7 +227,7 @@ test('when Copy fails the link shows up selected to copy by hand', async ({
         })
     })
     await page.goto('/practice/Sam?pronouns=xe')
-    const bar = page.getByRole('region', { name: 'Share this practice' })
+    const bar = page.getByRole('region', { name: 'Share this page' })
     await bar.getByRole('button', { name: 'Copy link' }).click()
     await expect(bar.getByRole('button', { name: 'Copy failed' })).toBeVisible()
     const field = bar.getByRole('textbox', { name: 'Link to copy' })

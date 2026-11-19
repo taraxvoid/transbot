@@ -227,7 +227,7 @@ export function shareActions(
  * the link gets "Your link is ready"; anyone else can pass it on as is.
  */
 export function shareBar(url: string, justMade: boolean): HTMLElement {
-    const title = justMade ? 'Your link is ready' : 'Share this practice'
+    const title = justMade ? 'Your link is ready' : 'Share this page'
     return el(
         'section',
         {
@@ -248,11 +248,6 @@ export function endShare(url: string): HTMLElement {
         'section',
         { class: 'share end-share', 'aria-labelledby': 'end-share-heading' },
         el('h2', { id: 'end-share-heading' }, 'Pass it on'),
-        el(
-            'p',
-            {},
-            'Send this practice to someone else who should get it right.',
-        ),
         shareActions(
             url,
             VISITOR_SHARE_TEXT,
