@@ -12,6 +12,13 @@ permissions:
   contents: read
   pull-requests: read
 
+# A close event cancels any older run of the same PR, so a run still validating
+# can't recreate the preview after the close run deleted it. Pushes to main
+# queue, never cancel.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
     uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@06bcd5b8ff1cb4d42da4558e734f62d1ac41d152 # v1.0.0-next.8
@@ -19,18 +26,18 @@ jobs:
   preview:
     name: Preview
     needs: validate
-    # Same-repo PRs only: fork PRs get no secrets.
+    # Same-repo PRs only: fork PRs get no secrets. validate is skipped on
+    # `closed`, so cleanup must not wait for it to succeed.
     if: >-
-      github.event_name == 'pull_request'
+      !cancelled()
+      && github.event_name == 'pull_request'
       && github.event.pull_request.head.repo.full_name == github.repository
+      && (github.event.action == 'closed' || needs.validate.result == 'success')
     runs-on: ubuntu-latest
     environment: preview
     permissions:
       contents: read
       pull-requests: write
-    concurrency:
-      group: ${{ github.workflow }}-preview-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: github.event.action != 'closed'
