@@ -190,6 +190,15 @@ describe('renderScene', () => {
         expect(scene.lines.find((l) => l.from === 'me')?.sender).toBe('You')
     })
 
+    it('fills templates in the group title', () => {
+        const scene = renderScene(
+            { ...SCENES[0], group: 'belated bday for {name}' },
+            person('n=Tara&p=xe'),
+            ['Alex', 'Priya'],
+        )
+        expect(scene.group).toBe('belated bday for Tara')
+    })
+
     it('renders every scene for every kind of set without leftover slots', () => {
         for (const query of [
             'n=Tara&p=xe',
@@ -199,6 +208,7 @@ describe('renderScene', () => {
             'p=she',
         ]) {
             for (const scene of renderSession(person(query), seeded(7))) {
+                expect(scene.group).not.toMatch(/[{}]/)
                 for (const line of scene.lines) {
                     expect(line.text).not.toMatch(/[{}]/)
                 }
