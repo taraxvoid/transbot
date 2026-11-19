@@ -35,7 +35,7 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'me',
-                text: 'Buy {pronoun_subject} two just in case (so I can snag one)',
+                text: 'Buy {pronoun_object} two just in case (so I can snag one)',
             },
             {
                 from: 'b',
