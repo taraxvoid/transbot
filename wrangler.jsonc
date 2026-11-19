@@ -14,6 +14,16 @@
     "observability": {
         "enabled": false
     },
+    // Worker Previews (one per PR, see ci.yml). Previews don't inherit production
+    // settings and never take the custom-domain route below.
+    "previews": {
+        "vars": {
+            "PRONOUNS_API_BASE": "https://en.pronouns.page/api/public/v3"
+        },
+        "observability": {
+            "enabled": false
+        }
+    },
     "routes": [
         {
             "pattern": "transbot.net",
