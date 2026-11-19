@@ -39,10 +39,19 @@ function pronounLabel(modeled: PronounSet | null): string | null {
     return modeled && modeled.kind !== 'name' ? modeled.label : null
 }
 
-/** "Sam uses xe/xem": who the page is about and what to call them. */
+/** Every yes pronoun set, primary first. Name sets don't count. */
+function usedLabels(identity: Identity): string[] {
+    const modeled = modeledSet(identity)
+    if (!modeled) return []
+    return identity.sets
+        .filter((s) => s.opinion === 'yes' && s.kind !== 'name')
+        .map((s) => s.label)
+}
+
+/** "Sam uses xe/xem and she/her": who the page is about and what to call them. */
 function heading(identity: Identity, person: Person | null): string {
     const name = person?.name ?? identity.names.preferred
-    const pronouns = person ? pronounLabel(modeledSet(identity)) : null
+    const pronouns = person ? usedLabels(identity).join(' and ') : ''
     if (!name) return pronouns ? `Practice ${pronouns}` : 'Practice'
     if (!person) return name
     return pronouns ? `${name} uses ${pronouns}` : `${name} uses no pronouns`

@@ -6,6 +6,8 @@ export type Person = {
     name: string | null
     forms: Forms
     plural: boolean
+    /** Other yes sets, each used in some scenes instead of the primary. */
+    secondary?: Person[]
 }
 
 export const NO_NAME = 'our friend'
