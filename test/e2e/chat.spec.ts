@@ -46,13 +46,13 @@ test('a scene plays by tapping Send', async ({ page }) => {
     await expect(panel.getByText('I hope xe is not too peeved')).toBeVisible()
     const compose = page.locator('#compose-text')
     await expect(compose).toHaveText(
-        'Buy xe two just in case (so I can snag one)',
+        'Buy xem two just in case (so I can snag one)',
     )
     await sendButton(page).click()
     const mine = panel.locator('.thread .me')
     await expect(mine).toHaveCount(1)
     await expect(mine).toContainText(
-        'Buy xe two just in case (so I can snag one)',
+        'Buy xem two just in case (so I can snag one)',
     )
     await expect(mine.getByText('Delivered')).toBeVisible()
     await expect(compose).toHaveText('')
