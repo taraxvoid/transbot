@@ -24,6 +24,7 @@ jobs:
       github.event_name == 'pull_request'
       && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    environment: preview
     permissions:
       contents: read
       pull-requests: write
@@ -43,12 +44,15 @@ jobs:
 
       - name: Build
         if: github.event.action != 'closed'
+        env:
+          CLOUDFLARE_ENV: preview
         run: bun run build
 
-      - uses: taraxvoid/voidflow/actions/cloudflare-preview@06bcd5b8ff1cb4d42da4558e734f62d1ac41d152 # v1.0.0-next.8
+      - uses: taraxvoid/voidflow/actions/cloudflare-preview@26a387dde1eeecc9e4fdab1313d6e513c2242b62 # voidflow#405, bump to the release that has the env input
         with:
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          env: preview # Previews under transbot-preview, not the prod Worker
           github-token: ${{ github.token }}
           delete: ${{ github.event.action == 'closed' }}
 
