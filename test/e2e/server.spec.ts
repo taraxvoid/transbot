@@ -123,7 +123,9 @@ test('alias lookup is case-insensitive and unknown names 404', async ({
     const hit = await request.get('/TARA', { maxRedirects: 0 })
     expect(hit.status()).toBe(302)
     expect(hit.headers().location).toBe('/profile/taravie')
-    expect((await request.get('/nobody-here')).status()).toBe(404)
+    const miss = await request.get('/nobody-here')
+    expect(miss.status()).toBe(404)
+    expect(await miss.text()).toContain('Page not found')
 })
 
 test('/profile asks for a username, then opens the card', async ({ page }) => {
