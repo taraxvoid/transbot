@@ -4,7 +4,7 @@ import { chatPerson } from '../lib/scenes/render'
 import type { Person } from '../lib/scenes/template'
 import { mountChat } from './chat-ui'
 import { el } from './dom'
-import { endShare, shareBanner, wasJustMade } from './share'
+import { endShare, shareBar, wasJustMade } from './share'
 
 export function mountPractice(
     root: HTMLElement,
@@ -13,15 +13,15 @@ export function mountPractice(
 ): void {
     const name = identity.names.preferred
     const person = chatPerson(identity)
-    const children: Node[] = [el('h1', {}, heading(identity, person))]
+    // Near the top for everyone, creator or visitor, with the URL as is.
+    const children: Node[] = [
+        el('h1', {}, heading(identity, person)),
+        shareBar(window.location.href, wasJustMade(window.location)),
+    ]
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
     if (person) children.push(formsBox(identity, person))
     const chat = person ? el('div', { class: 'chat-mount' }) : null
     if (chat && person) children.push(chatIntro(person), chat)
-    // Last, so the creator sees the practice first, as visitors will.
-    if (wasJustMade(window.location)) {
-        children.push(shareBanner(window.location.href))
-    }
     root.replaceChildren(...children)
     if (chat && person) {
         mountChat(chat, person, {

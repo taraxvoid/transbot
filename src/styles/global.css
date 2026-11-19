@@ -177,8 +177,50 @@ form button[type="submit"] {
     align-items: center;
 }
 
-.share-url a {
-    word-break: break-all;
+.share-bar {
+    padding: 0.75rem 1rem;
+    border-color: var(--border);
+}
+
+.share-bar.just-made {
+    border-color: var(--accent);
+}
+
+.share-bar h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.share-targets {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.share-target {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--fg);
+}
+
+.share-target:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.share-target svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.share-url {
+    width: 100%;
+    margin-top: 0.5rem;
 }
 
 fieldset {
