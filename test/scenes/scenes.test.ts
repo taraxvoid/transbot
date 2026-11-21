@@ -325,7 +325,11 @@ describe('scene data', () => {
 
     for (const line of SCENES.flatMap((s) => s.lines)) {
         it(`follows the writing rules: ${line.text}`, () => {
-            expect(line.text).not.toMatch(/\}['’](s|re|ll|d|ve|m)\b/)
+            // "{name}'s" is a safe possessive; any other slot + clitic
+            // ("they's", "xe'd") is not.
+            expect(line.text.replace(/\{name\}'s\b/g, '')).not.toMatch(
+                /\}['’](s|re|ll|d|ve|m)\b/,
+            )
             expect(line.text.replace(/\{[^{}]*\}/g, '')).not.toMatch(
                 THIRD_PERSON,
             )

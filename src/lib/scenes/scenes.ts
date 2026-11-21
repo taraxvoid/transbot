@@ -3,8 +3,9 @@ export type Scene = { id: string; group: string; lines: Line[] }
 
 /**
  * Writing rules (unit-tested where possible):
- * - No contraction right after a slot ("xe is", not "xe's"): "they's" and
- *   "Tara's" (for "Tara is") break.
+ * - No "is" contraction right after a slot ("xe is", not "xe's"): "they's"
+ *   and "Tara's" (for "Tara is") break. A possessive "{name}'s" is fine,
+ *   including the "our friend's" fallback.
  * - Verb pairs like {is|are} only agree with {pronoun_subject}. After {name}
  *   use a plain singular verb.
  * - No third-person pronouns outside slots, so the only ones on screen are
@@ -49,7 +50,7 @@ export const SCENES: readonly Scene[] = [
         lines: [
             {
                 from: 'a',
-                text: 'dangit I forgot the bday of {name} was last week - what does {pronoun_subject} want?',
+                text: "dangit I forgot {name}'s bday was last week - what does {pronoun_subject} want?",
             },
             {
                 from: 'b',
