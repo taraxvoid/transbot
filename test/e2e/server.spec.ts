@@ -90,7 +90,7 @@ test('a card name with HTML renders as text', async ({ page }) => {
     })
     await page.goto('/profile/htmlname')
     await expect(
-        page.getByRole('heading', { name: /<\/script><img/ }),
+        page.getByRole('heading', { level: 1, name: /<\/script><img/ }),
     ).toBeVisible()
     expect(await page.locator('main img').count()).toBe(0)
     expect(dialog).toBe(false)
