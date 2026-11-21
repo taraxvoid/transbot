@@ -189,10 +189,6 @@ form button[type="submit"] {
     border-color: var(--border);
 }
 
-.share-bar.just-made {
-    border-color: var(--accent);
-}
-
 .share-bar h2 {
     font-size: 1rem;
     margin-bottom: 0.5rem;

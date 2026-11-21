@@ -36,18 +36,10 @@ test('/ has no axe violations with errors shown', async ({ page }) => {
     await expectNoViolations(page)
 })
 
-test('/practice has no axe violations with the link-ready box', async ({
-    page,
-}) => {
-    await page.addInitScript(() => {
-        sessionStorage.setItem(
-            'transbot:just-made',
-            '/practice/Sam?pronouns=xe',
-        )
-    })
+test('/practice has no axe violations with the share box', async ({ page }) => {
     await page.goto('/practice/Sam?pronouns=xe')
     await expect(
-        page.getByRole('heading', { name: 'Your link is ready' }),
+        page.getByRole('heading', { name: 'Share this page' }),
     ).toBeVisible()
     await expectNoViolations(page)
 })

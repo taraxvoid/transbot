@@ -1,41 +1,6 @@
 import { el } from './dom'
 
-// Set by the landing page right before it redirects to a new link, so the
-// page it lands on can say "your link is ready". sessionStorage keeps it to
-// this tab: whoever the link is sent to never sees the banner.
-const JUST_MADE_KEY = 'transbot:just-made'
-
-function session(): Storage | null {
-    try {
-        return window.sessionStorage
-    } catch {
-        return null
-    }
-}
-
-/** `path` is pathname plus search, as location shows it after the redirect. */
-export function markJustMade(path: string): void {
-    try {
-        session()?.setItem(JUST_MADE_KEY, path)
-    } catch {
-        // Storage blocked: the page just skips the banner.
-    }
-}
-
-export function wasJustMade(location: Location): boolean {
-    try {
-        return (
-            session()?.getItem(JUST_MADE_KEY) ===
-            location.pathname + location.search
-        )
-    } catch {
-        return false
-    }
-}
-
-export const SHARE_TEXT = 'I made a quick way to practice my name and pronouns:'
-
-/** What a visitor's share sheet suggests: they may not be the person named. */
+/** What the share sheet suggests: the sharer may not be the person named. */
 export const VISITOR_SHARE_TEXT =
     'Here is a quick way to practice a name and pronouns:'
 
@@ -70,13 +35,6 @@ const BLUESKY =
 const MAIL = 'M3 5h18v14H3zM3 6l9 7 9-7'
 const MESSAGE = 'M4 4h16v12H8l-4 4z'
 
-/** "my" only when the person named is the one sharing. */
-function emailSubject(text: string): string {
-    return text === SHARE_TEXT
-        ? 'Practice my name and pronouns'
-        : 'Practice a name and pronouns'
-}
-
 interface ShareTarget {
     name: string
     path: string
@@ -109,7 +67,7 @@ export const SHARE_TARGETS: ShareTarget[] = [
         path: MAIL,
         stroke: true,
         href: (url, text) =>
-            `mailto:?subject=${encodeURIComponent(emailSubject(text))}&body=${encodeURIComponent(`${text} ${url}`)}`,
+            `mailto:?subject=${encodeURIComponent('Practice a name and pronouns')}&body=${encodeURIComponent(`${text} ${url}`)}`,
     },
     {
         name: 'Text message',
@@ -222,20 +180,16 @@ export function shareActions(
     return wrap
 }
 
-/**
- * Compact share row near the top of every practice page. Whoever just made
- * the link gets "Your link is ready"; anyone else can pass it on as is.
- */
-export function shareBar(url: string, justMade: boolean): HTMLElement {
-    const title = justMade ? 'Your link is ready' : 'Share this page'
+/** Compact share row near the top of every practice page. */
+export function shareBar(url: string): HTMLElement {
     return el(
         'section',
         {
-            class: justMade ? 'share share-bar just-made' : 'share share-bar',
+            class: 'share share-bar',
             'aria-labelledby': 'share-heading',
         },
-        el('h2', { id: 'share-heading' }, title),
-        shareActions(url, justMade ? SHARE_TEXT : VISITOR_SHARE_TEXT),
+        el('h2', { id: 'share-heading' }, 'Share this page'),
+        shareActions(url, VISITOR_SHARE_TEXT),
     )
 }
 
