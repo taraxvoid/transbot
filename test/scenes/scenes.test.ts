@@ -8,6 +8,7 @@ import { FORM_KEYS, type Identity } from '../../src/lib/pronouns/types'
 import { FRIEND_POOL, pickFriends } from '../../src/lib/scenes/friends'
 import {
     chatPerson,
+    pickPerson,
     renderScene,
     renderSession,
 } from '../../src/lib/scenes/render'
@@ -130,6 +131,74 @@ describe('chatPerson', () => {
     })
 })
 
+describe('secondary sets', () => {
+    const both = () => person('n=Tara&p=xe&p=she')
+
+    it('keeps other yes sets as secondary, but not meh ones', () => {
+        expect(both().forms.pronoun_subject).toBe('xe')
+        expect(both().secondary?.map((s) => s.forms.pronoun_subject)).toEqual([
+            'she',
+        ])
+        expect(person('n=Tara&p=xe').secondary).toBeUndefined()
+    })
+
+    it('gives each secondary a one in three chance', () => {
+        const p = both()
+        expect(pickPerson(p, () => 0).forms.pronoun_subject).toBe('she')
+        expect(pickPerson(p, () => 0.33).forms.pronoun_subject).toBe('she')
+        expect(pickPerson(p, () => 0.34).forms.pronoun_subject).toBe('xe')
+        expect(pickPerson(p, () => 0.99).forms.pronoun_subject).toBe('xe')
+    })
+
+    it('keeps the name from a :Name set in pronoun scenes', () => {
+        const p = person('p=:Kai&p=xe')
+        expect(p.name).toBe('Kai')
+        expect(p.secondary?.[0].name).toBe('Kai')
+        const q = person('p=xe&p=:Kai')
+        expect(q.name).toBe('Kai')
+        expect(q.forms.pronoun_subject).toBe('xe')
+    })
+
+    it('never makes the primary less likely than one secondary', () => {
+        const mk = (n: number): Person => ({
+            ...both(),
+            secondary: Array.from({ length: n }, (_, i) => ({
+                ...both(),
+                name: `s${i}`,
+            })),
+        })
+        for (const n of [1, 2, 3, 5]) {
+            const counts = new Map<string, number>()
+            const steps = 6000
+            for (let i = 0; i < steps; i++) {
+                const who = pickPerson(mk(n), () => (i + 0.5) / steps)
+                counts.set(
+                    who.name ?? '',
+                    (counts.get(who.name ?? '') ?? 0) + 1,
+                )
+            }
+            const primary = counts.get('Tara') ?? 0
+            for (let i = 0; i < n; i++) {
+                expect(primary).toBeGreaterThanOrEqual(
+                    (counts.get(`s${i}`) ?? 0) - 1,
+                )
+            }
+        }
+    })
+
+    it('uses both sets across a session', () => {
+        const used = new Set<string>()
+        for (let seed = 1; seed < 20; seed++) {
+            for (const scene of renderSession(both(), seeded(seed))) {
+                const text = scene.lines.map((l) => l.text).join(' ')
+                if (/\bxe\b/i.test(text)) used.add('xe')
+                if (/\bshe\b/i.test(text)) used.add('she')
+            }
+        }
+        expect(used).toEqual(new Set(['xe', 'she']))
+    })
+})
+
 describe('pickFriends', () => {
     it('never repeats a friend or takes the person name', () => {
         for (let seed = 1; seed < 300; seed++) {
@@ -190,6 +259,15 @@ describe('renderScene', () => {
         expect(scene.lines.find((l) => l.from === 'me')?.sender).toBe('You')
     })
 
+    it('fills templates in the group title', () => {
+        const scene = renderScene(
+            { ...SCENES[0], group: 'belated bday for {name}' },
+            person('n=Tara&p=xe'),
+            ['Alex', 'Priya'],
+        )
+        expect(scene.group).toBe('belated bday for Tara')
+    })
+
     it('renders every scene for every kind of set without leftover slots', () => {
         for (const query of [
             'n=Tara&p=xe',
@@ -199,6 +277,7 @@ describe('renderScene', () => {
             'p=she',
         ]) {
             for (const scene of renderSession(person(query), seeded(7))) {
+                expect(scene.group).not.toMatch(/[{}]/)
                 for (const line of scene.lines) {
                     expect(line.text).not.toMatch(/[{}]/)
                 }

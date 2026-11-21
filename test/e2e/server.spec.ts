@@ -27,6 +27,10 @@ test('/profile/testcard teaches the card without private entries', async ({
 
 test('/profile/testcard renders the chat', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
+    // The card has a secondary set; a high roll keeps the chat on xe/xem.
+    await page.addInitScript(() => {
+        Math.random = () => 0.99
+    })
     await page.goto('/profile/testcard')
     const chat = page.getByRole('region', { name: 'Group chat' })
     await expect(chat).toBeVisible()

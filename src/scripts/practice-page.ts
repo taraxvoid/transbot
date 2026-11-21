@@ -41,7 +41,7 @@ async function start(): Promise<void> {
     // missing-name message below.
     const { pathname, search } = window.location
     const entries = entriesFromPracticePath(pathname, search)
-    // A name with no p: ask for pronouns instead of guessing. `p=null` is
+    // A name with no pronouns: ask instead of guessing. `pronouns=null` is
     // the explicit way to practice with just the name.
     if (entries?.names.length && !entries.pronouns.length) {
         askPronouns(root, entries.names[0].value)
