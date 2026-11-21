@@ -21,10 +21,13 @@ async function playScene(page: Page): Promise<void> {
     const deadline = Date.now() + 15_000
     while (Date.now() < deadline) {
         if (await done.isVisible()) return
-        if (
-            (await sendButton(page).getAttribute('aria-disabled')) === 'false'
-        ) {
-            await sendButton(page).click()
+        // Match on the label too: the same button turns into Next chat when
+        // the scene ends, and clicking that here would skip a scene.
+        const ready = sendButton(page).and(
+            page.locator('[aria-label="Send"][aria-disabled="false"]'),
+        )
+        if (await ready.isVisible()) {
+            await ready.click({ timeout: 1000 }).catch(() => {})
         } else {
             await page.waitForTimeout(50)
         }
