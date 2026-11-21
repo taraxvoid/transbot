@@ -38,6 +38,10 @@ test('a scene plays by tapping Send', async ({ page }) => {
     await expect(
         panel.getByRole('heading', { name: 'sandwich remuneration' }),
     ).toBeVisible()
+    await expect(panel.getByText('TransChat', { exact: true })).toBeVisible()
+    await expect(
+        panel.getByRole('heading', { name: 'Topic: sandwich remuneration' }),
+    ).toBeVisible()
     await expect(
         panel.getByText(
             "I accidentally ate xyr sandwich, I didn't see it said Quillon",

@@ -91,6 +91,7 @@ export function mountChat(
         el(
             'header',
             { class: 'chat-header' },
+            el('p', { class: 'app-name' }, 'TransChat'),
             group,
             el('div', { class: 'member-row' }, avatars, members),
         ),
@@ -201,7 +202,10 @@ export function mountChat(
         const scene = session.at(index)
         if (!scene) return
         const friends = friendsIn(scene)
-        group.textContent = scene.group
+        group.replaceChildren(
+            el('span', { class: 'topic-label' }, 'Topic: '),
+            scene.group,
+        )
         avatars.replaceChildren(
             ...[...friends, 'You'].map((name) =>
                 el('span', { class: 'avatar' }, initial(name)),
