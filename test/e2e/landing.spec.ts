@@ -152,7 +152,7 @@ test('the form redirects to a working practice link with Copy link', async ({
     await builderForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(page).toHaveURL(/\/practice\/Sam%20Lee\?pronouns=xe\+she$/)
     await expect(
-        page.getByRole('heading', { name: 'Sam Lee uses xe/xem' }),
+        page.getByRole('heading', { name: 'Sam Lee uses xe/xem and she/her' }),
     ).toBeVisible()
     const bar = page.getByRole('region', { name: 'Your link is ready' })
     await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
