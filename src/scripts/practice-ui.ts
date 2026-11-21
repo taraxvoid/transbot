@@ -21,7 +21,7 @@ export function mountPractice(
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
     if (person) children.push(formsBox(identity, person))
     const chat = person ? el('div', { class: 'chat-mount' }) : null
-    if (chat && person) children.push(chatIntro(person), chat)
+    if (chat) children.push(chat)
     root.replaceChildren(...children)
     if (chat && person) {
         mountChat(chat, person, {
@@ -55,15 +55,6 @@ function heading(identity: Identity, person: Person | null): string {
     if (!name) return pronouns ? `Practice ${pronouns}` : 'Practice'
     if (!person) return name
     return pronouns ? `${name} uses ${pronouns}` : `${name} uses no pronouns`
-}
-
-function chatIntro(person: Person): HTMLElement {
-    const who = person.name ?? 'them'
-    return el(
-        'p',
-        { class: 'chat-intro' },
-        `Practice in the group chat below: friends talk about ${who}, and your replies are typed out for you. Press Send to post each one.`,
-    )
 }
 
 /** Other names and every set besides the modeled one, yes before meh. */

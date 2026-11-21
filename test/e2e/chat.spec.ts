@@ -39,18 +39,20 @@ test('a scene plays by tapping Send', async ({ page }) => {
     await page.goto('/practice/Quillon?pronouns=xe')
     const panel = chat(page)
     await expect(
-        panel.getByRole('heading', { name: 'sandwich remuneration' }),
+        panel.getByRole('heading', {
+            name: 'sandwich remuneration for Quillon',
+        }),
     ).toBeVisible()
     await expect(panel.getByText('TransChat', { exact: true })).toBeVisible()
     await expect(
         panel.getByRole('heading', { name: 'Topic: sandwich remuneration' }),
     ).toBeVisible()
     await expect(
-        panel.getByText(
-            "I accidentally ate xyr sandwich, I didn't see it said Quillon",
-        ),
+        panel.getByText('I accidentally ate xyr sandwich the other day'),
     ).toBeVisible()
-    await expect(panel.getByText('I hope xe is not too peeved')).toBeVisible()
+    await expect(
+        panel.getByText('It even had a sign with Quillon on it and everything'),
+    ).toBeVisible()
     const compose = page.locator('#compose-text')
     await expect(compose).toHaveText(
         'Buy xem two just in case (so I can snag one)',
@@ -86,7 +88,9 @@ test('Next chat runs through to the end and Start over restarts', async ({
     await expect(again).toBeFocused()
     await again.click()
     await expect(
-        chat(page).getByRole('heading', { name: 'sandwich remuneration' }),
+        chat(page).getByRole('heading', {
+            name: 'sandwich remuneration for Quillon',
+        }),
     ).toBeVisible()
     await expect(sendButton(page)).toBeFocused()
 })
@@ -170,12 +174,12 @@ test('/profile/testcard renders the chat about Sam with xe', async ({
     await pinRoll(page, 0.99)
     await page.goto('/profile/testcard')
     await expect(
-        chat(page).getByText(
-            "I accidentally ate xyr sandwich, I didn't see it said Sam",
-        ),
+        chat(page).getByText('I accidentally ate xyr sandwich the other day'),
     ).toBeVisible()
     await expect(
-        chat(page).getByText('I hope xe is not too peeved'),
+        chat(page).getByText(
+            'It even had a sign with Sam on it and everything',
+        ),
     ).toBeVisible()
 })
 
@@ -186,12 +190,12 @@ test('/profile/testcard can chat about Sam with her secondary set', async ({
     await pinRoll(page, 0)
     await page.goto('/profile/testcard')
     await expect(
-        chat(page).getByText(
-            "I accidentally ate her sandwich, I didn't see it said Sam",
-        ),
+        chat(page).getByText('I accidentally ate her sandwich the other day'),
     ).toBeVisible()
     await expect(
-        chat(page).getByText('I hope she is not too peeved'),
+        chat(page).getByText(
+            'It even had a sign with Sam on it and everything',
+        ),
     ).toBeVisible()
 })
 
@@ -199,11 +203,13 @@ test('a name-only link chats with the name', async ({ page }) => {
     await page.goto('/practice/Tara?pronouns=null')
     await expect(
         chat(page).getByText(
-            "I accidentally ate Tara's sandwich, I didn't see it said Tara",
+            "I accidentally ate Tara's sandwich the other day",
         ),
     ).toBeVisible()
     await expect(
-        chat(page).getByText('I hope Tara is not too peeved'),
+        chat(page).getByText(
+            'It even had a sign with Tara on it and everything',
+        ),
     ).toBeVisible()
 })
 
