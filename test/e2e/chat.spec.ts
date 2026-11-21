@@ -12,7 +12,7 @@ function chat(page: Page): Locator {
 }
 
 function sendButton(page: Page): Locator {
-    return chat(page).getByRole('button', { name: 'Send' })
+    return chat(page).locator('button.send')
 }
 
 /** Presses Send on every turn until the scene's end button shows up. */
@@ -57,6 +57,7 @@ test('a scene plays by tapping Send', async ({ page }) => {
     await expect(mine.getByText('Delivered')).toBeVisible()
     await expect(compose).toHaveText('')
     await expect(sendButton(page)).toHaveAttribute('aria-disabled', 'true')
+    await expect(sendButton(page)).toHaveAccessibleName('Send')
 })
 
 test('Next chat runs through to the end and Start over restarts', async ({

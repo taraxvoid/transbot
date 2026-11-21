@@ -57,7 +57,7 @@ test('/practice has no axe violations mid-chat', async ({ page }) => {
     await page.goto('/practice/Quillon?pronouns=xe')
     const send = page
         .getByRole('region', { name: 'Group chat' })
-        .getByRole('button', { name: 'Send' })
+        .locator('button.send')
     await expect(send).toHaveAttribute('aria-disabled', 'false')
     await send.click()
     await expect(page.getByText('Delivered')).toBeVisible()
@@ -72,7 +72,7 @@ test('/practice has no axe violations at the end of the chat', async ({
     await page.goto('/practice/Quillon?pronouns=xe')
     const send = page
         .getByRole('region', { name: 'Group chat' })
-        .getByRole('button', { name: 'Send' })
+        .locator('button.send')
     const box = page.getByRole('region', { name: 'Pass it on' })
     const next = page.getByRole('button', { name: 'Next chat' })
     const deadline = Date.now() + 30_000

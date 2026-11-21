@@ -11,6 +11,7 @@ export type Scene = { id: string; group: string; lines: Line[] }
  * - No third-person pronouns outside slots, so the only ones on screen are
  *   the person's.
  * - Nothing that reads as a fact about the real person.
+ * - Exactly one 'me' line per scene (the visitor sends once).
  * - No em dashes or unicode arrows.
  */
 export const SCENES: readonly Scene[] = [
@@ -88,11 +89,7 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'me',
-                text: "Let's pickup {possessive_determiner} ticket and meet {pronoun_subject} at merch",
-            },
-            {
-                from: 'me',
-                text: 'The spot by the stage is {possessive_pronoun} to claim',
+                text: "Let's pickup {possessive_determiner} ticket and meet {pronoun_subject} at merch, the spot by the stage is {possessive_pronoun} to claim",
             },
             {
                 from: 'b',

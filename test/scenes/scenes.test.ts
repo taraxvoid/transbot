@@ -317,9 +317,9 @@ describe('scene data', () => {
         }
     })
 
-    it('every scene has at least one me line', () => {
+    it('every scene has exactly one me line', () => {
         for (const scene of SCENES) {
-            expect(scene.lines.some((l) => l.from === 'me')).toBe(true)
+            expect(scene.lines.filter((l) => l.from === 'me')).toHaveLength(1)
         }
     })
 
