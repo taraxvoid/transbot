@@ -35,9 +35,7 @@ test('/profile/testcard renders the chat', async ({ page }) => {
     const chat = page.getByRole('region', { name: 'Group chat' })
     await expect(chat).toBeVisible()
     await expect(
-        chat.getByText(
-            "I accidentally ate xyr sandwich, I didn't see it said Sam",
-        ),
+        chat.getByText('I accidentally ate xyr sandwich the other day'),
     ).toBeVisible()
 })
 
