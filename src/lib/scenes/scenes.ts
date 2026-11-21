@@ -99,7 +99,7 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'a',
-                text: 'and nab {pronoun_object} a tour t-shirt before the merch sells out, {pronoun_subject} never treats {reflexive}',
+                text: 'and nab {pronoun_object} a tour t-shirt before the merch sells out, {pronoun_subject} never {treats|treat} {reflexive}',
             },
         ],
     },
