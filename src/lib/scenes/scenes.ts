@@ -15,23 +15,23 @@ export type Scene = { id: string; group: string; lines: Line[] }
 export const SCENES: readonly Scene[] = [
     {
         id: 'lunch',
-        group: 'sandwich remuneration',
+        group: 'sandwich remuneration for {name}',
         lines: [
             {
                 from: 'a',
-                text: "I accidentally ate {possessive_determiner} sandwich, I didn't see it said {name}",
+                text: 'I accidentally ate {possessive_determiner} sandwich the other day',
             },
             {
                 from: 'a',
-                text: 'I hope {pronoun_subject} {is|are} not too peeved',
+                text: 'It even had a sign with {name} on it and everything',
             },
             {
                 from: 'b',
-                text: 'bro you gotta make it right, that sandwich was {possessive_pronoun}',
+                text: 'You gotta make it right, that sandwich was {possessive_pronoun}',
             },
             {
                 from: 'a',
-                text: "I'll get {pronoun_object} a banh mi and Vietnamese iced coffee and hope it makes up to {pronoun_object}",
+                text: "I'll get {pronoun_object} a banh mi and hope it makes up to {pronoun_object}",
             },
             {
                 from: 'me',
@@ -45,11 +45,11 @@ export const SCENES: readonly Scene[] = [
     },
     {
         id: 'gift',
-        group: 'belated bday for {name}',
+        group: 'belated bday gift for {name}',
         lines: [
             {
                 from: 'a',
-                text: 'dangit I forgot the bday of {name} was last week - what does {pronoun_subject} want?',
+                text: 'I forgot the bday of {name} was last week - what does {pronoun_subject} want?',
             },
             {
                 from: 'b',
@@ -75,15 +75,15 @@ export const SCENES: readonly Scene[] = [
     },
     {
         id: 'late',
-        group: 'Grrlx Rox Show @ The Quadrangle',
+        group: 'punk show @ The Quadrangle',
         lines: [
             {
                 from: 'a',
-                text: 'opening band just went on, Where is {name}???',
+                text: 'The opening band just went on, Where is {name}???',
             },
             {
                 from: 'b',
-                text: "{pronoun_subject} DM'd me the BART is 10m late",
+                text: '{pronoun_subject} said {possessive_determiner} BART is 10m late',
             },
             {
                 from: 'me',
@@ -99,13 +99,13 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'a',
-                text: 'and nab {pronoun_object} a tour t-shirt before the merch sells out, {pronoun_subject} will treat {reflexive} to a poster too',
+                text: 'and nab {pronoun_object} a tour t-shirt before the merch sells out, {pronoun_subject} never treats {reflexive}',
             },
         ],
     },
     {
         id: 'moving',
-        group: 'Pizza and Chill',
+        group: "Pizza and Chill at {name}'s place",
         lines: [
             {
                 from: 'a',
@@ -113,20 +113,15 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'b',
-                text: "TIL, let's pwn those boxes",
+                text: "I've been training for this *kisses biceps*",
             },
             {
                 from: 'me',
-                text: "I won't make {pronoun_object} carry the ceiling mirror by {reflexive}",
+                text: "We can't let {pronoun_object} carry that ceiling mirror by {reflexive}",
             },
             {
                 from: 'a',
-                text: "I'll bring the detestable Hawaiian pizza, the last slice is {possessive_pronoun}",
-            },
-            { from: 'b', text: 'sg, cya then' },
-            {
-                from: 'a',
-                text: "I've been training for this my whole life [flexes rippling biceps]",
+                text: "I'll bring pizza, the last slice is {possessive_pronoun}",
             },
         ],
     },
