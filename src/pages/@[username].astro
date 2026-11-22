@@ -6,7 +6,14 @@ export const prerender = false
 // /@username is only the passthrough to a pronouns.page card. Autofilling a
 // name on the landing page is /<name>.
 // 302, not 301: browsers cache 301s forever, and the route may change again.
+// /@Sam?p=she → practice link (pronouns in the URL); /@username → pronouns.page card.
 const username = Astro.params.username ?? ''
+if (Astro.url.searchParams.has('p') && username.trim()) {
+    return Astro.redirect(
+        `/practice/${encodeURIComponent(username)}${Astro.url.search}`,
+        302,
+    )
+}
 if (!isValidUsername(username)) return Astro.redirect('/profile', 302)
 return Astro.redirect(`/profile/${username}`, 302)
 ---

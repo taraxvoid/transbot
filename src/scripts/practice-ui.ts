@@ -100,7 +100,14 @@ function formsBox(identity: Identity, person: Person): HTMLElement {
         el(
             'summary',
             {},
-            pronouns ? `All forms of ${pronouns}` : 'Using just the name',
+            el(
+                'span',
+                {},
+                pronouns
+                    ? `Cheat sheet: ${pronouns}`
+                    : 'Cheat sheet: name only',
+            ),
+            el('span', { class: 'forms-hint' }, 'Forms to use in this scene'),
         ),
         list,
     )

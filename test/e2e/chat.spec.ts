@@ -244,7 +244,7 @@ test('the thread can take keyboard focus to scroll', async ({ page }) => {
 test('the forms box lists the five forms with IPA', async ({ page }) => {
     await page.goto('/practice/Quillon?pronouns=xe')
     const box = page.locator('details.forms')
-    await expect(box.locator('summary')).toHaveText('All forms of xe/xem')
+    await expect(box.locator('summary')).toContainText('Cheat sheet: xe/xem')
     await box.locator('summary').click()
     for (const [term, value] of [
         ['Subject', 'xe /zi/'],

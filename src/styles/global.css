@@ -558,7 +558,15 @@ label.pick:has(input:checked) {
     min-height: 44px;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    column-gap: 0.75rem;
     overflow-wrap: anywhere;
+}
+
+.forms-hint {
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: var(--muted);
 }
 
 .forms dl {
