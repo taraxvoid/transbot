@@ -102,6 +102,18 @@ test('/tara points at /profile/taravie', async ({ request }) => {
     expect(response.headers().location).toBe('/profile/taravie')
 })
 
+test('/profile/testcard links to the pronouns.page profile', async ({
+    page,
+}) => {
+    await page.goto('/profile/testcard')
+    const link = page.locator('#pronouns-page-profile-link')
+    await expect(link).toHaveAttribute(
+        'href',
+        'https://en.pronouns.page/@testcard',
+    )
+    await expect(link).toHaveAttribute('target', '_blank')
+})
+
 test('/@testcard redirects to /profile/testcard', async ({ request }) => {
     const response = await request.get('/@testcard', { maxRedirects: 0 })
     expect(response.status()).toBe(302)

@@ -14,6 +14,7 @@ if (result.status === 'error') Astro.response.status = 502
 const identity = result.status === 'found' ? result.identity : null
 const empty = identity ? summarize(identity).nothingToTeach : false
 const name = identity?.names.preferred
+const profileUrl = `https://en.pronouns.page/@${encodeURIComponent(Astro.params.username ?? '')}`
 const title = name ? `Practice with ${name} | transbot` : 'transbot'
 ---
 
@@ -51,6 +52,14 @@ const title = name ? `Practice with ${name} | transbot` : 'transbot'
                     This card doesn't have a name or pronouns marked yes, so
                     there's nothing to practice yet.
                 </p>
+                <p>
+                    <a
+                        id="pronouns-page-profile-link"
+                        href={profileUrl}
+                        target="_blank"
+                        rel="noopener">View this profile on pronouns.page</a
+                    >
+                </p>
             </section>
         )
     }
@@ -63,6 +72,14 @@ const title = name ? `Practice with ${name} | transbot` : 'transbot'
                     id="identity-data"
                     set:html={jsonForScript(identity)}
                 />
+                <p class="hint">
+                    <a
+                        id="pronouns-page-profile-link"
+                        href={profileUrl}
+                        target="_blank"
+                        rel="noopener">View this profile on pronouns.page</a
+                    >
+                </p>
             </>
         )
     }
