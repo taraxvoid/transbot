@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
     cardLink,
     entriesFromPracticePath,
+    isAutofillName,
     normalizeUsername,
     practiceLink,
     pronounQuery,
@@ -157,5 +158,15 @@ describe('normalizeUsername', () => {
         expect(normalizeUsername('')).toBeNull()
         expect(normalizeUsername('two words')).toBeNull()
         expect(normalizeUsername('..')).toBeNull()
+    })
+})
+
+describe('isAutofillName', () => {
+    it.each(['asher', 'Zoë', 'Sam Lee'])('accepts %s', (name) => {
+        expect(isAutofillName(name)).toBe(true)
+    })
+
+    it.each(['', 'favicon.ico', 'a'.repeat(65)])('refuses %j', (name) => {
+        expect(isAutofillName(name)).toBe(false)
     })
 })

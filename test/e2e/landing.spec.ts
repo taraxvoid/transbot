@@ -367,3 +367,9 @@ test('editing during a pronouns.page check cancels the redirect', async ({
     await expect(page.getByText("Couldn't reach pronouns.page")).toHaveCount(0)
     await expect(page).toHaveURL(/\/$/)
 })
+
+test('/<name> fills the landing page name', async ({ page }) => {
+    await page.goto('/asher')
+    await expect(page).toHaveURL(/\/\?name=asher$/)
+    await expect(page.getByLabel(/^Name/)).toHaveValue('asher')
+})
