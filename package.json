@@ -22,6 +22,7 @@
         "test:e2e:a11y": "playwright test --project=a11y",
         "fixtures:refresh": "bun scripts/refresh-fixtures.ts",
         "check:licenses": "check-licenses",
+        "check:voidflow": "voidflow check",
         "audit": "bun audit --audit-level high --production --ignore=GHSA-xjj6-f33q-929c --ignore=GHSA-fc5q-39xc-vjpf",
         "prepare": "lefthook install || echo 'lefthook not installed (run mise install); git hooks skipped'"
     },
