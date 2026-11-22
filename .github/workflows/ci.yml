@@ -55,7 +55,7 @@ jobs:
           CLOUDFLARE_ENV: preview
         run: bun run build
 
-      - uses: taraxvoid/voidflow/actions/cloudflare-preview@d8cdecab3c078a93da1afa75fc9a94dd5605a1f6 # v1.0.0-next.9
+      - uses: taraxvoid/voidflow/actions/cloudflare-preview@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
         with:
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
