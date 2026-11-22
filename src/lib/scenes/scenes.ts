@@ -3,13 +3,15 @@ export type Scene = { id: string; group: string; lines: Line[] }
 
 /**
  * Writing rules (unit-tested where possible):
- * - No contraction right after a slot ("xe is", not "xe's"): "they's" and
- *   "Tara's" (for "Tara is") break.
+ * - No "is" contraction right after a slot ("xe is", not "xe's"): "they's"
+ *   and "Tara's" (for "Tara is") break. A possessive "{name}'s" is fine,
+ *   including the "our friend's" fallback.
  * - Verb pairs like {is|are} only agree with {pronoun_subject}. After {name}
  *   use a plain singular verb.
  * - No third-person pronouns outside slots, so the only ones on screen are
  *   the person's.
  * - Nothing that reads as a fact about the real person.
+ * - Exactly one 'me' line per scene (the visitor sends once).
  * - No em dashes or unicode arrows.
  */
 export const SCENES: readonly Scene[] = [
@@ -49,7 +51,7 @@ export const SCENES: readonly Scene[] = [
         lines: [
             {
                 from: 'a',
-                text: 'I forgot the bday of {name} was last week - what does {pronoun_subject} want?',
+                text: "I forgot {name}'s bday was last week - what does {pronoun_subject} want?",
             },
             {
                 from: 'b',
@@ -87,11 +89,7 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'me',
-                text: "Let's pickup {possessive_determiner} ticket and meet {pronoun_subject} at merch",
-            },
-            {
-                from: 'me',
-                text: 'The spot by the stage is {possessive_pronoun} to claim',
+                text: "Let's pickup {possessive_determiner} ticket and meet {pronoun_subject} at merch, the spot by the stage is {possessive_pronoun} to claim",
             },
             {
                 from: 'b',

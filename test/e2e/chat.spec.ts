@@ -12,7 +12,7 @@ function chat(page: Page): Locator {
 }
 
 function sendButton(page: Page): Locator {
-    return chat(page).getByRole('button', { name: 'Send' })
+    return chat(page).locator('button.send')
 }
 
 /** Presses Send on every turn until the scene's end button shows up. */
@@ -21,10 +21,13 @@ async function playScene(page: Page): Promise<void> {
     const deadline = Date.now() + 15_000
     while (Date.now() < deadline) {
         if (await done.isVisible()) return
-        if (
-            (await sendButton(page).getAttribute('aria-disabled')) === 'false'
-        ) {
-            await sendButton(page).click()
+        // Match on the label too: the same button turns into Next chat when
+        // the scene ends, and clicking that here would skip a scene.
+        const ready = sendButton(page).and(
+            page.locator('[aria-label="Send"][aria-disabled="false"]'),
+        )
+        if (await ready.isVisible()) {
+            await ready.click({ timeout: 1000 }).catch(() => {})
         } else {
             await page.waitForTimeout(50)
         }
@@ -39,6 +42,10 @@ test('a scene plays by tapping Send', async ({ page }) => {
         panel.getByRole('heading', {
             name: 'sandwich remuneration for Quillon',
         }),
+    ).toBeVisible()
+    await expect(panel.getByText('TransChat', { exact: true })).toBeVisible()
+    await expect(
+        panel.getByRole('heading', { name: 'Topic: sandwich remuneration' }),
     ).toBeVisible()
     await expect(
         panel.getByText('I accidentally ate xyr sandwich the other day'),
@@ -59,6 +66,7 @@ test('a scene plays by tapping Send', async ({ page }) => {
     await expect(mine.getByText('Delivered')).toBeVisible()
     await expect(compose).toHaveText('')
     await expect(sendButton(page)).toHaveAttribute('aria-disabled', 'true')
+    await expect(sendButton(page)).toHaveAccessibleName('Send')
 })
 
 test('Next chat runs through to the end and Start over restarts', async ({
