@@ -21,6 +21,7 @@
     "env": {
         "preview": {
             "workers_dev": true,
+            "routes": [],
             "vars": {
                 "PRONOUNS_API_BASE": "https://en.pronouns.page/api/public/v3"
             },
