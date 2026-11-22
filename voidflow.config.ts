@@ -11,4 +11,6 @@ export default {
         envs: [{ env: 'prod' }],
         retire: ['transbot-deploy-token'],
     },
+    // The prod environment is protected by a ruleset on main.
+    rulesets: { environments: { prod: ['main'] } },
 } satisfies VoidflowConfig

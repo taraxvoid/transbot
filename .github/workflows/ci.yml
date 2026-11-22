@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   validate:
-    uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@8f02fb9616caadd3aa11d575b5c6038cef09de8d # v1.0.0-next.3
+    uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@d8cdecab3c078a93da1afa75fc9a94dd5605a1f6 # v1.0.0-next.9
 
   deploy:
     name: Deploy
@@ -27,7 +27,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - id: env
-        uses: taraxvoid/voidflow/actions/branch-env-map@8f02fb9616caadd3aa11d575b5c6038cef09de8d # v1.0.0-next.3
+        uses: taraxvoid/voidflow/actions/branch-env-map@d8cdecab3c078a93da1afa75fc9a94dd5605a1f6 # v1.0.0-next.9
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -40,7 +40,7 @@ jobs:
         run: bun run build
 
       - name: Deploy
-        uses: taraxvoid/voidflow/actions/cloudflare-deploy@8f02fb9616caadd3aa11d575b5c6038cef09de8d # v1.0.0-next.3
+        uses: taraxvoid/voidflow/actions/cloudflare-deploy@d8cdecab3c078a93da1afa75fc9a94dd5605a1f6 # v1.0.0-next.9
         with:
           env: ${{ steps.env.outputs.env }}
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}

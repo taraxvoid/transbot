@@ -3,6 +3,6 @@
 # commands but not override these; differences go through package.json scripts.
 remotes:
   - git_url: https://github.com/taraxvoid/voidflow
-    ref: v0.13.0
+    ref: v1.0.0-next.9
     configs:
-      - lefthook/site.yml
+      - lefthook/base.yml
