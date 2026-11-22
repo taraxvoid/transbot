@@ -8,7 +8,7 @@ export default {
     // wrangler.jsonc. Moved here from personal/infra's cf-tokens.ts.
     cloudflare: {
         account: 'c6a445a43a801403a8e33968be40c19c',
-        envs: [{ env: 'prod' }],
+        envs: [{ env: 'prod' }, { env: 'preview', zones: [] }],
         retire: ['transbot-deploy-token'],
     },
     // The prod environment is protected by a ruleset on main.
