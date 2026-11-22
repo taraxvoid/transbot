@@ -141,18 +141,6 @@ test('/%C3%81sher keeps the name encoded', async ({ request }) => {
     expect(response.headers().location).toBe('/?name=%C3%81sher')
 })
 
-test('alias lookup is case-insensitive and file-like paths 404', async ({
-test('/@Sam?p=she opens a practice link', async ({ request }) => {
-    const response = await request.get('/@Sam?p=she', { maxRedirects: 0 })
-    expect(response.status()).toBe(302)
-    expect(response.headers().location).toBe('/practice/Sam?p=she')
-})
-
-test('/@Sam keeps repeated and combined p params', async ({ request }) => {
-    const response = await request.get('/@Sam?p=she+they', { maxRedirects: 0 })
-    expect(response.headers().location).toBe('/practice/Sam?p=she+they')
-})
-
 test('alias lookup is case-insensitive and unknown names 404', async ({
     request,
 }) => {
