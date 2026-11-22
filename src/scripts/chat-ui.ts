@@ -84,12 +84,14 @@ export function mountChat(
         'aria-disabled': 'true',
     })
     send.append(sendIcon())
+    const icon = send.firstElementChild
     const panel = el(
         'section',
         { class: 'chat', 'aria-label': 'Group chat' },
         el(
             'header',
             { class: 'chat-header' },
+            el('p', { class: 'app-name' }, 'TransChat'),
             group,
             el('div', { class: 'member-row' }, avatars, members),
         ),
@@ -101,12 +103,38 @@ export function mountChat(
 
     // Set only while a turn waits for Send, so extra presses do nothing.
     let pendingSend: (() => void) | null = null
+    // Set only once a scene ends and the button has become Next chat.
+    let pendingNext: (() => void) | null = null
     send.addEventListener('click', () => {
+        const next = pendingNext
+        if (next) {
+            pendingNext = null
+            next()
+            return
+        }
         const resolve = pendingSend
         if (!resolve) return
         pendingSend = null
         resolve()
     })
+
+    /** Turns the Send button into Next chat (label, look and click). */
+    function becomeNext(onNext: () => void): void {
+        send.classList.add('next')
+        send.setAttribute('aria-label', 'Next chat')
+        send.setAttribute('aria-disabled', 'false')
+        send.replaceChildren('Next chat')
+        pendingNext = onNext
+    }
+
+    /** Back to the disabled Send arrow for a new scene. */
+    function becomeSend(): void {
+        pendingNext = null
+        send.classList.remove('next')
+        send.setAttribute('aria-label', 'Send')
+        send.setAttribute('aria-disabled', 'true')
+        if (icon) send.replaceChildren(icon)
+    }
 
     function show(item: HTMLElement): void {
         thread.append(item)
@@ -174,7 +202,10 @@ export function mountChat(
         const scene = session.at(index)
         if (!scene) return
         const friends = friendsIn(scene)
-        group.textContent = scene.group
+        group.replaceChildren(
+            el('span', { class: 'topic-label' }, 'Topic: '),
+            scene.group,
+        )
         avatars.replaceChildren(
             ...[...friends, 'You'].map((name) =>
                 el('span', { class: 'avatar' }, initial(name)),
@@ -183,18 +214,17 @@ export function mountChat(
         members.textContent = `${friends.join(', ')} and you`
         thread.replaceChildren()
         after.replaceChildren()
+        becomeSend()
         for (const step of stepsFor(scene)) {
             if (step.kind === 'friend') await friendStep(step)
             else await turn(step.line)
         }
         if (index + 1 < session.length) {
-            const next = el('button', { type: 'button' }, 'Next chat')
-            next.addEventListener('click', () => {
+            becomeNext(() => {
                 void play(index + 1)
                 send.focus()
             })
-            after.replaceChildren(next)
-            next.focus()
+            send.focus()
             return
         }
         const again = el('button', { type: 'button' }, 'Start over')

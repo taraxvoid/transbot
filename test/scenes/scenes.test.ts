@@ -317,15 +317,19 @@ describe('scene data', () => {
         }
     })
 
-    it('every scene has at least one me line', () => {
+    it('every scene has exactly one me line', () => {
         for (const scene of SCENES) {
-            expect(scene.lines.some((l) => l.from === 'me')).toBe(true)
+            expect(scene.lines.filter((l) => l.from === 'me')).toHaveLength(1)
         }
     })
 
     for (const line of SCENES.flatMap((s) => s.lines)) {
         it(`follows the writing rules: ${line.text}`, () => {
-            expect(line.text).not.toMatch(/\}['’](s|re|ll|d|ve|m)\b/)
+            // "{name}'s" is a safe possessive; any other slot + clitic
+            // ("they's", "xe'd") is not.
+            expect(line.text.replace(/\{name\}'s\b/g, '')).not.toMatch(
+                /\}['’](s|re|ll|d|ve|m)\b/,
+            )
             expect(line.text.replace(/\{[^{}]*\}/g, '')).not.toMatch(
                 THIRD_PERSON,
             )

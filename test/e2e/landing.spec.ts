@@ -91,7 +91,7 @@ test('a found card redirects to its page with Copy link', async ({ page }) => {
     await cardForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(page).toHaveURL(/\/profile\/testcard$/)
     await expect(
-        page.getByRole('heading', { name: 'Your link is ready' }),
+        page.getByRole('heading', { name: 'Share this page' }),
     ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
 })
@@ -154,7 +154,7 @@ test('the form redirects to a working practice link with Copy link', async ({
     await expect(
         page.getByRole('heading', { name: 'Sam Lee uses xe/xem and she/her' }),
     ).toBeVisible()
-    const bar = page.getByRole('region', { name: 'Your link is ready' })
+    const bar = page.getByRole('region', { name: 'Share this page' })
     await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
     await expect(
         bar.getByRole('link', { name: 'Share on WhatsApp' }),
@@ -172,17 +172,12 @@ test('the form redirects to a working practice link with Copy link', async ({
     ).toContain('share-bar')
 })
 
-test('a practice link opened fresh offers to share it, not "link is ready"', async ({
-    page,
-}) => {
+test('a practice link opened fresh offers to share it', async ({ page }) => {
     await mockPronounsPage(page)
     await page.goto('/practice/Sam?pronouns=xe')
     await expect(
         page.getByRole('heading', { name: 'Sam uses xe/xem' }),
     ).toBeVisible()
-    await expect(
-        page.getByRole('heading', { name: 'Your link is ready' }),
-    ).toHaveCount(0)
     const bar = page.getByRole('region', { name: 'Share this page' })
     await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
     for (const app of [
@@ -237,14 +232,8 @@ test('when Copy fails the link shows up selected to copy by hand', async ({
 
 test('Share shows only where the browser can share', async ({ page }) => {
     await mockPronounsPage(page)
-    await page.addInitScript(() => {
-        sessionStorage.setItem(
-            'transbot:just-made',
-            '/practice/Sam?pronouns=xe',
-        )
-    })
     await page.goto('/practice/Sam?pronouns=xe')
-    const bar = page.getByRole('region', { name: 'Your link is ready' })
+    const bar = page.getByRole('region', { name: 'Share this page' })
     await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
     const canShare = await page.evaluate(
         () => typeof navigator.share === 'function',
