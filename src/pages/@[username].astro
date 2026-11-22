@@ -15,5 +15,11 @@ if (Astro.url.searchParams.has('p') && username.trim()) {
     )
 }
 if (!isValidUsername(username)) return Astro.redirect('/profile', 302)
+if (Astro.url.searchParams.has('p')) {
+    return Astro.redirect(
+        `/practice/${encodeURIComponent(username)}${Astro.url.search}`,
+        302,
+    )
+}
 return Astro.redirect(`/profile/${username}`, 302)
 ---
