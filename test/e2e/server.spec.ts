@@ -35,9 +35,7 @@ test('/profile/testcard renders the chat', async ({ page }) => {
     const chat = page.getByRole('region', { name: 'Group chat' })
     await expect(chat).toBeVisible()
     await expect(
-        chat.getByText(
-            "I accidentally ate xyr sandwich, I didn't see it said Sam",
-        ),
+        chat.getByText('I accidentally ate xyr sandwich the other day'),
     ).toBeVisible()
 })
 
@@ -92,7 +90,7 @@ test('a card name with HTML renders as text', async ({ page }) => {
     })
     await page.goto('/profile/htmlname')
     await expect(
-        page.getByRole('heading', { name: /<\/script><img/ }),
+        page.getByRole('heading', { level: 1, name: /<\/script><img/ }),
     ).toBeVisible()
     expect(await page.locator('main img').count()).toBe(0)
     expect(dialog).toBe(false)

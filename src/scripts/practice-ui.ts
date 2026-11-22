@@ -4,7 +4,7 @@ import { chatPerson } from '../lib/scenes/render'
 import type { Person } from '../lib/scenes/template'
 import { mountChat } from './chat-ui'
 import { el } from './dom'
-import { endShare, shareBar, wasJustMade } from './share'
+import { endShare, shareBar } from './share'
 
 export function mountPractice(
     root: HTMLElement,
@@ -16,12 +16,12 @@ export function mountPractice(
     // Near the top for everyone, creator or visitor, with the URL as is.
     const children: Node[] = [
         el('h1', {}, heading(identity, person)),
-        shareBar(window.location.href, wasJustMade(window.location)),
+        shareBar(window.location.href),
     ]
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
     if (person) children.push(formsBox(identity, person))
     const chat = person ? el('div', { class: 'chat-mount' }) : null
-    if (chat && person) children.push(chatIntro(person), chat)
+    if (chat) children.push(chat)
     root.replaceChildren(...children)
     if (chat && person) {
         mountChat(chat, person, {
@@ -55,15 +55,6 @@ function heading(identity: Identity, person: Person | null): string {
     if (!name) return pronouns ? `Practice ${pronouns}` : 'Practice'
     if (!person) return name
     return pronouns ? `${name} uses ${pronouns}` : `${name} uses no pronouns`
-}
-
-function chatIntro(person: Person): HTMLElement {
-    const who = person.name ?? 'them'
-    return el(
-        'p',
-        { class: 'chat-intro' },
-        `Practice in the group chat below: friends talk about ${who}, and your replies are typed out for you. Press Send to post each one.`,
-    )
 }
 
 /** Other names and every set besides the modeled one, yes before meh. */
