@@ -9,7 +9,15 @@ export function isValidUsername(value: string): boolean {
 }
 
 /**
- * `p=she+they`: one param, sets joined with `+`, slashes and colons left
+ * Names `/<name>` may autofill on the landing page. Anything with a dot is
+ * refused so stray requests for files (`/apple-touch-icon.png`) still 404.
+ */
+export function isAutofillName(value: string): boolean {
+    return value.length > 0 && value.length <= 64 && !value.includes('.')
+}
+
+/**
+ * `pronouns=she+they`: one param, sets joined with `+`, slashes and colons left
  * readable. `+` reads back as a space, and parsePronounInput splits on
  * whitespace and never returns a value with whitespace, `+`, `&` or `,` in
  * it, so the join can't be ambiguous. '' when there is nothing to link.
@@ -20,10 +28,10 @@ export function pronounQuery(values: string[]): string {
     const encoded = kept.map((v) =>
         encodeURIComponent(v).replaceAll('%2F', '/').replaceAll('%3A', ':'),
     )
-    return `p=${encoded.join('+')}`
+    return `pronouns=${encoded.join('+')}`
 }
 
-/** `pronouns` are pronouns.page values, first one modeled, sharing one p. */
+/** `pronouns` are pronouns.page values, first one modeled, in one param. */
 export function practiceLink(
     name: string,
     pronouns: string[],
@@ -35,7 +43,10 @@ export function practiceLink(
     return `${origin}/practice/${encodeURIComponent(n)}?${query}`
 }
 
-/** Reads /practice/<name>?p=<pronouns>. The name goes through entriesFromQuery too. */
+/**
+ * Reads /practice/<name>?pronouns=<pronouns> (or the older `p=`). The name
+ * goes through entriesFromQuery too.
+ */
 export function entriesFromPracticePath(
     pathname: string,
     search: string,
@@ -49,7 +60,7 @@ export function entriesFromPracticePath(
     }
     if (!name.trim()) return null
     // Name first so a stray n= in the query never wins; the query parser
-    // also rejoins a hand-typed `p=xe&she`.
+    // also rejoins a hand-typed `pronouns=xe&she`.
     return entriesFromQuery(
         `?${new URLSearchParams({ n: name })}&${search.replace(/^\?/, '')}`,
     )

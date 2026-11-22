@@ -67,27 +67,32 @@ export function entriesFromProfile(profile: RawProfile): Entries | null {
     }
 }
 
-/** Reads `?n=<name>&p=<pronouns>`, the leading `?` optional. */
+/**
+ * Reads `?n=<name>&pronouns=<pronouns>`, the leading `?` optional. `p` is the
+ * older spelling of `pronouns` and still reads the same, so links already
+ * sent keep working.
+ */
 export function entriesFromQuery(query: string): Entries | null {
     const params = new URLSearchParams(query.replace(/^\?/, ''))
     let name = params.get('n')?.trim() ?? ''
     const typed: string[] = []
-    // A hand-typed `p=xe&she` or `n=Sam&Jo` arrives as the key plus an empty
-    // `she` / `Jo` key. Rejoin an empty key to whichever of n or p came
-    // right before it, so no part of a name ever ends up in p (which is
-    // fetched from pronouns.page). Other stray keys are dropped.
-    let last: 'n' | 'p' | null = null
+    // A hand-typed `pronouns=xe&she` or `n=Sam&Jo` arrives as the key plus an
+    // empty `she` / `Jo` key. Rejoin an empty key to whichever of n or
+    // pronouns came right before it, so no part of a name ever ends up in the
+    // pronouns (which are fetched from pronouns.page). Other stray keys are
+    // dropped.
+    let last: 'n' | 'pronouns' | null = null
     for (const [key, value] of params) {
         if (key === 'n') last = key
-        else if (key === 'p') {
-            last = key
+        else if (key === 'pronouns' || key === 'p') {
+            last = 'pronouns'
             typed.push(value)
         } else if (value === '' && last === 'n' && name) name += `&${key}`
-        else if (value === '' && last === 'p' && typed.at(-1)?.trim()) {
+        else if (value === '' && last === 'pronouns' && typed.at(-1)?.trim()) {
             typed[typed.length - 1] += `&${key}`
         }
     }
-    // Each p may be typed by hand, like `he/they`, so parse it like the
+    // Each value may be typed by hand, like `he/they`, so parse it like the
     // builder does.
     const pronouns = [...new Set(typed.flatMap(parsePronounInput))]
     if (!name && !pronouns.length) return null

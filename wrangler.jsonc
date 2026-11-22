@@ -1,6 +1,7 @@
 {
     "$schema": "./node_modules/wrangler/config-schema.json",
     "name": "transbot",
+    "account_id": "c6a445a43a801403a8e33968be40c19c",
     "compatibility_date": "2026-09-01",
     "assets": {
         "directory": "./dist",

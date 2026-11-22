@@ -14,7 +14,7 @@ test('/ loads and credits pronouns.page under the OQL', async ({ page }) => {
 })
 
 test('unknown paths get the 404 page', async ({ page }) => {
-    const response = await page.goto('/no-such-page')
+    const response = await page.goto('/no/such/page')
     expect(response?.status()).toBe(404)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
         'Page not found',

@@ -36,25 +36,20 @@ test('/ has no axe violations with errors shown', async ({ page }) => {
     await expectNoViolations(page)
 })
 
-test('/practice has no axe violations with the link-ready box', async ({
-    page,
-}) => {
-    await page.addInitScript(() => {
-        sessionStorage.setItem('transbot:just-made', '/practice/Sam?p=xe')
-    })
-    await page.goto('/practice/Sam?p=xe')
+test('/practice has no axe violations with the share box', async ({ page }) => {
+    await page.goto('/practice/Sam?pronouns=xe')
     await expect(
-        page.getByRole('heading', { name: 'Your link is ready' }),
+        page.getByRole('heading', { name: 'Share this page' }),
     ).toBeVisible()
     await expectNoViolations(page)
 })
 
 test('/practice has no axe violations mid-chat', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const send = page
         .getByRole('region', { name: 'Group chat' })
-        .getByRole('button', { name: 'Send' })
+        .locator('button.send')
     await expect(send).toHaveAttribute('aria-disabled', 'false')
     await send.click()
     await expect(page.getByText('Delivered')).toBeVisible()
@@ -66,10 +61,10 @@ test('/practice has no axe violations at the end of the chat', async ({
     page,
 }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const send = page
         .getByRole('region', { name: 'Group chat' })
-        .getByRole('button', { name: 'Send' })
+        .locator('button.send')
     const box = page.getByRole('region', { name: 'Pass it on' })
     const next = page.getByRole('button', { name: 'Next chat' })
     const deadline = Date.now() + 30_000

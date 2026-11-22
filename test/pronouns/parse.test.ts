@@ -100,6 +100,7 @@ describe('pronounLabel', () => {
         expect(pronounLabel('he')).toBe('he/him')
         expect(pronounLabel('ze/zir')).toBe('ze/zir')
         expect(pronounLabel('null')).toBe('name only')
+        expect(pronounLabel(':void')).toBe("void/void's")
         expect(pronounLabel('ne/nem')).toBe('ne/nem')
     })
 })

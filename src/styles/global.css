@@ -11,8 +11,12 @@
     --field: #ffffff;
     --bubble-me: #0b5ed7;
     --bubble-me-text: #ffffff;
-    --bubble-them: #ebe8f0;
-    --bubble-them-text: var(--fg);
+    --bubble-them: #34c759;
+    --bubble-them-text: #04210f;
+    --bubble-neutral: #e5e5ea;
+    --chat-frame: #1d1b26;
+    --chat-bg: #ffffff;
+    --chat-bar: #f2f2f7;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     line-height: 1.5;
 }
@@ -28,7 +32,10 @@
         --danger: #ff8f85;
         --border: #3a3550;
         --field: #201d2b;
-        --bubble-them: #2c2939;
+        --bubble-neutral: #3a3a3c;
+        --chat-frame: #050507;
+        --chat-bg: #000000;
+        --chat-bar: #1c1c1e;
     }
 }
 
@@ -177,8 +184,48 @@ form button[type="submit"] {
     align-items: center;
 }
 
-.share-url a {
-    word-break: break-all;
+.share-bar {
+    padding: 0.75rem 1rem;
+    border-color: var(--border);
+}
+
+.share-bar h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.share-targets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.share-target {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--fg);
+}
+
+.share-target:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.share-target svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.share-url {
+    width: 100%;
+    margin-top: 0.5rem;
 }
 
 fieldset {
@@ -239,9 +286,10 @@ label.pick:has(input:checked) {
 
 .chat {
     margin-top: 1.5rem;
-    border: 1px solid var(--border);
-    border-radius: 1rem;
-    background: var(--field);
+    border: 8px solid var(--chat-frame);
+    border-radius: 2rem;
+    background: var(--chat-bg);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
     overflow: hidden;
 }
 
@@ -249,9 +297,19 @@ label.pick:has(input:checked) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.25rem;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--border);
+    background: var(--chat-bar);
+}
+
+.app-name {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .chat-group {
@@ -259,6 +317,11 @@ label.pick:has(input:checked) {
     font-size: 1.125rem;
     overflow-wrap: anywhere;
     text-align: center;
+}
+
+.topic-label {
+    color: var(--muted);
+    font-weight: 400;
 }
 
 .member-row {
@@ -285,10 +348,10 @@ label.pick:has(input:checked) {
     width: 2rem;
     height: 2rem;
     margin-left: -0.375rem;
-    border: 2px solid var(--field);
+    border: 2px solid var(--chat-bar);
     border-radius: 50%;
-    background: var(--bubble-them);
-    color: var(--bubble-them-text);
+    background: var(--bubble-neutral);
+    color: var(--fg);
     font-size: 0.875rem;
     font-weight: 600;
 }
@@ -361,7 +424,7 @@ label.pick:has(input:checked) {
     gap: 0.25rem;
     padding: 0.75rem;
     border-radius: 1.125rem;
-    background: var(--bubble-them);
+    background: var(--bubble-neutral);
 }
 
 .typing .dot {
@@ -396,6 +459,7 @@ label.pick:has(input:checked) {
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
     border-top: 1px solid var(--border);
+    background: var(--chat-bar);
 }
 
 .compose-text {
@@ -435,6 +499,14 @@ label.pick:has(input:checked) {
 .send[aria-disabled="true"] {
     opacity: 0.4;
     cursor: default;
+}
+
+.send.next {
+    width: auto;
+    padding: 0 1rem;
+    border-radius: 1.375rem;
+    font: inherit;
+    font-weight: 600;
 }
 
 .send.pulse {
@@ -486,7 +558,15 @@ label.pick:has(input:checked) {
     min-height: 44px;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    column-gap: 0.75rem;
     overflow-wrap: anywhere;
+}
+
+.forms-hint {
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: var(--muted);
 }
 
 .forms dl {

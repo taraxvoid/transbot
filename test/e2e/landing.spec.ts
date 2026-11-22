@@ -91,7 +91,7 @@ test('a found card redirects to its page with Copy link', async ({ page }) => {
     await cardForm(page).getByRole('button', { name: 'Submit' }).click()
     await expect(page).toHaveURL(/\/profile\/testcard$/)
     await expect(
-        page.getByRole('heading', { name: 'Your link is ready' }),
+        page.getByRole('heading', { name: 'Share this page' }),
     ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
 })
@@ -150,49 +150,95 @@ test('the form redirects to a working practice link with Copy link', async ({
         page.getByText('Primary: xe/xem. Secondary: she/her.'),
     ).toBeVisible()
     await builderForm(page).getByRole('button', { name: 'Submit' }).click()
-    await expect(page).toHaveURL(/\/practice\/Sam%20Lee\?p=xe\+she$/)
+    await expect(page).toHaveURL(/\/practice\/Sam%20Lee\?pronouns=xe\+she$/)
     await expect(
-        page.getByRole('heading', { name: 'Sam Lee uses xe/xem' }),
+        page.getByRole('heading', { name: 'Sam Lee uses xe/xem and she/her' }),
     ).toBeVisible()
-    const banner = page.getByRole('region', { name: 'Your link is ready' })
+    const bar = page.getByRole('region', { name: 'Share this page' })
+    await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
     await expect(
-        banner.getByRole('link', { name: /\/practice\/Sam%20Lee\?p=xe\+she$/ }),
-    ).toBeVisible()
-    await expect(
-        banner.getByRole('button', { name: 'Copy link' }),
-    ).toBeVisible()
-    // The box sits at the bottom, after the chat.
+        bar.getByRole('link', { name: 'Share on WhatsApp' }),
+    ).toHaveAttribute(
+        'href',
+        /^https:\/\/wa\.me\/\?text=.*pronouns%3Dxe%2Bshe$/,
+    )
+    // The raw link stays hidden unless Copy fails.
+    await expect(bar.getByRole('textbox')).toHaveCount(0)
+    // Compact, right under the heading.
     expect(
         await page.evaluate(
-            () => document.querySelector('#practice > :last-child')?.className,
+            () => document.querySelector('#practice > h1 + section')?.className,
         ),
-    ).toBe('share')
+    ).toContain('share-bar')
 })
 
-test('a practice link opened fresh has no "link is ready" box', async ({
-    page,
-}) => {
+test('a practice link opened fresh offers to share it', async ({ page }) => {
+    await mockPronounsPage(page)
+    await page.goto('/practice/Sam?pronouns=xe')
+    await expect(
+        page.getByRole('heading', { name: 'Sam uses xe/xem' }),
+    ).toBeVisible()
+    const bar = page.getByRole('region', { name: 'Share this page' })
+    await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
+    for (const app of [
+        'WhatsApp',
+        'Telegram',
+        'Bluesky',
+        'Email',
+        'Text message',
+    ]) {
+        await expect(
+            bar.getByRole('link', { name: `Share on ${app}` }),
+        ).toBeVisible()
+    }
+    // A visitor may not be the person named.
+    await expect(
+        bar.getByRole('link', { name: 'Share on Email' }),
+    ).toHaveAttribute('href', /subject=Practice%20a%20name/)
+    // Every target carries the URL the visitor is on, unchanged.
+    const hrefs = await bar
+        .locator('a.share-target')
+        .evaluateAll((links) => links.map((a) => a.getAttribute('href') ?? ''))
+    for (const href of hrefs) {
+        expect(decodeURIComponent(href)).toContain(page.url())
+    }
+})
+
+test('an old ?p= link still works', async ({ page }) => {
     await mockPronounsPage(page)
     await page.goto('/practice/Sam?p=xe')
     await expect(
         page.getByRole('heading', { name: 'Sam uses xe/xem' }),
     ).toBeVisible()
-    await expect(
-        page.getByRole('heading', { name: 'Your link is ready' }),
-    ).toHaveCount(0)
+})
+
+test('when Copy fails the link shows up selected to copy by hand', async ({
+    page,
+}) => {
+    await mockPronounsPage(page)
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText: () => Promise.reject(new Error('blocked')) },
+        })
+    })
+    await page.goto('/practice/Sam?pronouns=xe')
+    const bar = page.getByRole('region', { name: 'Share this page' })
+    await bar.getByRole('button', { name: 'Copy link' }).click()
+    await expect(bar.getByRole('button', { name: 'Copy failed' })).toBeVisible()
+    const field = bar.getByRole('textbox', { name: 'Link to copy' })
+    await expect(field).toHaveValue(page.url())
+    await expect(field).toBeFocused()
 })
 
 test('Share shows only where the browser can share', async ({ page }) => {
     await mockPronounsPage(page)
-    await page.addInitScript(() => {
-        sessionStorage.setItem('transbot:just-made', '/practice/Sam?p=xe')
-    })
-    await page.goto('/practice/Sam?p=xe')
-    await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
+    await page.goto('/practice/Sam?pronouns=xe')
+    const bar = page.getByRole('region', { name: 'Share this page' })
+    await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
     const canShare = await page.evaluate(
         () => typeof navigator.share === 'function',
     )
-    await expect(page.getByRole('button', { name: 'Share' })).toHaveCount(
+    await expect(bar.getByRole('button', { name: 'Share' })).toHaveCount(
         canShare ? 1 : 0,
     )
 })
@@ -232,7 +278,15 @@ test('the builder understands typed shorthand and pick order', async ({
     await page.getByRole('checkbox', { name: 'she/her' }).check()
     await page.getByLabel('Custom pronouns').fill('he/they')
     await builderForm(page).getByRole('button', { name: 'Submit' }).click()
-    await expect(page).toHaveURL(/\/practice\/Sam\?p=it\+she\+he\+they$/)
+    await expect(page).toHaveURL(/\/practice\/Sam\?pronouns=it\+she\+he\+they$/)
+})
+
+test('the builder offers void pronouns as a checkbox', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sam')
+    await page.getByRole('checkbox', { name: "void/void's" }).check()
+    await builderForm(page).getByRole('button', { name: 'Submit' }).click()
+    await expect(page).toHaveURL(/\/practice\/Sam\?pronouns=:void$/)
 })
 
 test('the builder only links pronouns pronouns.page has', async ({ page }) => {
@@ -254,7 +308,7 @@ test('the builder only links pronouns pronouns.page has', async ({ page }) => {
     await page.getByLabel('Custom pronouns').fill('ne/nem/nir/nirs/nemself')
     await submit.click()
     await expect(page).toHaveURL(
-        /\/practice\/Sam\?p=she\+ne\/nem\/nir\/nirs\/nemself$/,
+        /\/practice\/Sam\?pronouns=she\+ne\/nem\/nir\/nirs\/nemself$/,
     )
     // Common sets are never looked up, and the name never goes to pronouns.page.
     expect(requests.some((url) => url.endsWith('/pronouns/she'))).toBe(false)
@@ -301,4 +355,10 @@ test('editing during a pronouns.page check cancels the redirect', async ({
     // The stale answer is dropped: no error shown for the old values.
     await expect(page.getByText("Couldn't reach pronouns.page")).toHaveCount(0)
     await expect(page).toHaveURL(/\/$/)
+})
+
+test('/<name> fills the landing page name', async ({ page }) => {
+    await page.goto('/asher')
+    await expect(page).toHaveURL(/\/\?name=asher$/)
+    await expect(page.getByLabel(/^Name/)).toHaveValue('asher')
 })

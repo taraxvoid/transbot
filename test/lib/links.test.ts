@@ -2,19 +2,22 @@ import { describe, expect, it } from 'vitest'
 import {
     cardLink,
     entriesFromPracticePath,
+    isAutofillName,
     normalizeUsername,
     practiceLink,
     pronounQuery,
 } from '../../src/lib/links'
 
 describe('practiceLink', () => {
-    it('puts the encoded name in the path and the sets in one p', () => {
+    it('puts the encoded name in the path and the sets in one pronouns param', () => {
         const link = practiceLink(
             'Sam Lee',
             ['xe', 'she'],
             'https://transbot.net',
         )
-        expect(link).toBe('https://transbot.net/practice/Sam%20Lee?p=xe+she')
+        expect(link).toBe(
+            'https://transbot.net/practice/Sam%20Lee?pronouns=xe+she',
+        )
     })
 
     it.each(['Zoë', 'a/b', 'what?', 'x#y', '100%', 'Jo & Sam'])(
@@ -46,10 +49,10 @@ describe('practiceLink', () => {
 describe('pronounQuery', () => {
     it('joins sets with + and keeps slashes and colons readable', () => {
         expect(pronounQuery(['ne/nem/nir/nirs/nemself', 'she'])).toBe(
-            'p=ne/nem/nir/nirs/nemself+she',
+            'pronouns=ne/nem/nir/nirs/nemself+she',
         )
-        expect(pronounQuery([':Sam'])).toBe('p=:Sam')
-        expect(pronounQuery(['null'])).toBe('p=null')
+        expect(pronounQuery([':Sam'])).toBe('pronouns=:Sam')
+        expect(pronounQuery(['null'])).toBe('pronouns=null')
         expect(pronounQuery([' ', ''])).toBe('')
     })
 
@@ -83,20 +86,48 @@ describe('entriesFromPracticePath, links sent before short links', () => {
     })
 })
 
-describe('entriesFromPracticePath', () => {
+describe('entriesFromPracticePath, links sent before pronouns=', () => {
+    it('still reads p= the same as pronouns=', () => {
+        const old = entriesFromPracticePath('/practice/Sam', '?p=xe+she')
+        const now = entriesFromPracticePath('/practice/Sam', '?pronouns=xe+she')
+        expect(old).toEqual(now)
+        expect(now?.pronouns.map((p) => p.value)).toEqual(['xe', 'she'])
+    })
+
     it('splits a hand-typed p=xe&she into both sets', () => {
         const entries = entriesFromPracticePath('/practice/Sam', '?p=xe&she')
         expect(entries?.pronouns.map((p) => p.value)).toEqual(['xe', 'she'])
     })
+})
 
-    it('returns a name alone when p is missing', () => {
+describe('entriesFromPracticePath', () => {
+    it('splits a hand-typed pronouns=xe&she into both sets', () => {
+        const entries = entriesFromPracticePath(
+            '/practice/Sam',
+            '?pronouns=xe&she',
+        )
+        expect(entries?.pronouns.map((p) => p.value)).toEqual(['xe', 'she'])
+    })
+
+    it('reads p and pronouns together, in order', () => {
+        const entries = entriesFromPracticePath(
+            '/practice/Sam',
+            '?pronouns=xe&p=she',
+        )
+        expect(entries?.pronouns.map((p) => p.value)).toEqual(['xe', 'she'])
+    })
+
+    it('returns a name alone when pronouns are missing', () => {
         const entries = entriesFromPracticePath('/practice/Sam', '')
         expect(entries?.names[0].value).toBe('Sam')
         expect(entries?.pronouns).toEqual([])
     })
 
     it('ignores a stray n in the query', () => {
-        const entries = entriesFromPracticePath('/practice/Sam', '?n=Eve&p=xe')
+        const entries = entriesFromPracticePath(
+            '/practice/Sam',
+            '?n=Eve&pronouns=xe',
+        )
         expect(entries?.names[0].value).toBe('Sam')
     })
 
@@ -127,5 +158,15 @@ describe('normalizeUsername', () => {
         expect(normalizeUsername('')).toBeNull()
         expect(normalizeUsername('two words')).toBeNull()
         expect(normalizeUsername('..')).toBeNull()
+    })
+})
+
+describe('isAutofillName', () => {
+    it.each(['asher', 'Zoë', 'Sam Lee'])('accepts %s', (name) => {
+        expect(isAutofillName(name)).toBe(true)
+    })
+
+    it.each(['', 'favicon.ico', 'a'.repeat(65)])('refuses %j', (name) => {
+        expect(isAutofillName(name)).toBe(false)
     })
 })

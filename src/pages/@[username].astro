@@ -3,6 +3,8 @@ import { isValidUsername } from '../lib/links'
 
 export const prerender = false
 
+// /@username is only the passthrough to a pronouns.page card. Autofilling a
+// name on the landing page is /<name>.
 // 302, not 301: browsers cache 301s forever, and the route may change again.
 const username = Astro.params.username ?? ''
 if (!isValidUsername(username)) return Astro.redirect('/profile', 302)

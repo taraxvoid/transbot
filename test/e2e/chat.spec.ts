@@ -12,7 +12,7 @@ function chat(page: Page): Locator {
 }
 
 function sendButton(page: Page): Locator {
-    return chat(page).getByRole('button', { name: 'Send' })
+    return chat(page).locator('button.send')
 }
 
 /** Presses Send on every turn until the scene's end button shows up. */
@@ -21,10 +21,13 @@ async function playScene(page: Page): Promise<void> {
     const deadline = Date.now() + 15_000
     while (Date.now() < deadline) {
         if (await done.isVisible()) return
-        if (
-            (await sendButton(page).getAttribute('aria-disabled')) === 'false'
-        ) {
-            await sendButton(page).click()
+        // Match on the label too: the same button turns into Next chat when
+        // the scene ends, and clicking that here would skip a scene.
+        const ready = sendButton(page).and(
+            page.locator('[aria-label="Send"][aria-disabled="false"]'),
+        )
+        if (await ready.isVisible()) {
+            await ready.click({ timeout: 1000 }).catch(() => {})
         } else {
             await page.waitForTimeout(50)
         }
@@ -33,36 +36,43 @@ async function playScene(page: Page): Promise<void> {
 }
 
 test('a scene plays by tapping Send', async ({ page }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const panel = chat(page)
     await expect(
-        panel.getByRole('heading', { name: 'sandwich remuneration' }),
+        panel.getByRole('heading', {
+            name: 'sandwich remuneration for Quillon',
+        }),
+    ).toBeVisible()
+    await expect(panel.getByText('TransChat', { exact: true })).toBeVisible()
+    await expect(
+        panel.getByRole('heading', { name: 'Topic: sandwich remuneration' }),
     ).toBeVisible()
     await expect(
-        panel.getByText(
-            "I accidentally ate xyr sandwich, I didn't see it said Quillon",
-        ),
+        panel.getByText('I accidentally ate xyr sandwich the other day'),
     ).toBeVisible()
-    await expect(panel.getByText('I hope xe is not too peeved')).toBeVisible()
+    await expect(
+        panel.getByText('It even had a sign with Quillon on it and everything'),
+    ).toBeVisible()
     const compose = page.locator('#compose-text')
     await expect(compose).toHaveText(
-        'Buy xe two just in case (so I can snag one)',
+        'Buy xem two just in case (so I can snag one)',
     )
     await sendButton(page).click()
     const mine = panel.locator('.thread .me')
     await expect(mine).toHaveCount(1)
     await expect(mine).toContainText(
-        'Buy xe two just in case (so I can snag one)',
+        'Buy xem two just in case (so I can snag one)',
     )
     await expect(mine.getByText('Delivered')).toBeVisible()
     await expect(compose).toHaveText('')
     await expect(sendButton(page)).toHaveAttribute('aria-disabled', 'true')
+    await expect(sendButton(page)).toHaveAccessibleName('Send')
 })
 
 test('Next chat runs through to the end and Start over restarts', async ({
     page,
 }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     for (let scene = 0; scene < 3; scene++) {
         await playScene(page)
         const next = page.getByRole('button', { name: 'Next chat' })
@@ -78,7 +88,9 @@ test('Next chat runs through to the end and Start over restarts', async ({
     await expect(again).toBeFocused()
     await again.click()
     await expect(
-        chat(page).getByRole('heading', { name: 'sandwich remuneration' }),
+        chat(page).getByRole('heading', {
+            name: 'sandwich remuneration for Quillon',
+        }),
     ).toBeVisible()
     await expect(sendButton(page)).toBeFocused()
 })
@@ -88,7 +100,7 @@ test('the last chat offers to share this link or make your own', async ({
     context,
     browserName,
 }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const box = page.getByRole('region', { name: 'Pass it on' })
     for (let scene = 0; scene < 3; scene++) {
         await playScene(page)
@@ -102,11 +114,11 @@ test('the last chat offers to share this link or make your own', async ({
     await expect(
         box.getByRole('link', { name: 'Make your own' }),
     ).toHaveAttribute('href', '/')
-    // The link itself, selectable for when Copy fails.
-    await expect(box.getByRole('link', { name: page.url() })).toHaveAttribute(
-        'href',
-        page.url(),
-    )
+    // No raw link; it only shows if Copy fails.
+    await expect(box.getByRole('link', { name: page.url() })).toHaveCount(0)
+    await expect(
+        box.getByRole('link', { name: 'Share on WhatsApp' }),
+    ).toBeVisible()
     const canShare = await page.evaluate(
         () => typeof navigator.share === 'function',
     )
@@ -125,7 +137,7 @@ test('the last chat offers to share this link or make your own', async ({
 })
 
 test('the keyboard alone can play a scene', async ({ page }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     await expect(sendButton(page)).toHaveAttribute('aria-disabled', 'false')
     await sendButton(page).focus()
     await page.keyboard.press('Enter')
@@ -139,7 +151,7 @@ test('the keyboard alone can play a scene', async ({ page }) => {
 })
 
 test('rapid Send clicks never skip or repeat lines', async ({ page }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     await expect(sendButton(page)).toHaveAttribute('aria-disabled', 'false')
     for (let i = 0; i < 5; i++) await sendButton(page).click({ force: true })
     const mine = chat(page).locator('.thread .me')
@@ -148,38 +160,65 @@ test('rapid Send clicks never skip or repeat lines', async ({ page }) => {
     expect(new Set(texts).size).toBe(texts.length)
 })
 
+/** Pins the roll that picks which of the person's sets a chat is about. */
+async function pinRoll(page: Page, roll: number): Promise<void> {
+    await page.addInitScript((value) => {
+        Math.random = () => value
+    }, roll)
+}
+
 test('/profile/testcard renders the chat about Sam with xe', async ({
     page,
 }) => {
+    // A high roll is the primary set; xe/xem is the card's first set.
+    await pinRoll(page, 0.99)
     await page.goto('/profile/testcard')
     await expect(
-        chat(page).getByText(
-            "I accidentally ate xyr sandwich, I didn't see it said Sam",
-        ),
+        chat(page).getByText('I accidentally ate xyr sandwich the other day'),
     ).toBeVisible()
     await expect(
-        chat(page).getByText('I hope xe is not too peeved'),
+        chat(page).getByText(
+            'It even had a sign with Sam on it and everything',
+        ),
+    ).toBeVisible()
+})
+
+test('/profile/testcard can chat about Sam with her secondary set', async ({
+    page,
+}) => {
+    // A low roll lands on the first secondary set, she/her.
+    await pinRoll(page, 0)
+    await page.goto('/profile/testcard')
+    await expect(
+        chat(page).getByText('I accidentally ate her sandwich the other day'),
+    ).toBeVisible()
+    await expect(
+        chat(page).getByText(
+            'It even had a sign with Sam on it and everything',
+        ),
     ).toBeVisible()
 })
 
 test('a name-only link chats with the name', async ({ page }) => {
-    await page.goto('/practice/Tara?p=null')
+    await page.goto('/practice/Tara?pronouns=null')
     await expect(
         chat(page).getByText(
-            "I accidentally ate Tara's sandwich, I didn't see it said Tara",
+            "I accidentally ate Tara's sandwich the other day",
         ),
     ).toBeVisible()
     await expect(
-        chat(page).getByText('I hope Tara is not too peeved'),
+        chat(page).getByText(
+            'It even had a sign with Tara on it and everything',
+        ),
     ).toBeVisible()
 })
 
 const LONG = 'Wolfeschlegelsteinhausenbergerdorff'
 
 for (const path of [
-    `/practice/${LONG}?p=xe`,
+    `/practice/${LONG}?pronouns=xe`,
     `/practice/${LONG}`,
-    `/practice/${LONG}?p=ask-me`,
+    `/practice/${LONG}?pronouns=ask-me`,
 ]) {
     test(`a long name never scrolls ${path} sideways at 360px`, async ({
         page,
@@ -187,7 +226,7 @@ for (const path of [
         await page.setViewportSize({ width: 360, height: 740 })
         await page.goto(path)
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-        if (path.endsWith('?p=xe')) await sendButton(page).click()
+        if (path.endsWith('?pronouns=xe')) await sendButton(page).click()
         const width = await page.evaluate(
             () => document.documentElement.scrollWidth,
         )
@@ -196,16 +235,16 @@ for (const path of [
 }
 
 test('the thread can take keyboard focus to scroll', async ({ page }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const thread = chat(page).getByRole('log', { name: 'Messages' })
     await thread.focus()
     await expect(thread).toBeFocused()
 })
 
 test('the forms box lists the five forms with IPA', async ({ page }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     const box = page.locator('details.forms')
-    await expect(box.locator('summary')).toHaveText('All forms of xe/xem')
+    await expect(box.locator('summary')).toContainText('Cheat sheet: xe/xem')
     await box.locator('summary').click()
     for (const [term, value] of [
         ['Subject', 'xe /zi/'],
@@ -233,7 +272,7 @@ test('the forms box lists what else is fine', async ({ page }) => {
 test('reduced motion still pauses on a static ellipsis before each bubble', async ({
     page,
 }) => {
-    await page.goto('/practice/Quillon?p=xe')
+    await page.goto('/practice/Quillon?pronouns=xe')
     await expect(chat(page).locator('.typing')).toBeVisible()
     await expect(chat(page).locator('.typing .dot').first()).toHaveCSS(
         'animation-name',
@@ -247,7 +286,7 @@ test.describe('with motion', () => {
     test.use({ reducedMotion: 'no-preference' })
 
     test('friends type before each bubble', async ({ page }) => {
-        await page.goto('/practice/Quillon?p=xe')
+        await page.goto('/practice/Quillon?pronouns=xe')
         await expect(chat(page).locator('.typing')).toBeVisible()
         await expect(chat(page).locator('.thread .them')).toHaveCount(0)
         await expect(chat(page).locator('.thread .them').first()).toBeVisible()

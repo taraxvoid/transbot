@@ -172,6 +172,7 @@ export function needsLookup(value: string): boolean {
 /** "he/him" for a value parsePronounInput makes, else the value itself. */
 export function pronounLabel(value: string): string {
     if (value === 'null') return 'name only'
+    if (value === ':void') return "void/void's"
     return KNOWN_SETS.find((s) => s.value === value)?.label ?? value
 }
 

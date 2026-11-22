@@ -4,7 +4,6 @@ import { summarize } from '../lib/pronouns/identity'
 import { needsLookup } from '../lib/pronouns/parse'
 import type { Identity } from '../lib/pronouns/types'
 import { pronounPicker } from './picker'
-import { markJustMade } from './share'
 
 type Lookup =
     | { kind: 'found'; identity: Identity }
@@ -28,6 +27,10 @@ const pronounsFieldset = byId('b-pronouns')
 const pronounsError = byId('b-pronouns-error')
 const builderStatus = byId('builder-status')
 
+// /<name> redirects to /?name=<name>: fill the builder's name from it.
+const nameParam = new URLSearchParams(window.location.search).get('name')
+if (nameParam?.trim()) builderName.value = nameParam.trim().slice(0, 64)
+
 const CHECKING = 'Checking pronouns.page...'
 
 /** Shows `message` on a field, or clears it when `message` is empty. */
@@ -44,10 +47,9 @@ function setError(
     else field.removeAttribute('aria-invalid')
 }
 
-/** Goes to a link just made here, so its page offers Copy and Share. */
+/** Goes to a link just made here. */
 function goTo(href: string): void {
     const url = new URL(href, window.location.origin)
-    markJustMade(url.pathname + url.search)
     window.location.assign(url)
 }
 
