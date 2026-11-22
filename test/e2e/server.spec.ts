@@ -102,21 +102,43 @@ test('/tara points at /profile/taravie', async ({ request }) => {
     expect(response.headers().location).toBe('/profile/taravie')
 })
 
+test('/profile/testcard links to the pronouns.page profile', async ({
+    page,
+}) => {
+    await page.goto('/profile/testcard')
+    const link = page.locator('#pronouns-page-profile-link')
+    await expect(link).toHaveAttribute(
+        'href',
+        'https://en.pronouns.page/@testcard',
+    )
+    await expect(link).toHaveAttribute('target', '_blank')
+})
+
 test('/@testcard redirects to /profile/testcard', async ({ request }) => {
     const response = await request.get('/@testcard', { maxRedirects: 0 })
     expect(response.status()).toBe(302)
     expect(response.headers().location).toBe('/profile/testcard')
 })
 
-test('/@Sam?p=she opens a practice link', async ({ request }) => {
+test('/@Sam?p=she is still only the pronouns.page passthrough', async ({
+    request,
+}) => {
     const response = await request.get('/@Sam?p=she', { maxRedirects: 0 })
     expect(response.status()).toBe(302)
-    expect(response.headers().location).toBe('/practice/Sam?p=she')
+    expect(response.headers().location).toBe('/profile/Sam')
 })
 
-test('/@Sam keeps repeated and combined p params', async ({ request }) => {
-    const response = await request.get('/@Sam?p=she+they', { maxRedirects: 0 })
-    expect(response.headers().location).toBe('/practice/Sam?p=she+they')
+test('/asher redirects to the landing page with the name filled in', async ({
+    request,
+}) => {
+    const response = await request.get('/asher', { maxRedirects: 0 })
+    expect(response.status()).toBe(302)
+    expect(response.headers().location).toBe('/?name=asher')
+})
+
+test('/%C3%81sher keeps the name encoded', async ({ request }) => {
+    const response = await request.get('/%C3%81sher', { maxRedirects: 0 })
+    expect(response.headers().location).toBe('/?name=%C3%81sher')
 })
 
 test('alias lookup is case-insensitive and unknown names 404', async ({
@@ -125,7 +147,7 @@ test('alias lookup is case-insensitive and unknown names 404', async ({
     const hit = await request.get('/TARA', { maxRedirects: 0 })
     expect(hit.status()).toBe(302)
     expect(hit.headers().location).toBe('/profile/taravie')
-    const miss = await request.get('/nobody-here')
+    const miss = await request.get('/apple-touch-icon.png')
     expect(miss.status()).toBe(404)
     expect(await miss.text()).toContain('Page not found')
 })

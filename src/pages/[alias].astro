@@ -1,13 +1,21 @@
 ---
 import { resolveAlias } from '../lib/aliases'
+import { isAutofillName } from '../lib/links'
 
 export const prerender = false
 
 // Static routes (/practice, /profile, /api, /@name) win over this one, so an
 // alias can't shadow them; test/lib/aliases.test.ts checks that too.
 // 302, not 301: browsers cache 301s forever, and the alias may change.
-const target = resolveAlias(Astro.params.alias ?? '')
+// /<alias> jumps to that person's page; any other /<name> opens the landing
+// page with the name filled in (transbot.net/asher).
+const raw = Astro.params.alias ?? ''
+const target = resolveAlias(raw)
 if (target) return Astro.redirect(target, 302)
+const name = raw.trim()
+if (isAutofillName(name)) {
+    return Astro.redirect(`/?name=${encodeURIComponent(name)}`, 302)
+}
 // A bodiless 404 from a page is rendered as src/pages/404.astro.
 return new Response(null, { status: 404 })
 ---

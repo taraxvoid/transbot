@@ -9,6 +9,14 @@ export function isValidUsername(value: string): boolean {
 }
 
 /**
+ * Names `/<name>` may autofill on the landing page. Anything with a dot is
+ * refused so stray requests for files (`/apple-touch-icon.png`) still 404.
+ */
+export function isAutofillName(value: string): boolean {
+    return value.length > 0 && value.length <= 64 && !value.includes('.')
+}
+
+/**
  * `pronouns=she+they`: one param, sets joined with `+`, slashes and colons left
  * readable. `+` reads back as a space, and parsePronounInput splits on
  * whitespace and never returns a value with whitespace, `+`, `&` or `,` in

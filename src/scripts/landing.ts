@@ -27,6 +27,10 @@ const pronounsFieldset = byId('b-pronouns')
 const pronounsError = byId('b-pronouns-error')
 const builderStatus = byId('builder-status')
 
+// /<name> redirects to /?name=<name>: fill the builder's name from it.
+const nameParam = new URLSearchParams(window.location.search).get('name')
+if (nameParam?.trim()) builderName.value = nameParam.trim().slice(0, 64)
+
 const CHECKING = 'Checking pronouns.page...'
 
 /** Shows `message` on a field, or clears it when `message` is empty. */
