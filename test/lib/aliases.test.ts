@@ -4,8 +4,8 @@ import { ALIASES, resolveAlias } from '../../src/lib/aliases'
 
 describe('aliases', () => {
     it('resolves case-insensitively', () => {
-        expect(resolveAlias('tara')).toBe('/profile/taravie')
-        expect(resolveAlias('TARA')).toBe('/profile/taravie')
+        expect(resolveAlias('tara')).toBe('/profile/taraxvoid')
+        expect(resolveAlias('TARA')).toBe('/profile/taraxvoid')
     })
 
     it('returns null for unknown names and prototype keys', () => {
