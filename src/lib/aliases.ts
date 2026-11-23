@@ -5,7 +5,7 @@
  * Add someone with one line here plus a row in test/lib/aliases.test.ts.
  */
 export const ALIASES: Readonly<Record<string, string>> = {
-    tara: '/profile/taravie',
+    tara: '/profile/taraxvoid',
 }
 
 /** Case-insensitive; null for unknown names. Own-property check so `constructor` etc. 404. */

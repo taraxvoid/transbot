@@ -139,18 +139,18 @@ describe('entriesFromPracticePath', () => {
 
 describe('cardLink', () => {
     it('builds the /profile link', () => {
-        expect(cardLink('taravie', 'https://transbot.net')).toBe(
-            'https://transbot.net/profile/taravie',
+        expect(cardLink('taraxvoid', 'https://transbot.net')).toBe(
+            'https://transbot.net/profile/taraxvoid',
         )
     })
 })
 
 describe('normalizeUsername', () => {
     it('accepts a bare name, an @name and a pasted profile URL', () => {
-        expect(normalizeUsername(' taravie ')).toBe('taravie')
-        expect(normalizeUsername('@taravie')).toBe('taravie')
-        expect(normalizeUsername('https://en.pronouns.page/@taravie/')).toBe(
-            'taravie',
+        expect(normalizeUsername(' taraxvoid ')).toBe('taraxvoid')
+        expect(normalizeUsername('@taraxvoid')).toBe('taraxvoid')
+        expect(normalizeUsername('https://en.pronouns.page/@taraxvoid/')).toBe(
+            'taraxvoid',
         )
     })
 

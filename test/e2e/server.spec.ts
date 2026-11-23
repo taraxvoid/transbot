@@ -96,10 +96,10 @@ test('a card name with HTML renders as text', async ({ page }) => {
     expect(dialog).toBe(false)
 })
 
-test('/tara points at /profile/taravie', async ({ request }) => {
+test('/tara points at /profile/taraxvoid', async ({ request }) => {
     const response = await request.get('/tara', { maxRedirects: 0 })
     expect(response.status()).toBe(302)
-    expect(response.headers().location).toBe('/profile/taravie')
+    expect(response.headers().location).toBe('/profile/taraxvoid')
 })
 
 test('/profile/testcard links to the pronouns.page profile', async ({
@@ -146,7 +146,7 @@ test('alias lookup is case-insensitive and unknown names 404', async ({
 }) => {
     const hit = await request.get('/TARA', { maxRedirects: 0 })
     expect(hit.status()).toBe(302)
-    expect(hit.headers().location).toBe('/profile/taravie')
+    expect(hit.headers().location).toBe('/profile/taraxvoid')
     const miss = await request.get('/apple-touch-icon.png')
     expect(miss.status()).toBe(404)
     expect(await miss.text()).toContain('Page not found')
