@@ -5,16 +5,63 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, closed]
   workflow_dispatch:
 
 permissions:
   contents: read
   pull-requests: read
 
+# A close event cancels any older run of the same PR, so a run still validating
+# can't recreate the preview after the close run deleted it. Pushes to main
+# queue, never cancel.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
     uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
+
+  preview:
+    name: Preview
+    needs: validate
+    # Same-repo PRs only: fork PRs get no secrets. validate is skipped on
+    # `closed`, so cleanup must not wait for it to succeed.
+    if: >-
+      !cancelled()
+      && github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && (github.event.action == 'closed' || needs.validate.result == 'success')
+    runs-on: ubuntu-latest
+    environment: preview
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event.action != 'closed'
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        if: github.event.action != 'closed'
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        if: github.event.action != 'closed'
+        env:
+          CLOUDFLARE_ENV: preview
+        run: bun run build
+
+      - uses: taraxvoid/voidflow/actions/cloudflare-preview@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
+        with:
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          env: preview # Previews under transbot-preview, not the prod Worker
+          github-token: ${{ github.token }}
+          delete: ${{ github.event.action == 'closed' }}
 
   deploy:
     name: Deploy

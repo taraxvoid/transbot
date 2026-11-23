@@ -7,6 +7,9 @@ export default defineConfig({
     // `export const prerender = false`.
     output: 'static',
     devToolbar: { enabled: false },
+    // Nothing here uses Astro sessions. Without this the adapter adds a SESSION KV
+    // binding with no namespace id, which `wrangler preview` rejects (code 10021).
+    session: false,
     adapter: cloudflare({ imageService: 'passthrough' }),
     vite: {
         optimizeDeps: {
