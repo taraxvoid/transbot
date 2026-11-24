@@ -24,11 +24,11 @@ export function qrImage(url: string, caption: string): QrImage {
     const width = size + QUIET * 2
     const height = width + CAPTION_HEIGHT
     let path = ''
-    for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-            if (grid[y][x]) path += `M${x + QUIET} ${y + QUIET}h1v1h-1z`
-        }
-    }
+    grid.forEach((row, y) => {
+        row.forEach((dark, x) => {
+            if (dark) path += `M${x + QUIET} ${y + QUIET}h1v1h-1z`
+        })
+    })
     const label = caption
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
