@@ -62,13 +62,11 @@ async function readCard(res: Response): Promise<Lookup> {
 
 /** Never rejects: a network or parse failure is an 'error' lookup. */
 async function fetchCard(name: string): Promise<Lookup> {
-    try {
-        const res = await fetch(`/api/card/${encodeURIComponent(name)}`)
-        const lookup = await readCard(res)
-        return lookup
-    } catch {
-        return { kind: 'error' }
-    }
+    const res = await fetch(`/api/card/${encodeURIComponent(name)}`).catch(
+        () => null,
+    )
+    if (!res) return { kind: 'error' }
+    return readCard(res).catch((): Lookup => ({ kind: 'error' }))
 }
 
 function lookupProblem(lookup: Lookup): string | null {
