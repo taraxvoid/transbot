@@ -69,9 +69,9 @@ jobs:
     if: github.event_name == 'push'
     environment: prod
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false
+    # No job-level concurrency: it would share the workflow-level group on
+    # push (same key) and deadlock. The workflow-level group already queues
+    # pushes to main without cancelling.
     steps:
       - id: env
         uses: taraxvoid/voidflow/actions/branch-env-map@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
