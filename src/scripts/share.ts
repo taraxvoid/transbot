@@ -132,12 +132,15 @@ function svgToPng(svg: string, width: number, height: number): Promise<Blob> {
             canvas.height = height * 20
             const ctx = canvas.getContext('2d')
             URL.revokeObjectURL(objectUrl)
-            if (!ctx) return reject(new Error('no canvas'))
+            if (!ctx) {
+                reject(new Error('no canvas'))
+                return
+            }
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-            canvas.toBlob(
-                (blob) => (blob ? resolve(blob) : reject(new Error('no png'))),
-                'image/png',
-            )
+            canvas.toBlob((blob) => {
+                if (blob) resolve(blob)
+                else reject(new Error('no png'))
+            }, 'image/png')
         }
         img.onerror = () => {
             URL.revokeObjectURL(objectUrl)
