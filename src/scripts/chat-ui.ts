@@ -15,6 +15,8 @@ import { el } from './dom'
 export type ChatOptions = {
     reduceMotion: boolean
     rng?: () => number
+    /** Called as each scene starts, with the set that scene is about. */
+    onScene?: (person: Person) => void
     /** Shown under Start over once the last chat ends. */
     endExtra?: () => Node
 }
@@ -61,7 +63,7 @@ export function mountChat(
     person: Person,
     options: ChatOptions,
 ): void {
-    const { reduceMotion, rng = Math.random, endExtra } = options
+    const { reduceMotion, rng = Math.random, endExtra, onScene } = options
     const behavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth'
 
     const group = el('h2', { class: 'chat-group' })
@@ -202,6 +204,7 @@ export function mountChat(
         const scene = session.at(index)
         if (!scene) return
         const friends = friendsIn(scene)
+        onScene?.(scene.person)
         group.replaceChildren(
             el('span', { class: 'topic-label' }, 'Topic: '),
             scene.group,

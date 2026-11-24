@@ -9,7 +9,13 @@ export type RenderedLine = {
     sender: string
     text: string
 }
-export type RenderedScene = { id: string; group: string; lines: RenderedLine[] }
+export type RenderedScene = {
+    id: string
+    group: string
+    lines: RenderedLine[]
+    /** The set this scene is about, so the UI can show its forms. */
+    person: Person
+}
 
 /**
  * Who the chat is about, or null when there is nothing to practice (ask-me
@@ -40,7 +46,15 @@ export function chatPerson(identity: Identity): Person | null {
 }
 
 function personFor(set: PronounSet, name: string | null): Person {
-    return { name, forms: set.forms, plural: set.plural }
+    return {
+        name,
+        forms: set.forms,
+        plural: set.plural,
+        ...(set.kind === 'pronouns' && {
+            label: set.label,
+            pronunciations: set.pronunciations,
+        }),
+    }
 }
 
 /**
@@ -69,6 +83,7 @@ export function renderScene(
     return {
         id: scene.id,
         group: fill(scene.group, person),
+        person,
         lines: scene.lines.map((line) => ({
             from: line.from,
             sender: senders[line.from],

@@ -6,6 +6,19 @@ import {
     typingDelay,
 } from '../../src/lib/scenes/playback'
 import type { RenderedScene } from '../../src/lib/scenes/render'
+import type { Person } from '../../src/lib/scenes/template'
+
+const PERSON: Person = {
+    name: null,
+    forms: {
+        pronoun_subject: 'xe',
+        pronoun_object: 'xem',
+        possessive_determiner: 'xyr',
+        possessive_pronoun: 'xyrs',
+        reflexive: 'xemself',
+    },
+    plural: false,
+}
 
 describe('typingDelay', () => {
     it('clamps 600 + 25 per character to 800..1800', () => {
@@ -20,6 +33,7 @@ describe('stepsFor', () => {
         const scene: RenderedScene = {
             id: 's',
             group: 'G',
+            person: PERSON,
             lines: [
                 { from: 'a', sender: 'Alex', text: 'one' },
                 { from: 'a', sender: 'Alex', text: 'two' },
@@ -47,6 +61,7 @@ describe('stepsFor', () => {
         const scene: RenderedScene = {
             id: 's',
             group: 'G',
+            person: PERSON,
             lines: [{ from: 'a', sender: 'Alex', text: 'x'.repeat(20) }],
         }
         const [step] = stepsFor(scene)
