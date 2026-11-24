@@ -260,6 +260,8 @@ test('the forms box lists the five forms with IPA', async ({ page }) => {
 })
 
 test('the forms box lists what else is fine', async ({ page }) => {
+    // A high roll is the primary set, so every other set is listed.
+    await pinRoll(page, 0.99)
     await page.goto('/profile/testcard')
     const box = page.locator('details.forms')
     await box.locator('summary').click()
@@ -267,6 +269,19 @@ test('the forms box lists what else is fine', async ({ page }) => {
     for (const text of ['Sammy', 'she/her', 'they/them']) {
         await expect(also).toContainText(text)
     }
+})
+
+test('the forms box follows the set a scene is about', async ({ page }) => {
+    // A low roll lands on she/her, the card's first secondary set.
+    await pinRoll(page, 0)
+    await page.goto('/profile/testcard')
+    const box = page.locator('details.forms')
+    await expect(box.locator('summary')).toContainText('Cheat sheet: she/her')
+    await box.locator('summary').click()
+    await expect(box.locator('dt:text-is("Subject") + dd')).toHaveText('she')
+    await expect(box.locator('dt:text-is("Also fine") + dd')).toContainText(
+        'xe/xem',
+    )
 })
 
 test('reduced motion still pauses on a static ellipsis before each bubble', async ({

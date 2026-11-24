@@ -1,4 +1,9 @@
-import { FORM_KEYS, type FormKey, type Forms } from '../pronouns/types'
+import {
+    FORM_KEYS,
+    type FormKey,
+    type Forms,
+    type Pronunciations,
+} from '../pronouns/types'
 
 /** Who the chat is about, already resolved from the identity. */
 export type Person = {
@@ -6,6 +11,10 @@ export type Person = {
     name: string | null
     forms: Forms
     plural: boolean
+    /** "xe/xem" for a pronoun set; absent for a name-only person. */
+    label?: string
+    /** IPA for this set's forms, if pronouns.page has any. */
+    pronunciations?: Pronunciations
     /** Other yes sets, each used in some scenes instead of the primary. */
     secondary?: Person[]
 }

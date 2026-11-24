@@ -1,5 +1,5 @@
 import { modeledSet, setLabel } from '../lib/pronouns/identity'
-import type { Identity, PronounSet } from '../lib/pronouns/types'
+import type { Identity } from '../lib/pronouns/types'
 import { chatPerson } from '../lib/scenes/render'
 import type { Person } from '../lib/scenes/template'
 import { mountChat } from './chat-ui'
@@ -19,7 +19,8 @@ export function mountPractice(
         shareBar(window.location.href),
     ]
     if (identity.askMe) children.push(askMeNote(name, identity.askMe))
-    if (person) children.push(formsBox(identity, person))
+    const forms = person ? formsBox(identity, person) : null
+    if (forms) children.push(forms.box)
     const chat = person ? el('div', { class: 'chat-mount' }) : null
     if (chat) children.push(chat)
     root.replaceChildren(...children)
@@ -28,15 +29,11 @@ export function mountPractice(
             reduceMotion: window.matchMedia('(prefers-reduced-motion: reduce)')
                 .matches,
             rng,
+            onScene: forms?.show,
             // The URL the visitor is already on, as is.
             endExtra: () => endShare(window.location.href),
         })
     }
-}
-
-/** Pronouns as the label shows them, or null for name-only. */
-function pronounLabel(modeled: PronounSet | null): string | null {
-    return modeled && modeled.kind !== 'name' ? modeled.label : null
 }
 
 /** Every yes pronoun set, primary first. Name sets don't count. */
@@ -57,60 +54,79 @@ function heading(identity: Identity, person: Person | null): string {
     return pronouns ? `${name} uses ${pronouns}` : `${name} uses no pronouns`
 }
 
-/** Other names and every set besides the modeled one, yes before meh. */
-function alsoFine(identity: Identity, modeled: PronounSet | null): string[] {
+/** Other names and every set besides the one this scene is about. */
+function alsoFine(identity: Identity, person: Person): string[] {
     const { preferred, accepted } = identity.names
     return [
         ...accepted.filter((n) => n !== preferred),
-        ...identity.sets.filter((s) => s !== modeled).map(setLabel),
+        ...identity.sets
+            .filter((s) =>
+                s.kind === 'name' ? !!person.label : s.label !== person.label,
+            )
+            .map(setLabel),
     ]
 }
 
-/** Collapsed reference card: the five forms in use, with IPA. Not graded. */
-function formsBox(identity: Identity, person: Person): HTMLElement {
-    const modeled = modeledSet(identity)
-    const pronouns = pronounLabel(modeled)
-    const forms = person.forms
-    const ipa = modeled?.pronunciations ?? {}
-    const rows: Array<[string, string, string | undefined]> = [
-        ['Subject', forms.pronoun_subject, ipa.pronoun_subject],
-        ['Object', forms.pronoun_object, ipa.pronoun_object],
-        ['Possessive', forms.possessive_determiner, ipa.possessive_determiner],
-        [
-            'Possessive pronoun',
-            forms.possessive_pronoun,
-            ipa.possessive_pronoun,
-        ],
-        ['Reflexive', forms.reflexive, ipa.reflexive],
-    ]
+/**
+ * Collapsed reference card: the five forms the current scene uses, with IPA.
+ * Not graded. `show` swaps in another set (each scene may be about a
+ * different one) without closing the card.
+ */
+function formsBox(
+    identity: Identity,
+    person: Person,
+): { box: HTMLElement; show: (person: Person) => void } {
+    const title = el('span')
     const list = el('dl')
-    for (const [term, form, sound] of rows) {
-        list.append(
-            el('dt', {}, term),
-            el('dd', {}, sound ? `${form} /${sound}/` : form),
-        )
-    }
-    const others = alsoFine(identity, modeled)
-    if (others.length) {
-        list.append(el('dt', {}, 'Also fine'), el('dd', {}, others.join(', ')))
-    }
-    return el(
+    const box = el(
         'details',
         { class: 'forms' },
         el(
             'summary',
             {},
-            el(
-                'span',
-                {},
-                pronouns
-                    ? `Cheat sheet: ${pronouns}`
-                    : 'Cheat sheet: name only',
-            ),
+            title,
             el('span', { class: 'forms-hint' }, 'Forms to use in this scene'),
         ),
         list,
     )
+    function show(who: Person): void {
+        const forms = who.forms
+        const ipa = who.pronunciations ?? {}
+        const rows: Array<[string, string, string | undefined]> = [
+            ['Subject', forms.pronoun_subject, ipa.pronoun_subject],
+            ['Object', forms.pronoun_object, ipa.pronoun_object],
+            [
+                'Possessive',
+                forms.possessive_determiner,
+                ipa.possessive_determiner,
+            ],
+            [
+                'Possessive pronoun',
+                forms.possessive_pronoun,
+                ipa.possessive_pronoun,
+            ],
+            ['Reflexive', forms.reflexive, ipa.reflexive],
+        ]
+        title.textContent = who.label
+            ? `Cheat sheet: ${who.label}`
+            : 'Cheat sheet: name only'
+        list.replaceChildren()
+        for (const [term, form, sound] of rows) {
+            list.append(
+                el('dt', {}, term),
+                el('dd', {}, sound ? `${form} /${sound}/` : form),
+            )
+        }
+        const others = alsoFine(identity, who)
+        if (others.length) {
+            list.append(
+                el('dt', {}, 'Also fine'),
+                el('dd', {}, others.join(', ')),
+            )
+        }
+    }
+    show(person)
+    return { box, show }
 }
 
 function askMeNote(
