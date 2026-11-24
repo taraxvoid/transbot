@@ -164,6 +164,9 @@ test('the form redirects to a working practice link with Copy link', async ({
     )
     // The raw link stays hidden unless Copy fails.
     await expect(bar.getByRole('textbox')).toHaveCount(0)
+    const download = page.waitForEvent('download')
+    await bar.getByRole('button', { name: 'Download QR code' }).click()
+    expect((await download).suggestedFilename()).toBe('transbot-qr.png')
     // Compact, right under the heading.
     expect(
         await page.evaluate(
