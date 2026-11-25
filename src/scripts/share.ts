@@ -1,3 +1,4 @@
+import { qrImage } from '../lib/qr'
 import { el } from './dom'
 
 /** What the share sheet suggests: the sharer may not be the person named. */
@@ -118,6 +119,55 @@ function copyButton(
     return button
 }
 
+/** Renders the SVG to a PNG blob: badge printers and chat apps take PNG. */
+function svgToPng(svg: string, width: number, height: number): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+        const img = new Image()
+        const objectUrl = URL.createObjectURL(
+            new Blob([svg], { type: 'image/svg+xml' }),
+        )
+        img.onload = () => {
+            const canvas = document.createElement('canvas')
+            canvas.width = width * 20
+            canvas.height = height * 20
+            const ctx = canvas.getContext('2d')
+            URL.revokeObjectURL(objectUrl)
+            if (!ctx) {
+                reject(new Error('no canvas'))
+                return
+            }
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+            canvas.toBlob((blob) => {
+                if (blob) resolve(blob)
+                else reject(new Error('no png'))
+            }, 'image/png')
+        }
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl)
+            reject(new Error('svg failed to load'))
+        }
+        img.src = objectUrl
+    })
+}
+
+function qrButton(url: string, status: HTMLElement): HTMLButtonElement {
+    const button = el('button', { type: 'button' }, 'Download QR code')
+    button.addEventListener('click', () => {
+        const { svg, width, height } = qrImage(url, 'transbot.net')
+        svgToPng(svg, width, height)
+            .then((blob) => {
+                const href = URL.createObjectURL(blob)
+                el('a', { href, download: 'transbot-qr.png' }).click()
+                URL.revokeObjectURL(href)
+                status.textContent = 'QR code downloaded'
+            })
+            .catch(() => {
+                status.textContent = 'Could not make the QR code'
+            })
+    })
+    return button
+}
+
 function shareButton(url: string, text: string): HTMLButtonElement | null {
     const data = { url, text }
     if (typeof navigator.share !== 'function') return null
@@ -167,6 +217,7 @@ export function shareActions(
     )
     const share = shareButton(url, text)
     if (share) row.append(share)
+    row.append(qrButton(url, status))
     // One group, so on a narrow screen the icons wrap together.
     row.append(
         el(
