@@ -2,3 +2,4 @@
 bun = "latest"
 node = "24.21.0"
 lefthook = "2.1.16"
+fnox = "1.50.0"
