@@ -9,7 +9,7 @@ type = "keychain"
 service = "fnox"
 
 [secrets]
-CF_TOKEN_ADMIN= { provider = "cf-admin", value = "voidptr-admin-mint-tokens", description = "User-owned Cloudflare token for voidflow's cf-tokens verbs. Local only, never CI.", if_missing = "error", env=false}
+CF_TOKEN_ADMIN= { provider = "cf-admin", value = "voidflow-cf-token-admin:taraxvoid/transbot", description = "User-owned Cloudflare token for voidflow's cf-tokens verbs. Local only, never CI.", if_missing = "error", env = false }
 
 [proxy]
     egress = "permissive"
