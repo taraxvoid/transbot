@@ -50,3 +50,5 @@ npm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+.env*
