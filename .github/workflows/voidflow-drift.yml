@@ -1,4 +1,4 @@
-# Written by voidflow v1.4.0: https://www.npmjs.com/package/@taraxvoid/voidflow
+# Written by voidflow v1.5.0: https://www.npmjs.com/package/@taraxvoid/voidflow
 # Set up a repo the same way: npx @taraxvoid/voidflow init --kind site --apply
 # Checks GitHub against voidflow.config.ts after each push to main and weekly,
 # and keeps one issue open while they differ (closed once back in sync).
@@ -19,4 +19,4 @@ jobs:
       contents: read
       issues: write # the drift issue
       actions: read # environments
-    uses: taraxvoid/voidflow/.github/workflows/voidflow-drift.yml@07588f7e7f76993983682b29aecea75aeacb1626 # v1.4.0
+    uses: taraxvoid/voidflow/.github/workflows/voidflow-drift.yml@6debbf253b3514375d712af47d1007546bd7b79a # v1.5.0
