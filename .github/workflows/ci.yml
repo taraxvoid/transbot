@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   validate:
-    uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
+    uses: taraxvoid/voidflow/.github/workflows/site-ci.yml@6debbf253b3514375d712af47d1007546bd7b79a # v1.5.0
 
   preview:
     name: Preview
@@ -55,7 +55,7 @@ jobs:
           CLOUDFLARE_ENV: preview
         run: bun run build
 
-      - uses: taraxvoid/voidflow/actions/cloudflare-preview@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
+      - uses: taraxvoid/voidflow/actions/cloudflare-preview@6debbf253b3514375d712af47d1007546bd7b79a # v1.5.0
         with:
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -74,7 +74,7 @@ jobs:
     # pushes to main without cancelling.
     steps:
       - id: env
-        uses: taraxvoid/voidflow/actions/branch-env-map@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
+        uses: taraxvoid/voidflow/actions/branch-env-map@6debbf253b3514375d712af47d1007546bd7b79a # v1.5.0
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -87,7 +87,7 @@ jobs:
         run: bun run build
 
       - name: Deploy
-        uses: taraxvoid/voidflow/actions/cloudflare-deploy@37f85fd417f77b527d5ad4399e43ff2e5d04cdae # v1.1.0
+        uses: taraxvoid/voidflow/actions/cloudflare-deploy@6debbf253b3514375d712af47d1007546bd7b79a # v1.5.0
         with:
           env: ${{ steps.env.outputs.env }}
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
