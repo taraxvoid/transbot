@@ -117,7 +117,7 @@ test('the last chat offers to share this link or make your own', async ({
     // No raw link; it only shows if Copy fails.
     await expect(box.getByRole('link', { name: page.url() })).toHaveCount(0)
     await expect(
-        box.getByRole('link', { name: 'Share on WhatsApp' }),
+        box.getByRole('link', { name: 'Share on Bluesky' }),
     ).toBeVisible()
     const canShare = await page.evaluate(
         () => typeof navigator.share === 'function',

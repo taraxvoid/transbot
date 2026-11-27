@@ -157,10 +157,10 @@ test('the form redirects to a working practice link with Copy link', async ({
     const bar = page.getByRole('region', { name: 'Share this page' })
     await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
     await expect(
-        bar.getByRole('link', { name: 'Share on WhatsApp' }),
+        bar.getByRole('link', { name: 'Share on Bluesky' }),
     ).toHaveAttribute(
         'href',
-        /^https:\/\/wa\.me\/\?text=.*pronouns%3Dxe%2Bshe$/,
+        /^https:\/\/bsky\.app\/intent\/compose\?text=.*pronouns%3Dxe%2Bshe$/,
     )
     // The raw link stays hidden unless Copy fails.
     await expect(bar.getByRole('textbox')).toHaveCount(0)
@@ -183,13 +183,7 @@ test('a practice link opened fresh offers to share it', async ({ page }) => {
     ).toBeVisible()
     const bar = page.getByRole('region', { name: 'Share this page' })
     await expect(bar.getByRole('button', { name: 'Copy link' })).toBeVisible()
-    for (const app of [
-        'WhatsApp',
-        'Telegram',
-        'Bluesky',
-        'Email',
-        'Text message',
-    ]) {
+    for (const app of ['Bluesky', 'Email', 'Text message']) {
         await expect(
             bar.getByRole('link', { name: `Share on ${app}` }),
         ).toBeVisible()
