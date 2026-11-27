@@ -170,8 +170,9 @@ describe('secondary sets', () => {
         for (const n of [1, 2, 3, 5]) {
             const counts = new Map<string, number>()
             const steps = 6000
+            const person = mk(n)
             for (let i = 0; i < steps; i++) {
-                const who = pickPerson(mk(n), () => (i + 0.5) / steps)
+                const who = pickPerson(person, () => (i + 0.5) / steps)
                 counts.set(
                     who.name ?? '',
                     (counts.get(who.name ?? '') ?? 0) + 1,
