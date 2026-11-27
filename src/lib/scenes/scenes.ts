@@ -17,7 +17,7 @@ export type Scene = { id: string; group: string; lines: Line[] }
 export const SCENES: readonly Scene[] = [
     {
         id: 'lunch',
-        group: 'sandwich remuneration for {name}',
+        group: '{name} sandwich payback',
         lines: [
             {
                 from: 'a',
@@ -51,7 +51,7 @@ export const SCENES: readonly Scene[] = [
         lines: [
             {
                 from: 'a',
-                text: "I forgot {name}'s bday was last week - what does {pronoun_subject} want?",
+                text: "I forgot {name}'s bday was last week - what {do|does} {pronoun_subject} want?",
             },
             {
                 from: 'b',
@@ -89,15 +89,19 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'me',
-                text: "Let's pickup {possessive_determiner} ticket and meet {pronoun_subject} at merch, the spot by the stage is {possessive_pronoun} to claim",
+                text: "Let's pickup {possessive_determiner} ticket and meet {pronoun_object} at merch",
             },
             {
                 from: 'b',
-                text: "I'll get a spot near the stage like {pronoun_subject} {likes|like}!!",
+                text: "I'll hold {possessive_pronoun} spot near the stage !!",
             },
             {
                 from: 'a',
-                text: 'and nab {pronoun_object} a tour t-shirt before the merch sells out, {pronoun_subject} never {treats|treat} {reflexive}',
+                text: 'nab {pronoun_object} a tour shirt before the merch sells out',
+            },
+            {
+                from: 'a',
+                text: '{pronoun_subject} {love|loves} to plaster band logos on {reflexive}',
             },
         ],
     },
@@ -115,7 +119,7 @@ export const SCENES: readonly Scene[] = [
             },
             {
                 from: 'me',
-                text: "We can't let {pronoun_object} carry that ceiling mirror by {reflexive}",
+                text: "{pronoun_object} can't carry the couch by {reflexive}",
             },
             {
                 from: 'a',

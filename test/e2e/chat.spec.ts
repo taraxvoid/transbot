@@ -40,12 +40,12 @@ test('a scene plays by tapping Send', async ({ page }) => {
     const panel = chat(page)
     await expect(
         panel.getByRole('heading', {
-            name: 'sandwich remuneration for Quillon',
+            name: 'Quillon sandwich payback',
         }),
     ).toBeVisible()
     await expect(panel.getByText('TransChat', { exact: true })).toBeVisible()
     await expect(
-        panel.getByRole('heading', { name: 'Topic: sandwich remuneration' }),
+        panel.getByRole('heading', { name: /^Topic: Quillon/ }),
     ).toBeVisible()
     await expect(
         panel.getByText('I accidentally ate xyr sandwich the other day'),
@@ -89,7 +89,7 @@ test('Next chat runs through to the end and Start over restarts', async ({
     await again.click()
     await expect(
         chat(page).getByRole('heading', {
-            name: 'sandwich remuneration for Quillon',
+            name: 'Quillon sandwich payback',
         }),
     ).toBeVisible()
     await expect(sendButton(page)).toBeFocused()
