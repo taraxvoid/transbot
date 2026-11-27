@@ -212,6 +212,12 @@ form button[type="submit"] {
     color: var(--fg);
 }
 
+button.share-target {
+    padding: 0;
+    min-height: 44px;
+    background: transparent;
+}
+
 .share-target:hover {
     border-color: var(--accent);
     color: var(--accent);
