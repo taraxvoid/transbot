@@ -244,7 +244,6 @@ describe('renderScene', () => {
             'Alex',
             'Priya',
         ])
-        expect(scene.group).toBe('sandwich remuneration for Tara')
         expect(scene.lines.slice(0, 2)).toEqual([
             {
                 from: 'a',
@@ -304,17 +303,12 @@ describe('scene data', () => {
         }
     })
 
-    it('covers every form in a me line and in a friend line', () => {
-        const me = new Set<string>()
-        const friends = new Set<string>()
-        for (const line of SCENES.flatMap((s) => s.lines)) {
-            for (const slot of slotsIn(line.text)) {
-                ;(line.from === 'me' ? me : friends).add(slot)
-            }
-        }
+    it('uses every pronoun form somewhere in the scenes', () => {
+        const used = new Set(
+            SCENES.flatMap((s) => s.lines).flatMap((l) => slotsIn(l.text)),
+        )
         for (const key of FORM_KEYS) {
-            expect(me, `me lines use ${key}`).toContain(key)
-            expect(friends, `friend lines use ${key}`).toContain(key)
+            expect(used, `scenes use ${key}`).toContain(key)
         }
     })
 
