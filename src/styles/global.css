@@ -136,6 +136,18 @@ button.secondary {
     font-size: 0.875rem;
 }
 
+/* Splits the primary form from the pronouns.page shortcut below it. */
+.divider {
+    margin: 2rem 0 1.5rem;
+    border: 0;
+    border-top: 1px solid var(--border);
+}
+
+.secondary h2 {
+    font-size: 1rem;
+    color: var(--muted);
+}
+
 /* Required-field marker; the field itself says "required" to screen readers. */
 .req {
     color: var(--danger);
